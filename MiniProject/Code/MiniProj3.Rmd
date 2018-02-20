@@ -1,0 +1,612 @@
+---
+title: "Can machine Learning be used to identify species of Sorbus"
+author: "PetraGuy, Imperial College London"
+output:
+  pdf_document: 
+    fig_caption: yes 
+    df_print: kable
+    
+fontsize: 11pt
+
+header-includes:
+  - \usepackage{lineno}
+  - \linenumbers
+  - \usepackage{setspace}
+  - \doublespacing
+  - \usepackage{float}
+
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,message = FALSE,fig.pos = "H" ,comment=NA, fig.align ="centre")
+```
+
+```{r, echo = FALSE, comment=NA}
+date = format(Sys.Date(), "%B %d %Y")
+cat(date)
+```
+
+\center
+![Figure 1. Sorbus aucuparia](Sorbusaucuparia.pdf){width=100%, height=100%}\ 
+\center
+
+```{r, echo =FALSE}
+#This creates pdf from command line, note, sensitive to ' or "
+
+#Rscript -e "library(knitr); knit('MiniProj2.Rmd')"
+
+#Rscript -e "library(rmarkdown); render('MiniProj2.md')"
+```
+
+
+
+```{r}
+#clear the workspace
+rm(list = ls())
+cat("\014")
+#setwd("~/Documents/CMEECourseWork/MiniProject/Code")
+library(ggplot2)
+library(reshape) # both required for the box plots, otherwise they cant all be presented
+                # on one page and therefore difficult to analyse
+library(rpart)
+library(rpart.plot)# both required for the decision tree
+library(knitr)
+library(kableExtra) # for kable stylig options, to hold position on page
+```
+
+```{r}
+#Get the data , enter input CSV file name here, for data in data directory
+inputfile = 'SorariaCompact1.csv'
+Dataname = strsplit(inputfile, "\\.")[[1]][[1]]
+fullfile = paste("../Data",inputfile,sep = '/')
+Data = read.csv(fullfile)
+speciesnames = as.character(unique(unlist(Data$Species))) # uselful for nameing things
+numspecies = summary(Data$Species) # useful for comparisons
+
+```
+
+```{r}
+#Median imputation 
+median_replace1 = function(x){
+  ifelse(is.na(x), median(x,na.rm = TRUE), x)
+ }
+
+median_replace2 = function(x){
+  apply(x,2,median_replace1)
+}
+
+Imputed_list = lapply(split.data.frame(Data[,2:12], Data$Species), FUN = median_replace2)
+```
+
+```{r}
+#The imputed dataframe is a list with species as the elements, the following sticks it back together with a different name so both optiona are available
+temp = do.call(rbind, Imputed_list)
+Imputed_df = cbind(Data[1], temp)
+```
+
+```{r}
+# Some algorthms are sensitive to the scale of the data, so here the entire dataframe is scaled
+Scaled_df = scale(Imputed_df[-1])
+Scaled_df = cbind(Data[1], Scaled_df)
+
+# but this might reduce the dissimilarity to much, so this is a semi-scaled datafrane.
+
+temp = Imputed_df[-c(1,6,7,8,12)]
+temp = scale(temp)
+Semi_Scaled_df = cbind(Imputed_df[c(1,6:8,12)], temp)
+
+```
+
+
+```{r}
+# Model evaluation metrics
+
+accuracy = function(atable){
+  a = round(sum(diag(atable)/sum(atable)), digits = 2)
+  return(a)
+}
+# precision = TP/( rest of that column in conf matrix = the other species id in same class)
+precision = function(atable){
+  p = vector()
+  items = vector()
+  no_predictions = dim(atable)[2] 
+  for (i in 1:no_predictions){
+    items[i] = paste("class",colnames(atable)[i], sep = "_")
+    p[i] = round(diag(atable)[i]/(sum((atable)[,i])), digits = 2)
+  }
+  precisions = cbind(items,p)
+  colnames(precisions) = c("Class", "Precision")
+  return(precisions)
+}
+#sensitivity = TP/ rest of that row = the other classes the algorithm has put species in
+sensitivity = function(atable){
+  s = vector()
+  no_actuals = dim(atable)[1] 
+    for (i in 1:no_actuals){
+    s[i] = round(diag(atable)[i]/(sum((atable)[i,])), digits = 2)
+  }
+  sensitivities = cbind(rownames(atable),s)
+  colnames(sensitivities) = c("Species", "Sensitivity")
+  return(sensitivities)
+}
+
+```
+
+
+```{r}
+#Data sampling and test/train sets.
+
+#This shuffles and splits the data
+shuffle = function(dataset){
+  splits = list()
+  set.seed(42)
+  n = nrow(dataset)
+  shuffled = dataset[sample(n),]
+  train = shuffled[1:round(0.7*n),]
+  test = shuffled[(round(0.7*n)+1):n,]
+  splits[[1]] = train
+  splits[[2]] = test
+  return(splits)
+}
+
+#this subsets the data into species
+create_train_test = function(dataset){
+  sets = as.character(unique(dataset[,1]))
+  train = data.frame()
+  test = data.frame()
+  split_data = list()
+  for (i in 1:length(sets)){
+    sub = subset(dataset, dataset[,1] == sets[i])
+    train_temp = shuffle(sub)[[1]]
+    test_temp = shuffle(sub)[[2]]
+    train = rbind(train, train_temp)
+    test = rbind(test, test_temp)
+  }
+  split_data[[1]] = train
+  split_data[[2]] = test
+  return(split_data)
+}
+
+#PS you can check the splits are correct with summary(train$species), summary(test$species)
+#summary(maindata$species), this gives numbers in each species.
+
+#to include a cross fold validation repeat above fold times
+
+```
+
+```{r}
+# performs the k means algorith over 10 repeats, returns BSS/Wss ratio, accuracy and 
+
+repeated_kmeans = function(dataset){ 
+  metrics_list = list()
+  accuracy_vector = vector()
+  ratio = vector()
+  species_no = data.frame(matrix(ncol = 7))
+  colnames(species_no) = speciesnames
+  sens = data.frame(row.names = speciesnames )
+  prec = data.frame(rownames = speciesnames)
+  for (i in 1:10){
+    kmeans_result = kmeans(dataset[-1], 7, 20, iter.max = 50, algorithm = "MacQueen")
+    ratio[i] = round(kmeans_result$tot.withinss/kmeans_result$totss, digits = 2)
+    kmeans_conf = table(Imputed_df$Species, kmeans_result$cluster)
+    accuracy_vector[i] = accuracy(kmeans_conf)
+    species = diag(kmeans_conf)
+    species_no = rbind(species_no, species)# just TP
+    s = sensitivity(kmeans_conf)
+    sens = cbind(sens, s[,2])
+    p = precision(kmeans_conf)
+    prec = cbind(prec,p[,2])
+  }
+  metrics_list[[1]] = ratio # wss/bss
+  metrics_list[[2]] = accuracy_vector #sum TP/no things done
+  metrics_list[[3]] = species_no[-1,]
+  metrics_list[[4]] = sens
+  metrics_list[[5]] = prec
+  return(metrics_list)
+}
+```
+\flushleft
+
+#0. Abstract.
+
+Machine learning was used to separate seven species of Sorbus within the subgenus Soraria based on morphological measurements of fruit and leaves. Box plots show that there is considerable overlap of characteristics between the species, but that some species were sufficiently differentiated in one or two characteristics. This was reflected in the modelling where unsupervised clustering algorithms gave inaccurate results but decision tree methods were successful.
+
+#1. Introduction - The genus Sorbus.
+
+Sorbus is a member of the Rosaceae family, perhaps the best known species being Sorbus aucuparia, the Rowan or Mountain Ash. However, there are over 50 species of Sorbus in the UK, 38 of these are vulnerable or critically endangered and most are endemic or native.  There are four diploid species, but, as with many Rosaceae, Sorbus produce new apomictic polyploid species. These can also produce viable pollen and can therefore backcross with other diploid or polyploid species. This results in the large number of genetically unique, stable, clonal communities, which can look very similar to each other. This presents a problem with recording and many Sorbus require expert knowledge to correctly identify to species level because much of the identification depends on comparative knowledge. This tends to dissuade recorders, or encourages records at aggregate level. This is a problem for such an important genus with many endangered plants that could benefit from identification.
+
+Sorbus are grouped into six subgenera, each of which are reasonably easy to identify by recorders with some knowledge, more difficulty arises when identifying plants within these subgenera, and this is where this work has concentrated. In this modelling only the subgenus Soraria has been trialled. This subgenus consists of eight species all similar in appearance to Sorbus intermedia, although only seven species are considered based on the availability of data. These plants are distinguished from other subgenera by having leaves with rounded lobes which are tomentose beneath and the fruits having fewer lenticles. Perhaps the most noticeable difference between plants within the subgenus, are the larger fruits on S intermedia, the smaller leaves of S minima and the small fruits of S mougeotii.
+
+
+#2. Data and data preparation
+
+The data was provided by Dr T Rich, the Botanical Society of Britain and Ireland expert on Sorbus and  consists of leaf and fruit measurements. For the leaves, the length, width, widest point on the leaf, base angle, number of veins, depth of the lobes, and vein angle  have been recorded. For the fruit, the length and the width are used. Due to the variability in leaf size across one plant, the measurements were all carried out in a specific manner described by Rich [ ]. Essentially, repeated measurements of leaves on sterile spurs on the sunlight side of the tree are recorded and averaged over at least ten leaves. 
+
+The nature of collection means that the data was sparse. Every plant of every species did not have have complete set of measurements or the same number of measurements. For example, S intermedia had 126 observations but S leyana only had 39. This is due to the rarity S. leyana. S. intermedia is a common plant found throughout the UK in easily accessible places, whilst S leyana is only found in two sites in South Wales, sometimes on the sides of cliffs. In addition,  measurements  cannot all be collected at the same time. Leaves must be measured when mature, around flowering time, and therefore cannot be measured in conjunction with fruit. Separate trips to re-measure fruit on the same trees may not be possible. This has lead to a sparse dataset in which not all morphological characteristics were available for every plant. S intermedia records are an example. Of 122 records,  72 are purely for fruit measurements and the remaining 50 purely for leaf measurements, and these occur on different plants If imputation was carried out, 59% of the leaf measurements would be imputed. This would reduce the effectiveness of some algorithms. For example, in kNN, if you increase the frequency of the neighbours in the S. Intermedia group, it is more likely that a member of a different group will be close to that neighbour. Therefore, the sparsity was handled by reallocating measurements. For example, the 50 leaf measurements for S. intermedia were assigned to 50 fruit measurements and the excess 22 were not used. In some cases, where there were only a few additional rows of incomplete data, median imputation was carried out. 
+
+Although it seems dubious to assign records from one plant to another, in this analysis this was felt to be acceptable for two reasons. Firstly, this an exploration of a new technique to aid biological recording; it is not being proposed as a complete and accurate method for species identification. Secondly, the clonal nature of these plants implies that we would expect a great deal of similarity within a species. The variation within the species is more likely to come from the variety of leaf sizes which can be found on one plant, and these are controlled for, although they cannot be eliminated, when the data is collected. However, if these plants are phenotypically very plastic, these assumptions may be invalid.  The range of leaf sizes within each plant was not available, but a comparison of the variation within each plant and between all the plants of each species would be useful here. That analysis would demonstrate whether each record needs to be complete or not. 
+
+This procedure also has the benefit of producing a dataset with no missing values, and some of the machine learning algorithms used here had no method for dealing with these, hence they must be removed before modelling. Some machine learning algorithms are sensitive to scale in the data, for example, k nearest neighbours and k-means,  therefore the data was also standardized and models carried out on standardized and non-standardized data.
+
+Some machine learning algorithms require train and test sets. The model is fitted to a subset of the data – the training set, and its performance evaluated using new data – the test set. This is to avoid over fitting and to improve the predictive power of the models. The data can  be split by selecting a random sample of, for example, 70% of the data. However, this might be problematic with this data because it is unbalanced. Therefore, a random stratified sampling system was carried out. Each species, which has a different number of entries, was split into 70/30 train test sets. This should reduce the bias of the model whilst not over fitting.  In addition, cross fold validation was also used to increase accuracy. This technique repeatedly creates train test sets as described above and averages the model performance metrics across all the folds. This gives a more robust estimate of the model accuracy because it is less dependent on the choice of the data for the train and test sets. 
+
+#3. Modelling
+
+##3.1Model performance metrics
+
+In classification models, the correct and incorrect values assigned to each class are known, and these can be used to evaluate the model. For these types of models accuracy, precision and sensitivity are used to evaluate the model.
+
+Accuracy is is the number of correct values divided by total number of items evaluated. 
+
+Precision is the ratio of true positives to false positives in each species, so there  will be  precision for each species. Precision tells you  how accurately the algorithm is correctly placing species, a low precision tells you that other species are lumped with the correct species.
+
+Sensitivity is the true positive rate of a class. Sensitivity tells you how good the classes are, low number tells you the correct species have been put in other, incorrect, classes.
+
+For clustering models, well defined clusters represent better models  and the ratio of within cluster sum of squares to total sum of squares was used.  For well defined, compact clusters the ratio will be small. 
+
+For all the data, despite using unsupervised learning methods, we do know the identification of the species, this means that we can calculate accuracy, precision and sensitivity for all the models and compare them using the same metric.
+
+Confusion matrices, which summarise the the frequencies of the species allocated to different classes and clusters can also be produced. 
+
+##3.2 Modelling methods.
+
+Three machine learning methods were used   k-means,  hierarchical clustering and a decision tree. The first two being unsupervised clustering techniques and the third a supervised classification algorithm.
+
+
+###3.2.1.Decision tree.
+
+Variables are used to make binary decisions as whether data points are part of a group or not. Decisions are made based on whether the information after the decision, i.e., the separation of the groups, is increased or decreased. The final classes would ideally contain only the items of a single species, this will not be the case due to noise within the data. The model here is be represented by the logical processes followed to reach the final classes. The rpart package was used for the decision tree. []
+
+Accuracy, precision, sensitivity and a confusion matrix were used to evaluate the decision tree, as well as a decision tree plot which summarises the binary choices used at each node. since standardization should not effect a decision tree, only the unstandardized data was modelled.
+
+###3.2.2. K-means
+
+Kmeans is an unsupervised clustering technique. Even though we do  know the identity of the instances in the data, this is not used in the model. Instead, the data is grouped into clusters where the aim is to make the items within each cluster similar, whilst each cluster is as dissimilar as possible from other clusters. This is similar to a classification technique except the classes to which the items belong is to specified. In clustering, no information is needed about the objects and there is no right or wrong, so in that sense, this problem is not strictly a clustering problem. We know what species a sample belongs to and we do not want it allocated to another cluster. However, it is a useful technique for examining the data and revealing patterns within the data. The k in k means refers to the number of clusters to be used, which we specified as seven – the number of species.
+
+In k-means  k centroids are randomly assigned to the data. The data points are then assigned to the closest centroid, resulting in k clusters. The centroid is then moved to the average location of the data-points in its cluster. This process is repeated until the centroid position is stable, or the maximum number of iterations has occurred. If repeating the k-means function results in different clusters, which can be seen in differences in accuracy,  precision and the numbers of true positives, it can be assumed that the algorithm is not efficient at separating clusters. Since the number of clusters is known, repeating the algorithm and examining the true positives will indicate the success of the model. 
+
+In order to explore different k-means models the algorithm was also repeated on  imputed standardised and non-standarized data. The standardize function in R was used to subtract the means and divide by the standard deviation. The MacQueen method gave the highest accuracy and was used for all the calculations. 
+
+Accuracy, precision and sensitity were used to evaluate the algorithm, as well as between cluster to within cluster ratio. The consistency of the algorithm over ten was was examined and the percentage of true positives on each run calcualted. Since there were repeated runs, displaying a confusion matrix in each case would be visually difficult to examine, so they were not used in this case.
+
+###3.2.3. Hierarchical Clustering.
+
+Instead of randomly assigning k centroids, hierarchical clustering assigns each data-point to a single cluster. The distance between the clusters is calculated and the closest two points are aggregated into a new cluster, so the clusters decrease by one.  The process is repeated until all items are clustered into one cluster. The clusters can be cut at k and the members can be examined. Hierarchical clustering was explored using different distance calculation methods. 
+
+Hierarchical clustering is again unsupervised, but since we know the members of each cluster, we can compare the clusters to the original data and calculate accuracy, precision and sensitivity. The hclust function is part of the stats package [] which is usually included in base R.
+
+Accuracy, precision, sensitivity and a confusion matrix were used to evaluate the hierarchical clustering technique.
+
+##3.4 Computing languages
+
+R was the main language used in this project, although there is no reason, in terms of functionality, why Python could not be used, especially at the more simplistic level of modelling carried out here. A large benefit in R was that it can easily be used in conjunction with R markdown which then provide a mechanism for easily producing pdf documents with an interactive document. In addition, the data was provided by, and the results prepared for, members of the ecological community, where R is the most common package being used. Python was used for some data preparation in order to full fill the criteria of the project, but R would have been equally suitable. R markdown was used as it provides the same functionality as Latex, allowing the use of latex commands directly within the document, but with the added benefit of being a dynamic document that is commonly used by other researchers in ecology.  
+
+#4.Data exploration.
+
+In order for machine learning algorithms to work accurately the groups should be separated into clearly defined clumps with very little overlap. Box plots show the similarity between the variables and how much the variables overlap.
+
+The box plots are presented for the imputed, semi-standardised and fully standardised data and show how the scale and overlap could be an issue for the clustering algorithms. The plots also show that despite the overlap, certain features clearly differentiate certain species. For instance, fruit width would separate S. anglica, and then fruit length would subsequently separate S leyana. This suggests that a decision tree algorithm could be successful. The plots also show that more data preparation might need to be employed, for example, scaling some of the variables instead of standardising.
+
+```{r, message = FALSE, fig.cap="Box plots for standardized data" }
+# data exploration - box plots
+melted = melt(Scaled_df)
+ggplot(data = melted) +  geom_boxplot(aes(x=Species,y=value, fill = Species)) +   facet_wrap(~variable) +
+  theme(axis.ticks = element_blank(), axis.text.x = element_blank())
+
+```
+\pagebreak
+
+```{r, message = FALSE, eval = FALSE,fig.cap="Box plots for semi-standardized data" }
+# data exploration - box plots
+melted = melt(Semi_Scaled_df)
+ggplot(data = melted) +  geom_boxplot(aes(x=Species,y=value, fill = Species)) +   facet_wrap(~variable) +
+  theme(axis.ticks = element_blank(), axis.text.x = element_blank())
+
+```
+
+
+```{r, message = FALSE, fig.cap="Box plots for un-standardized data" }
+# data exploration - box plots
+melted = melt(Imputed_df)
+ggplot(data = melted) +  geom_boxplot(aes(x=Species,y=value, fill = Species)) +   facet_wrap(~variable) +
+  theme(axis.ticks = element_blank(), axis.text.x = element_blank())
+
+```
+\pagebreak
+
+#5. Results
+
+##5.1 Kmeans
+
+
+```{r}
+#Getting the results for the kmeans
+#Imputed df without scaling
+Imputed_kmeans = repeated_kmeans(Imputed_df) 
+#Semi scaled data
+#Semi_scaled_kmeans = repeated_kmeans(Semi_Scaled_df)
+# fully scaled data
+Scaled_kmeans = repeated_kmeans(Scaled_df)
+```
+
+
+```{r}
+#Disaply BSS/WSS ratio for the kmeans calculated in chunk above 
+SS_df = data.frame(nrow = 2)
+SS_df = rbind(Imputed_kmeans[[1]],Scaled_kmeans[[1]])
+rownames(SS_df) = c("unstandardized","standardized")
+colnames(SS_df) = c("Run 1","Run 2","Run 3","Run 4","Run 5","Run 6","Run 7", "Run 8","Run 9","Run 10")
+kable(SS_df, format = "latex", caption = "Within cluster to between cluster ratio")%>%
+kable_styling(latex_options = "hold_position")
+
+```
+
+
+Table 1 shows the within cluster sum of squares to between cluster sum of squares across the 10 repeats. The ratio is better for the unstandardized data.
+
+```{r}
+#Display accuaracy for kmeans calcualted above. this is accuarcy, not repcision
+acc_df = data.frame(nrow = 2)
+acc_df = rbind(Imputed_kmeans[[2]],Scaled_kmeans[[2]])
+rownames(acc_df) = c("unstandardized","standardized")
+colnames(acc_df) = c("Run 1","Run 2","Run 3","Run 4","Run 5","Run 6","Run 7", "Run 8","Run 9","Run 10")
+kable(acc_df, format = "latex", caption = "Accuracy")%>%
+kable_styling(latex_options = "hold_position")
+```
+
+The accuracy shown in table 2 is different on each run which implies that the algorithm is not successfully grouping the data into the same clusters. The mean accuracy is higher for the standardized data, but its low value, its fluctuation and its range imply that the model is not useful.
+
+
+
+The following tables show the percentage of each species correctly allocated to its cluster on each of the ten repeats for the  For example, the top row from left to right, gives the true positive rate for S. anglia on each subsequent run on the kmeans algorithm.
+
+```{r,}
+#Display percentage of true positives from the confusion matrix calcualted in kmeans chunk above
+m1 = Imputed_kmeans[[3]]
+#m2 = Semi_scaled_kmeans[[3]]
+m3 = Scaled_kmeans[[3]]
+```
+
+
+```{r}
+
+m1_percent = round(apply(m1, 1, function(x) (x/numspecies)*100), digits = 2)
+colnames(m1_percent) = c(1:10)
+kable(m1_percent, format = "latex", caption = "Percentage of true positives for non-standarized data")%>%
+kable_styling(latex_options = "hold_position")
+```
+
+
+```{r, eval = FALSE}
+m2_percent = round(apply(m2, 1, function(x) (x/numspecies)*100), digits = 2)
+colnames(m2_percent) = c(1:10)
+kable(m2_percent, format = "latex", caption = "Percentage of true positives for semi-standarized data" )
+
+```
+
+
+```{r}
+m3_percent = round(apply(m3, 1, function(x) (x/numspecies)*100), digits = 2)
+colnames(m3_percent) = c(1:10)
+kable(m3_percent, format = "latex", caption = "Percentage of true positives for standarized data")%>%
+kable_styling(latex_options = "hold_position")
+
+
+```
+
+The results again show that the algorithm is not consistently allocating species to the correct cluster. On some runs, it is very accurate for some species, but not necessarily for all the others. Then on other runs its is completely inaccurate. The standardized data shows better results than the non standardized data.
+
+In order to compare this model to hierarchical clustering and decision tree, the precision and sensitivity were also calculated.
+
+```{r}
+prec_df_Imputed = Imputed_kmeans[[4]]
+colnames(prec_df_Imputed) = c(1:10)
+kable(prec_df_Imputed, format = "latex", caption = "Precision of kmeans with non standardized data")%>%
+kable_styling(latex_options = "hold_position")
+```
+
+```{r}
+prec_df = Scaled_kmeans[[4]]
+colnames(prec_df) = c(1:10)
+kable(prec_df, format = "latex", caption = "Precision of kmeans with standardized data")%>%
+kable_styling(latex_options = "hold_position")
+```
+
+
+
+```{r}
+sens_df_Imputed = Imputed_kmeans[[4]]
+colnames(sens_df_Imputed) = c(1:10)
+kable(sens_df_Imputed, format = "latex", caption = "Sensitivity of kmeans with non standardized data")%>%
+kable_styling(latex_options = "hold_position")
+```
+```{r}
+sens_df_scaled = Scaled_kmeans[[4]]
+colnames(sens_df_scaled) = c(1:10)
+kable(sens_df_scaled, format = "latex", caption = "Sensitivity of kmeans with standardized data")%>%
+kable_styling(latex_options = "hold_position")
+```
+
+The precision and sensitivity also demonstrate the instability of the model. Although the standardized data in both cases sometimes gives very good results, this is not consistent or repeatable.
+
+
+##5.2 Hierarchical Clustering
+
+```{r}
+# reapeats over the 5 methodsa ad returns confusion matrix for each, plus accuracy for each
+repeated_hclust = function(dataset){
+  conf = list()
+  metrics_list = list()
+  accuracy_vector = vector()
+  dist_methods = c("euclidean", "maximum","manhattan","canberra","minkowski")
+for (i in 1:length(dist_methods)){
+  method = dist_methods[i]
+  distance = dist(dataset[-1], method = method)
+  hcluster = hclust(distance, method = "complete")
+  cluster = cutree(hcluster, k = 7)
+  conf[[i]] = table(dataset$Species, cluster)
+  accuracy_vector[i] = accuracy(conf[[i]])
+}
+  accuracy_df = rbind(dist_methods, accuracy_vector)
+  metrics_list[[1]]=accuracy_df
+  metrics_list[[2]]=conf
+  names(metrics_list)=c("Accuracy", "Confusion Matrix")
+  return(metrics_list)
+
+}
+```
+
+
+```{r}
+
+hcluster = repeated_hclust(Imputed_df)
+accs = data.frame(nrow = 2)
+accs = rbind(hcluster[[1]][1,], hcluster[[1]][2,])
+rownames(accs) = c("Distance Method", "Accuracy")
+colnames(accs) = c(" ", " "," ", " "," ")
+kable(accs, format = "latex", caption = "Accuracy obtained in hierarchical clustering using different distance metrics for non standarized data")%>%
+kable_styling(latex_options = "hold_position")
+
+```
+```{r}
+hcluster_scaled = repeated_hclust(Scaled_df)
+accs = data.frame(nrow = 2)
+accs = rbind(hcluster_scaled[[1]][1,], hcluster_scaled[[1]][2,])
+rownames(accs) = c("Distance Method", "Accuracy")
+colnames(accs) = c(" ", " "," ", " "," ")
+kable(accs, format = "latex", caption = "Accuracy obtained in hierarchical clustering using different distance metrics for standardized data")%>%
+kable_styling(latex_options = "hold_position")
+
+```
+
+The table above shows that the Canberra metric gives the most accurate results in the non-standardized data. The Euclidean and Minkowski methods give slightly worse worse results but the best for the standardized data.
+
+
+```{r}
+kable(hcluster[[2]][[4]], format = "latex", caption = "Confusion matrix for Canberra method using un standardized data")%>%
+kable_styling(latex_options = "hold_position")
+```
+
+The confusion matrix above shows that the method successful clusters some species, such as S. anglica, many other species are dispersed across the cluster. 
+
+```{r}
+kable(hcluster_scaled[[2]][[4]], format = "latex", caption = "Confusion matrix for Canberra method with standardized data")%>%
+kable_styling(latex_options = "hold_position")
+```
+
+The confusion matrix for the standardized data shows worse results than for the non-standardized data.
+
+```{r}
+prec_imp = precision(hcluster[[2]][[2]])
+Standardized_prec = prec_imp[,2]
+prec_sc = precision(hcluster[[2]][[4]])
+Non_standardized_prec = prec_sc[,2]
+sens_imp = sensitivity(hcluster[[2]][[4]])
+Standardized_sens = sens_imp[,2]
+sens_sc = sensitivity((hcluster_scaled[[2]][[4]]))
+Non_standardized_sens = sens_sc[,2]
+
+precision_table = cbind(Standardized_prec, Non_standardized_prec)
+rownames(precision_table) = c("Class1", "Class2","Class3","Class4","Class5","Class6","Class7")
+colnames(precision_table) = c("Standardized", "Unstandardized")
+
+sensitivity_table = cbind(Standardized_sens, Non_standardized_sens)
+rownames(sensitivity_table) = c(speciesnames)
+colnames(sensitivity_table) = c("Standardized", "Non-standardized")
+```
+
+
+```{r}
+kable(precision_table, format = "latex", caption = "Precision for standardized and non-standardized data")%>%
+kable_styling(latex_options = "hold_position")
+```
+
+
+
+```{r}
+kable(sensitivity_table, format = "latex", caption = "Precision for standardized and non-standardized data")%>%
+kable_styling(latex_options = "hold_position")
+```
+
+The precision and sensitivity is not consistent between classes or species. The precision is higher in all cases for the non-standardized data, but the sensitivity is sometimes higher in standardized data.
+
+
+##5.3 Decision Tree
+
+```{r}
+
+Imputed_sets = create_train_test(Imputed_df)
+Imputed_train = Imputed_sets[[1]]
+Imputed_test = Imputed_sets[[2]]
+tree = rpart(Species~., Imputed_train, method = "class", control = rpart.control(cp = 0.00001))
+```
+
+
+```{r, fig.cap="Decision tree unstandardized data"}
+rpart.plot(tree, box.palette = "Blues",fallen.leaves = FALSE,  gap=0, space=0)
+```
+
+The plot shows the decision tree for the unstandardised data. The decisions at the nodes can be seen to be based initially on fruit width, which was seen in the boxplots to be an variable which differentiate S anglica. The leaves of the tree show that many classes are very accurate. S. minima is 100% accurate, S. anglica 90%. S mougeotii and S arranensis are both about 80% and the remaining species are above 60%. 
+
+```{r}
+pred_tree = predict(tree, Imputed_test, type = "class")
+confusion_tree = table(Imputed_test$Species, pred_tree)
+cat("The accuracy for the decision tree is ")
+cat(accuracy(table(Imputed_test$Species, pred_tree)))
+```
+
+
+```{r, fig.cap="Sensitivity obtained using decision tree"}
+sens_tree = (sensitivity(table(Imputed_test$Species, pred_tree)))
+kable(sens_tree, format = "latex", caption = "Sensitivity for the decision tree")%>%
+kable_styling(latex_options = "hold_position")
+```
+
+The sensitivity for the decision tree is only 0.17 for S cuneifolia but 0.85 for S anglica.
+
+```{r, fig.cap="Precision obtained using decision tree"}
+prec_tree = precision(table(Imputed_test$Species, pred_tree))
+kable(prec_tree, format = "latex", caption = "Precision for the decision tree")%>%
+kable_styling(latex_options = "hold_position")
+
+```
+
+The decision tree achieves high precision.
+
+A summary of precision and sensitivity for hierarchical clustering and the decision tree are shown below. The kmeans has not been included since the inconsistency of the method demonstrates that it is not suitable for this data.
+
+```{r, fig.cap="The confusion matrix details exactly how the species were placed"}
+kable(cbind(table(Imputed_test$Species, pred_tree),summary(Imputed_test$Species)), format = "latex", caption =  "Confusion matrix for the decision tree")%>%
+kable_styling(latex_options = "hold_position")
+```
+
+
+```{r}
+#Summarise all the precisions and sensitivity
+sens_totals = cbind(sensitivity_table, sens_tree[,2])
+colnames(sens_totals) = c("hclust standardised", "hclust non-standardized", "tree")
+kable(sens_totals, format = "latex", caption = "Sensitivity for hierarchical clustering and decision tree")%>%
+kable_styling(latex_options = "hold_position")
+```
+
+
+```{r}
+prec_totals = cbind(precision_table, prec_tree[,2])
+colnames(prec_totals) = c("hclust standardised", "hclust non-standardized", "tree")
+kable(prec_totals, format = "latex", caption = "Precision for hierarchical clustering and decision tree")%>%
+kable_styling(latex_options = "hold_position")
+```
+
+#6 Conlcusion.
+As expected, kmeans was not successful in separating the data into clusters which could be interpreted as species of Sorbus. The kmeans algorithm was seen to be unrepeatable and although the ratio of the within cluster sum of squares to between cluster sum of squares was low, the accuracy was always less 0.3.  Sometimes high precision or sensitivity was achieved for a single species, but this was not reflected in the other species and it was not repeatable. The standardized data gave slighty better results, as expected.
+
+Hierarchical clustering achieved  an accuracy of 0.42 using the Canberra method in standardized data and 0.41 using the Euclidean and Minowski method in non-standardized data. The confusion matrix for the non-standardized data showed better allocation of S Anglica but the confusion matrix for standardised data was better for allocating S mougeotii. The sensitivity and precision also gave inconsistent results for the standardized and non-standardized data. Neither data treatment being better overall for all species. 
+
+The decision tree method performed more consistently that hierarchical clustering. Although a single species might have a higher sensitivity in clustering, across all species the decision tree performed better, with  five of the seven species achieving greater than 0.6 sensitivity and precision above 0.5 in all but one class. The overall accuracy was also the highest at 0.68.
+
+The tree plot has the added benefit of providing a decision that can be used to assist biological recording.
+
+#7 Further work
+
+All the variables were used in the decision tree, which may not be the best model. Rpart provides information on the importance of variables which could be used to ascertain which variables could be removed. The model should be repeated with other species of Sorbus to see if the success was due to the specific morphological characteristics of the Soraria subgenus. It would also be interesting to examine the within plant and within species variability in order to ascertain whether the noise in the data can be reduced or has some minimum level which will always be present. 
+
+\flushleft
