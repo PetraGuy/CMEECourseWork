@@ -2,13 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c976a421-f312-4696-8fbf-0337751cafd6" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/Week3/Code/PP_Regress_Practise.ipynb" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/HPC/Results/pg5117.tgz" afterPath="$PROJECT_DIR$/HPC/Results/pg5117.tgz" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Week3/Code/.RData" afterPath="$PROJECT_DIR$/Week3/Code/.RData" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Week3/Code/.Rhistory" afterPath="$PROJECT_DIR$/Week3/Code/.Rhistory" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Week3/Code/DataWrangTidy.R" afterPath="$PROJECT_DIR$/Week3/Code/DataWrangTidy.R" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Week5/Code/GridRefConverter.py" afterPath="$PROJECT_DIR$/Week5/Code/GridRefConverter.py" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/MiniProject/Code/MiniProj2.pdf" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CMEEMainProject/Code/.RData" afterPath="$PROJECT_DIR$/CMEEMainProject/Code/.RData" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CMEEMainProject/Code/MainProjectSiteDescAnalysis.pdf" afterPath="$PROJECT_DIR$/CMEEMainProject/Code/MainProjectSiteDescAnalysis.pdf" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CMEEMainProject/Documents/DataHandling.odt" afterPath="$PROJECT_DIR$/CMEEMainProject/Documents/DataHandling.odt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MiniProject/Code/MiniProj3.pdf" afterPath="$PROJECT_DIR$/MiniProject/Code/MiniProj3.pdf" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CMEEMainProject/Code/.Rhistory" afterPath="$PROJECT_DIR$/CMEEMainProject/Code/.Rhistory" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CMEEMainProject/Code/MainProjectSiteDescAnalysis.Rmd" afterPath="$PROJECT_DIR$/CMEEMainProject/Code/MainProjectSiteDescAnalysis.Rmd" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MiniProject/Code/.Rhistory" afterPath="$PROJECT_DIR$/MiniProject/Code/.Rhistory" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MiniProject/Code/MiniProj3.Rmd" afterPath="$PROJECT_DIR$/MiniProject/Code/MiniProj3.Rmd" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MiniProject/Code/bibliography.bib" afterPath="$PROJECT_DIR$/MiniProject/Code/bibliography.bib" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -30,7 +33,7 @@
         <entry file="file://$PROJECT_DIR$/Week5/Code/GridRefConverter.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="822">
-              <caret line="57" column="0" lean-forward="true" selection-start-line="57" selection-start-column="0" selection-end-line="57" selection-end-column="0" />
+              <caret line="57" column="0" lean-forward="false" selection-start-line="57" selection-start-column="0" selection-end-line="57" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -104,8 +107,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="Scratches" />
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -540,19 +543,19 @@
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.44093686" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.43207353" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.37867647" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.35226077" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Documentation" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="FLOATING" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" x="145" y="152" width="1675" height="856" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.43207353" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.35226077" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="VcsContentAnnotationSettings">
@@ -866,7 +869,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="108">
           <caret line="6" column="0" lean-forward="true" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -874,7 +876,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="72">
           <caret line="4" column="0" lean-forward="false" selection-start-line="4" selection-start-column="0" selection-end-line="5" selection-end-column="19" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -882,14 +883,13 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="41" lean-forward="false" selection-start-line="0" selection-start-column="41" selection-end-line="0" selection-end-column="41" />
-          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Week5/Code/GridRefConverter.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="822">
-          <caret line="57" column="0" lean-forward="true" selection-start-line="57" selection-start-column="0" selection-end-line="57" selection-end-column="0" />
+          <caret line="57" column="0" lean-forward="false" selection-start-line="57" selection-start-column="0" selection-end-line="57" selection-end-column="0" />
           <folding />
         </state>
       </provider>

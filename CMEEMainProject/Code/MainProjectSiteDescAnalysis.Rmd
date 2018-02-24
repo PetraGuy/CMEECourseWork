@@ -118,7 +118,18 @@ NegativeHeterogIndices = write.csv(NegativeHeterogIndices, "../Data/NegativeHete
 
 ```
 
-
+```{r}
+# these are the positive codes used
+positive_key = subset(LookUpSite, SD_code %in% PositiveCodesSites)
+positive_key
+write.csv(positive_key, "../Results/Positive_codes_used.csv")
+```
+```{r}
+# these are the negative codes used
+negative_key = subset(LookUpSite, SD_code %in% NegativeCodesSites)
+negative_key
+write.csv(negative_key,"../Results/Negative_codes_used.csv")
+```
 
 
 
