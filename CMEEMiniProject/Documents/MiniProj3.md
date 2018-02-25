@@ -15,10 +15,7 @@ header-includes:
 bibliography: bibliography.bib
 ---
 
-#This file has been prepared to run from bash script, 
-#required files, such as bibliography are moved
-#you cannot therefore compile using the knitr button.
-#use python run_MiniProject.py from command line
+
 
 
 
@@ -55,13 +52,13 @@ February 25 2018 ,   word count 3384
 
 #0. Abstract.
 
-There are many reports in the literature of machine learning as a method of identifying plants using visual images of leaf or flowers. However, the use of morphological features is less well documented. Three algorithms were used to separate seven species of \textit{Sorbus} within the subgenus \textit{Soraria} based on morphological measurements of fruit and leaves. Two unsupervised clustering techniques, namely K-means and hierarchical clustering and one supervised decision tree. Box plots showed  considerable overlap of characteristics between the species, but that some species were differentiated in one or two characteristics, suggesting clustering techniques would be less successful than decision tree methods. This was seen in the results with K-means modelling being unstable and unable to repeatedly produce accurate results. Hierarchical clustering using the canberra distance metric gave an accuracy of 0.42 while precision ranged from 0 to 0.81 and sensitivity from 0 to 0.87 using non-standardized data. A decision tree was the most successful method giving an accuracy of 0.68 with precision ranging from 0.4 to 1 and sensitivity from 0.17 to 0.85. 
+There are many reports in the literature of machine learning as a method of identifying plants using visual images of leaf or flowers, for example,[@Gwo,@Val]. However, the use of morphological features is less well documented. Three algorithms were used to separate seven species of \textit{Sorbus} within the subgenus \textit{Soraria} based on morphological measurements of fruit and leaves. Two unsupervised clustering techniques, namely K-means and hierarchical clustering and one supervised decision tree. Box plots showed  considerable overlap of characteristics between the species, but that some species were differentiated in one or two characteristics, suggesting clustering techniques would be less successful than decision tree methods. This was seen in the results with K-means modelling being unstable and unable to repeatedly produce accurate results. Hierarchical clustering using the canberra distance metric gave an accuracy of 0.42 while precision ranged from 0 to 0.81 and sensitivity from 0 to 0.87 using non-standardized data. A decision tree was the most successful method giving an accuracy of 0.68 with precision ranging from 0.4 to 1 and sensitivity from 0.17 to 0.85. 
 
 #1. Introduction - The genus \textit{Sorbus}.
 
 \textit{Sorbus} is a member of the Rosaceae family, perhaps the best known species being \textit{Sorbus aucuparia}, the Rowan or Mountain Ash. However, there are over 50 species of \textit{Sorbus} in the UK, [@NBN], 38 of these are vulnerable or critically endangered and most are endemic or native [@measurements].  There are four diploid species, but, as with many Rosaceae, \textit{Sorbus} produce new apomictic polyploid species, [@robertson]. These can also produce viable pollen and can therefore back-cross with other diploid or polyploid species,[@ludwig2013]. This results in a large number of genetically unique, stable, clonal communities, which can look very similar to each other. This presents a problem with recording and many \textit{Sorbus} require expert knowledge to correctly identify to species level because much of the identification depends on comparative knowledge, [@crib]. This tends to dissuade recorders, or encourages records at aggregate level. This is a problem for such an important genus with many endangered plants that could benefit from identification.
 
-\textit{Sorbus} are grouped into six subgenera, each of which are reasonably easy to identify by recorders with some knowledge. More difficulty arises when identifying plants within these subgenera, and this is where this work has concentrated. In this modelling only the subgenus \textit{Soraria} has been trialed. This subgenus consists of eight species all similar in appearance to \textit{Sorbus intermedia}, although only seven species are considered based on the availability of data. These plants are distinguished from other subgenera by having leaves with rounded lobes which are tomentose beneath and the fruits having fewer lenticles. Perhaps the most noticeable difference between plants within the subgenus are the larger fruits on \texit{S. intermedia}, the smaller leaves of \textit{S. minima} and the small fruits of textit{S. mougeotii}.
+\textit{Sorbus} are grouped into six subgenera, each of which are reasonably easy to identify by recorders with some knowledge. More difficulty arises when identifying plants within these subgenera, and this is where this work has concentrated. In this modelling only the subgenus \textit{Soraria} has been trialed. This subgenus consists of eight species all similar in appearance to \textit{Sorbus intermedia}, although only seven species are considered based on the availability of data. These plants are distinguished from other subgenera by having leaves with rounded lobes which are tomentose beneath and the fruits having fewer lenticles. Perhaps the most noticeable difference between plants within the subgenus are the larger fruits on \textit{S. intermedia}, the smaller leaves of \textit{S. minima} and the small fruits of \textit{S. mougeotii}.
 
 
 #2. Data and data preparation
@@ -86,7 +83,7 @@ In supervised learning, the correct and incorrect values assigned to each class 
 
 Accuracy is is the number of correct values divided by total number of items evaluated. 
 
-Precision true positive rate of a predicted class. The precision for a species tells you  how accurately the algorithm is identifying a species, a low precision tells you that other species are incorrectly lumped with the correct species. A high precision tells you that most of the species are correctly identified and that the predicted class will be predominantly made up of the right species.
+Precision is the true positive rate of a predicted class. The precision for a species tells you  how accurately the algorithm is identifying a species, a low precision tells you that other species are incorrectly lumped with the correct species. A high precision tells you that most of the species are correctly identified and that the predicted class will be predominantly made up of the right species.
 
 Sensitivity is the true positive rate of a species. A low number tells you the correct species have been put in other, incorrect, classes. A high sensitivity tells you that most of the species have been put in the right class, and that most of the actual species are in the correct predicted class.
 
@@ -119,35 +116,45 @@ Bottom up hierarchical clustering assigns each data-point to a single cluster, t
 
 R was the main language used in this project within Rstudio, [@R]  although there is no reason, in terms of functionality, why python could not be used. A  benefit of  R was that it can easily be used in conjunction with R markdown, which is used by the data providers and who may want to modify the model.  If the focus of the project had been machine learning itself, the caret package [@caret] would have been more efficient than the methods written here; it provides hundreds of algorithms, training options, plotting and cross fold validation all wrapped up within its functions. The package would allow more thorough and robust models to be produced. 
 
-A bash script was used to compile the markdown file, which has the benefit of allowing neater folders. For example, compiling within Rstudio will not always retrieve images from folders other than the working directory. Using bash means he image files can be stored outside the Code directory and moved in and out when compiling.   
+A bash script was used to compile the markdown file, which has the benefit of allowing neater folders. For example, compiling within Rstudio will not always retrieve images from folders other than the working directory, and therefore the Code directory can become cluttered with non-code files. Using bash means he image files can be stored outside the Code directory and moved in and out when compiling.   
 
 Python was used to run the bash script to full fill the criteria of the project, but this was not necessary and perhaps not in the spirit of using the best tool for the job. A better use for python could have been the initial data wrangling.
 
- R markdown was used as it provides the same functionality as Latex, allowing the use of latex commands directly within the document, but with the added benefit of being a dynamic document that is commonly used by other researchers in ecology.  
+ R markdown was used as it provides the same functionality as Latex, allowing the use of Latex commands directly within the document, but with the added benefit of being a dynamic document that is commonly used by other researchers in ecology.  
 
 #4.Data exploration.
 
-If the data is separated into clearly defined groups, we can be sure that a clustering algorithm will work. Box plots are presented for the standardized and non-standardized data and show how the scale and separation between groups could be an issue for the clustering algorithms. The plots also show certain features clearly differentiate certain species. For instance, fruit width would separate \textit{S. anglica}, and then fruit length would subsequently separate \textit{S. leyana}. This suggests that a decision tree algorithm could be successful. 
+If the data is separated into clearly defined groups, we can be sure that a clustering algorithm will work. Box plots are presented for the standardized and non-standardized data and show how the scale and separation between groups could be an issue for the clustering algorithms. The plots also show that certain features are clearly differentiate in certain species. For instance, fruit width would separate \textit{S. anglica}, and then fruit length would subsequently separate \textit{S. leyana}. This suggests that a decision tree algorithm could be successful. 
 
 
 <img src="figure/boxplot1-1.png" title="Box plots for standardized data" alt="Box plots for standardized data"  />
 
 \center
-![Figure 2. Box plots for standardized data](figure/boxplot1-1.png){width=100%, height=100%}\ 
-\center
+![Figure 1. Box plots for standardized data](figure/boxplot1-1.png){width=100%, height=100%}\ 
+\center \underline{Figure 1. Box plots for standardized data}. The plots show that certain features do define certain species. For example fruit length or fruit ration separate \textit{S. leyana}, leaf width separates \textit{S. anglica} and leaf ratio separates \textit{S. mougeotti}
+\clearpage
+
+\newpage
+
 
 <img src="figure/boxplot2-1.png" title="Box plots for non-standardized data" alt="Box plots for non-standardized data"  />
 \center
-![Figure 3. Box plots for non-standardized data](figure/boxplot2-1.png){width=100%, height=100%}\ 
-\center
+![Figure 2 . Box plots for non-standardized data](figure/boxplot2-1.png){width=100%, height=100%}\ 
+\center \underline{Figure 2. Box plots for non-standardized data}. The plots show that the scale between the variables is not consistent and therefore you would expect a negative impact on the effectiveness of clustering algorithms
+
+\clearpage
+
+\newpage
 
 \flushleft
 
 #5. Results
 
+Since the output is in the form of tables, these have been placed in the appendices and the results are summarized below.
+
 ##5.1 Kmeans
 
-The accuracy shown in table 1 of the appendix is different on each run implying that the algorithm is not successfully grouping the data into the same clusters. 
+The accuracy shown in table 1 of the appendix I is different on each run implying that the algorithm is not successfully grouping the data into the same clusters. 
 
 Table 2 shows the percentage of each species correctly allocated to its cluster on each of the ten repeats for the  For example, the top row from left to right, gives the true positive rate for \textit{S. anglia} on each subsequent run on the K-means algorithm.
 
@@ -157,7 +164,7 @@ In summary, K-means is not consistent across species, does not achieve high accu
 
 ##5.2 Hierarchical Clustering
 
-Tables 8 and 9 show that the Canberra metric gives an accuracy of 0.42 for the non-standardized data. The Euclidean and Minkowski methods give slightly worse accuracy of 0.41 for the standardized data, as in K-mean, this is contrary to expectations. The sensitivity and precision calculated for standardized and non-standardized data are shown in tables 10 to 13. 
+Tables 8 and 9 in Appendix II show that the Canberra metric gives an accuracy of 0.42 for the non-standardized data. The Euclidean and Minkowski methods give slightly worse accuracy of 0.41 for the standardized data. As in K-mean, the equal performance of the standardized and non-standardized data is contrary to expectations. The sensitivity and precision calculated for standardized and non-standardized data are shown in tables 10 to 13. 
 
 The results are again inconsistent,  a high precision and sensitivity of 0.69 and 0.68 is achieved for \textit{S. anglia} using standardized data, but those values are 0 for \textit{S. Intermedia}.
 
@@ -165,9 +172,17 @@ In summary, the hierarchical clustering technique gives low accuracy and inconsi
 
 ##5.3 Decision Tree
 
-Table 14 shows numbers of species in each group, it is useful to be aware of the proportion of species in the test set when analyzing the tree plot.
+\center
+![Figure 3 Decision tree](figure/dectree-1.png){width=100%, height=100%}\ 
+\center\underline{Figure 3. rpart plot}
 
-The first decision splits the data roughly in half depending on the fruit being either greater or less than 11mm wide. The thinner fruit is then predominantly assigned to \textit{S. anglica} based on the length being less than 13mm. 39% of the test set is in this leaf, \textit{S. anglica} comprises 42% of the test set, this allocation is therefore very accurate.  The wider fruits take more decisions to assign the species. Fruit ratio (fruit width/fruit length) and fruit length < 9.8mm gives 14% of the data, most of which is allocated to \textit{S.intermedia} with some \textit{S. cuneifolia}.  The \textit{S. minima} leaf contains only that species (high precision) but only 6% of the data instead of 13% so we can see that around half this species has been incorrectly assigned (low sensitivity).
+\flushleft
+
+Table 14 of Appendix III shows numbers of species in each group, it is useful to be aware of the proportion of species in the test set when analyzing the tree plot.
+
+The plot shows the decisions on which the tree has been split. The percentage is the percentage of observations in that leaf or node. The leaves represent the predicted class into which the data is split.  The numbers in the leaves and the nodes show the predicted probability for each class.
+
+The plot shows that the first decision splits the data roughly in half depending on the fruit being either greater or less than 11mm wide. The thinner fruit is then predominantly assigned to \textit{S. anglica} based on the length being less than 13mm. 39% of the test set is in this leaf, \textit{S. anglica} comprises 42% of the test set, this allocation is therefore very accurate.  The wider fruits take more decisions to assign the species. Fruit ratio (fruit width/fruit length) and fruit length < 9.8mm gives 14% of the data, most of which is allocated to \textit{S.intermedia} with some \textit{S. cuneifolia}.  The \textit{S. minima} leaf contains only that species (high precision) but only 6% of the data instead of 13% so we can see that around half this species has been incorrectly assigned (low sensitivity).
 
 The accuracy of the tree, shown in table 15, 0.68. The confusion matrix in table 16 shows that most of \textit{S. anglica, S. intermedia, S.leyana, and S.minima} are grouped together. The sensitivity, shown in table 17, is above 43% for 6 out of the 7 species while table 18 shows that the precision is above 50% for 6 classes and 100% for \textit{S. minima}. 
 
@@ -178,9 +193,9 @@ In summary, the decision tree is the most successful of the algorithms achieving
 
 #6 Conclusion.
 
-K-means was not successful in separating the data into clusters which could be interpreted as species of \textit{Sorbus}. The algorithm was seen to be unrepeatable and the accuracy was always less 0.3.  Sometimes high precision or sensitivity was achieved for a single species, but this was not reflected in the other species and it was not repeatable. The standardized data gave slightly better results. It is not clear from this analysis whether it is the nature of the data itself that is the cause of the poor performance of this technique; Raykov et al [@raykov] describe the need for data subsets of equal variance and size, which was not the case here. Or the data preparation may have been at fault. Different methods standardization have been shown to influence the outcome of K-means, and that the method used here may not be the optimum, [@steinley]. 
+K-means was not successful in separating the data into clusters which could be interpreted as species of \textit{Sorbus}. The algorithm was seen to be unrepeatable and the accuracy was always less 0.3.  Sometimes high precision or sensitivity was achieved for a single species, but this was not reflected in the other species and it was not repeatable. The standardized data gave only slightly better results. It is not clear from this analysis whether it is the nature of the data itself that is the cause of the poor performance of this technique; Raykov et al [@raykov] describe the need for data subsets of equal variance and size, which was not the case here. Or the data preparation may have been at fault. Different methods standardization have been shown to influence the outcome of K-means, and that the method used here may not be the optimum, [@steinley]. 
 
-Hierarchical clustering achieved  an accuracy of 0.42 using the Canberra method in non-standardized data and 0.41 using the Euclidean and Minowski method in standardized data. The confusion matrix for the non-standardized data showed better allocation of \textit{S Anglica} but the confusion matrix for standardized data was better for allocating textit{S mougeotii}. The sensitivity and precision also gave inconsistent results for the standardized and non-standardized data. Neither data treatment being better overall for all species. Overall, hierarchical clustering was not successful, and again, it is not clear whether this is due to the data preparation of the nature of the data. The fact that the non-standardized data sometimes gave better results is unexpected and has not bee addressed.
+Hierarchical clustering achieved  an accuracy of 0.42 using the Canberra method in non-standardized data and 0.41 using the Euclidean and Minowski method in standardized data. The confusion matrix for the non-standardized data showed better allocation of \textit{S Anglica} but the confusion matrix for standardized data was better for allocating \textit{S mougeotii}. The sensitivity and precision also gave inconsistent results for the standardized and non-standardized data. Neither data treatment being better overall for all species. Overall, hierarchical clustering was not successful, and again, it is not clear whether this is due to the data preparation of the nature of the data. The fact that the non-standardized data sometimes gave better results is unexpected and has not been addressed.
 
 The decision tree method performed more consistently than hierarchical clustering. Although a single species might have a higher sensitivity in clustering, across all species the decision tree performed better, with  five of the seven species achieving greater than 0.6 sensitivity and precision above 0.5 in all but one class. The overall accuracy was also the highest at 0.68.
 
@@ -191,7 +206,7 @@ In conclusion, machine learning using a decision tree algorithm looks to be a su
 
 Different methods of standardization could be tried for the unsupervised methods, as well as other clustering algorithms which may be better able to model this data.
 
-All the variables were used in the decision tree, which may not be the best model. Rpart provides information on the importance of variables which could be used to ascertain which could be removed, and these may further improve the performance of the model.
+All the variables were used in the decision tree, which may not be the best model. Rpart provides information on the importance of variables which can be used to ascertain which can be removed, and this might further improve the performance of the model.
 
 The decision tree model could be extended to include cross fold validation in order to give more robust predictions. Other species of \textit{Sorbus} could be modeled to see if the success was due to the specific morphological characteristics of the \textit{Soraria} subgenus and compare results for other subgenera. 
 
@@ -208,15 +223,15 @@ The decision tree model could be extended to include cross fold validation in or
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-12}Accuracy}
+\caption{\label{tab:unnamed-chunk-13}Accuracy}
 \centering
 \begin{tabular}[t]{l|r|r|r|r|r|r|r|r|r|r}
 \hline
   & Run 1 & Run 2 & Run 3 & Run 4 & Run 5 & Run 6 & Run 7 & Run 8 & Run 9 & Run 10\\
 \hline
-unstandardized & 0.15 & 0.14 & 0.20 & 0.21 & 0.15 & 0.11 & 0.09 & 0.09 & 0.18 & 0.08\\
+unstandardized & 0.14 & 0.23 & 0.16 & 0.20 & 0.21 & 0.24 & 0.15 & 0.13 & 0.14 & 0.18\\
 \hline
-standardized & 0.32 & 0.02 & 0.04 & 0.02 & 0.15 & 0.17 & 0.02 & 0.08 & 0.09 & 0.01\\
+standardized & 0.22 & 0.11 & 0.23 & 0.09 & 0.13 & 0.08 & 0.17 & 0.15 & 0.03 & 0.11\\
 \hline
 \end{tabular}
 \end{table}
@@ -227,25 +242,25 @@ standardized & 0.32 & 0.02 & 0.04 & 0.02 & 0.15 & 0.17 & 0.02 & 0.08 & 0.09 & 0.
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-14}Percentage of true positives for non-standarized data}
+\caption{\label{tab:unnamed-chunk-15}Percentage of true positives for non-standarized data}
 \centering
 \begin{tabular}[t]{l|r|r|r|r|r|r|r|r|r|r}
 \hline
   & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10\\
 \hline
-Anglica & 22.50 & 21.25 & 24.38 & 26.25 & 0.00 & 13.12 & 13.12 & 0.00 & 23.75 & 11.88\\
+Anglica & 3.12 & 26.25 & 18.75 & 26.25 & 25.62 & 31.25 & 26.25 & 0.00 & 13.12 & 11.25\\
 \hline
-Cuneifolia & 2.00 & 2.00 & 24.00 & 0.00 & 20.00 & 0.00 & 4.00 & 34.00 & 34.00 & 0.00\\
+Cuneifolia & 2.00 & 22.00 & 0.00 & 30.00 & 22.00 & 20.00 & 8.00 & 2.00 & 4.00 & 40.00\\
 \hline
-Intermedia & 5.26 & 0.00 & 26.32 & 5.26 & 63.16 & 5.26 & 21.05 & 0.00 & 5.26 & 0.00\\
+Intermedia & 5.26 & 0.00 & 5.26 & 0.00 & 63.16 & 0.00 & 21.05 & 0.00 & 5.26 & 0.00\\
 \hline
-Leyana & 2.08 & 6.25 & 2.08 & 6.25 & 10.42 & 31.25 & 4.17 & 2.08 & 2.08 & 16.67\\
+Leyana & 20.83 & 31.25 & 31.25 & 31.25 & 2.08 & 18.75 & 6.25 & 31.25 & 2.08 & 18.75\\
 \hline
-Minima & 6.67 & 36.67 & 26.67 & 36.67 & 23.33 & 3.33 & 3.33 & 3.33 & 36.67 & 6.67\\
+Minima & 36.67 & 10.00 & 3.33 & 10.00 & 36.67 & 26.67 & 6.67 & 36.67 & 33.33 & 3.33\\
 \hline
-Mougeotii & 32.00 & 8.00 & 4.00 & 8.00 & 46.00 & 4.00 & 8.00 & 28.00 & 4.00 & 4.00\\
+Mougeotii & 50.00 & 0.00 & 30.00 & 0.00 & 4.00 & 6.00 & 4.00 & 48.00 & 16.00 & 42.00\\
 \hline
-Arranensis & 0.00 & 4.35 & 43.48 & 73.91 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00\\
+Arranensis & 0.00 & 73.91 & 0.00 & 4.35 & 0.00 & 52.17 & 0.00 & 0.00 & 43.48 & 0.00\\
 \hline
 \end{tabular}
 \end{table}
@@ -256,76 +271,25 @@ Arranensis & 0.00 & 4.35 & 43.48 & 73.91 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-16}Percentage of true positives for standarized data}
+\caption{\label{tab:unnamed-chunk-17}Percentage of true positives for standarized data}
 \centering
 \begin{tabular}[t]{l|r|r|r|r|r|r|r|r|r|r}
 \hline
   & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10\\
 \hline
-Anglica & 52.50 & 1.88 & 0.00 & 0.00 & 18.12 & 18.75 & 0.00 & 17.50 & 1.88 & 1.88\\
+Anglica & 18.75 & 2.50 & 18.12 & 18.75 & 0.00 & 0.00 & 28.12 & 18.12 & 0.00 & 1.88\\
 \hline
-Cuneifolia & 34.00 & 2.00 & 2.00 & 0.00 & 0.00 & 0.00 & 0.00 & 2.00 & 4.00 & 4.00\\
+Cuneifolia & 0.00 & 6.00 & 0.00 & 0.00 & 34.00 & 52.00 & 0.00 & 2.00 & 2.00 & 30.00\\
 \hline
-Intermedia & 94.74 & 0.00 & 5.26 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 5.26 & 0.00\\
+Intermedia & 94.74 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 94.74 & 5.26 & 5.26 & 94.74\\
 \hline
-Leyana & 4.17 & 4.17 & 20.83 & 4.17 & 4.17 & 18.75 & 0.00 & 4.17 & 4.17 & 0.00\\
+Leyana & 20.83 & 20.83 & 66.67 & 0.00 & 18.75 & 0.00 & 2.08 & 20.83 & 4.17 & 2.08\\
 \hline
-Minima & 6.67 & 0.00 & 0.00 & 0.00 & 6.67 & 3.33 & 6.67 & 0.00 & 6.67 & 0.00\\
+Minima & 86.67 & 0.00 & 6.67 & 0.00 & 83.33 & 6.67 & 0.00 & 0.00 & 6.67 & 3.33\\
 \hline
-Mougeotii & 0.00 & 0.00 & 8.00 & 8.00 & 48.00 & 6.00 & 8.00 & 0.00 & 6.00 & 0.00\\
+Mougeotii & 0.00 & 4.00 & 0.00 & 10.00 & 0.00 & 6.00 & 0.00 & 32.00 & 6.00 & 6.00\\
 \hline
-Arranensis & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 100.00 & 0.00 & 0.00 & 100.00 & 0.00\\
-\hline
-\end{tabular}
-\end{table}
-
-
-\begin{table}[!h]
-
-\caption{\label{tab:unnamed-chunk-17}Precision of kmeans with non standardized data}
-\centering
-\begin{tabular}[t]{l|l|l|l|l|l|l|l|l|l|l}
-\hline
-  & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10\\
-\hline
-Anglica & 0.22 & 0.21 & 0.24 & 0.26 & 0 & 0.13 & 0.13 & 0 & 0.24 & 0.12\\
-\hline
-Cuneifolia & 0.02 & 0.02 & 0.24 & 0 & 0.2 & 0 & 0.04 & 0.34 & 0.34 & 0\\
-\hline
-Intermedia & 0.05 & 0 & 0.26 & 0.05 & 0.63 & 0.05 & 0.21 & 0 & 0.05 & 0\\
-\hline
-Leyana & 0.02 & 0.06 & 0.02 & 0.06 & 0.1 & 0.31 & 0.04 & 0.02 & 0.02 & 0.17\\
-\hline
-Minima & 0.07 & 0.37 & 0.27 & 0.37 & 0.23 & 0.03 & 0.03 & 0.03 & 0.37 & 0.07\\
-\hline
-Mougeotii & 0.32 & 0.08 & 0.04 & 0.08 & 0.46 & 0.04 & 0.08 & 0.28 & 0.04 & 0.04\\
-\hline
-Arranensis & 0 & 0.04 & 0.43 & 0.74 & 0 & 0 & 0 & 0 & 0 & 0\\
-\hline
-\end{tabular}
-\end{table}
-
-\begin{table}[!h]
-
-\caption{\label{tab:unnamed-chunk-18}Precision of kmeans with standardized data}
-\centering
-\begin{tabular}[t]{l|l|l|l|l|l|l|l|l|l|l}
-\hline
-  & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10\\
-\hline
-Anglica & 0.52 & 0.02 & 0 & 0 & 0.18 & 0.19 & 0 & 0.18 & 0.02 & 0.02\\
-\hline
-Cuneifolia & 0.34 & 0.02 & 0.02 & 0 & 0 & 0 & 0 & 0.02 & 0.04 & 0.04\\
-\hline
-Intermedia & 0.95 & 0 & 0.05 & 0 & 0 & 0 & 0 & 0 & 0.05 & 0\\
-\hline
-Leyana & 0.04 & 0.04 & 0.21 & 0.04 & 0.04 & 0.19 & 0 & 0.04 & 0.04 & 0\\
-\hline
-Minima & 0.07 & 0 & 0 & 0 & 0.07 & 0.03 & 0.07 & 0 & 0.07 & 0\\
-\hline
-Mougeotii & 0 & 0 & 0.08 & 0.08 & 0.48 & 0.06 & 0.08 & 0 & 0.06 & 0\\
-\hline
-Arranensis & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 1 & 0\\
+Arranensis & 0.00 & 100.00 & 100.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 8.70 & 0.00\\
 \hline
 \end{tabular}
 \end{table}
@@ -333,49 +297,100 @@ Arranensis & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 1 & 0\\
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-19}Sensitivity of kmeans with non standardized data}
+\caption{\label{tab:unnamed-chunk-18}Precision of kmeans with non standardized data}
 \centering
 \begin{tabular}[t]{l|l|l|l|l|l|l|l|l|l|l}
 \hline
   & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10\\
 \hline
-Anglica & 0.22 & 0.21 & 0.24 & 0.26 & 0 & 0.13 & 0.13 & 0 & 0.24 & 0.12\\
+Anglica & 0.03 & 0.26 & 0.19 & 0.26 & 0.26 & 0.31 & 0.26 & 0 & 0.13 & 0.11\\
 \hline
-Cuneifolia & 0.02 & 0.02 & 0.24 & 0 & 0.2 & 0 & 0.04 & 0.34 & 0.34 & 0\\
+Cuneifolia & 0.02 & 0.22 & 0 & 0.3 & 0.22 & 0.2 & 0.08 & 0.02 & 0.04 & 0.4\\
 \hline
-Intermedia & 0.05 & 0 & 0.26 & 0.05 & 0.63 & 0.05 & 0.21 & 0 & 0.05 & 0\\
+Intermedia & 0.05 & 0 & 0.05 & 0 & 0.63 & 0 & 0.21 & 0 & 0.05 & 0\\
 \hline
-Leyana & 0.02 & 0.06 & 0.02 & 0.06 & 0.1 & 0.31 & 0.04 & 0.02 & 0.02 & 0.17\\
+Leyana & 0.21 & 0.31 & 0.31 & 0.31 & 0.02 & 0.19 & 0.06 & 0.31 & 0.02 & 0.19\\
 \hline
-Minima & 0.07 & 0.37 & 0.27 & 0.37 & 0.23 & 0.03 & 0.03 & 0.03 & 0.37 & 0.07\\
+Minima & 0.37 & 0.1 & 0.03 & 0.1 & 0.37 & 0.27 & 0.07 & 0.37 & 0.33 & 0.03\\
 \hline
-Mougeotii & 0.32 & 0.08 & 0.04 & 0.08 & 0.46 & 0.04 & 0.08 & 0.28 & 0.04 & 0.04\\
+Mougeotii & 0.5 & 0 & 0.3 & 0 & 0.04 & 0.06 & 0.04 & 0.48 & 0.16 & 0.42\\
 \hline
-Arranensis & 0 & 0.04 & 0.43 & 0.74 & 0 & 0 & 0 & 0 & 0 & 0\\
+Arranensis & 0 & 0.74 & 0 & 0.04 & 0 & 0.52 & 0 & 0 & 0.43 & 0\\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[!h]
+
+\caption{\label{tab:unnamed-chunk-19}Precision of kmeans with standardized data}
+\centering
+\begin{tabular}[t]{l|l|l|l|l|l|l|l|l|l|l}
+\hline
+  & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10\\
+\hline
+Anglica & 0.19 & 0.02 & 0.18 & 0.19 & 0 & 0 & 0.28 & 0.18 & 0 & 0.02\\
+\hline
+Cuneifolia & 0 & 0.06 & 0 & 0 & 0.34 & 0.52 & 0 & 0.02 & 0.02 & 0.3\\
+\hline
+Intermedia & 0.95 & 0 & 0 & 0 & 0 & 0 & 0.95 & 0.05 & 0.05 & 0.95\\
+\hline
+Leyana & 0.21 & 0.21 & 0.67 & 0 & 0.19 & 0 & 0.02 & 0.21 & 0.04 & 0.02\\
+\hline
+Minima & 0.87 & 0 & 0.07 & 0 & 0.83 & 0.07 & 0 & 0 & 0.07 & 0.03\\
+\hline
+Mougeotii & 0 & 0.04 & 0 & 0.1 & 0 & 0.06 & 0 & 0.32 & 0.06 & 0.06\\
+\hline
+Arranensis & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0.09 & 0\\
+\hline
+\end{tabular}
+\end{table}
+
+
+\begin{table}[!h]
+
+\caption{\label{tab:unnamed-chunk-20}Sensitivity of kmeans with non standardized data}
+\centering
+\begin{tabular}[t]{l|l|l|l|l|l|l|l|l|l|l}
+\hline
+  & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10\\
+\hline
+Anglica & 0.03 & 0.26 & 0.19 & 0.26 & 0.26 & 0.31 & 0.26 & 0 & 0.13 & 0.11\\
+\hline
+Cuneifolia & 0.02 & 0.22 & 0 & 0.3 & 0.22 & 0.2 & 0.08 & 0.02 & 0.04 & 0.4\\
+\hline
+Intermedia & 0.05 & 0 & 0.05 & 0 & 0.63 & 0 & 0.21 & 0 & 0.05 & 0\\
+\hline
+Leyana & 0.21 & 0.31 & 0.31 & 0.31 & 0.02 & 0.19 & 0.06 & 0.31 & 0.02 & 0.19\\
+\hline
+Minima & 0.37 & 0.1 & 0.03 & 0.1 & 0.37 & 0.27 & 0.07 & 0.37 & 0.33 & 0.03\\
+\hline
+Mougeotii & 0.5 & 0 & 0.3 & 0 & 0.04 & 0.06 & 0.04 & 0.48 & 0.16 & 0.42\\
+\hline
+Arranensis & 0 & 0.74 & 0 & 0.04 & 0 & 0.52 & 0 & 0 & 0.43 & 0\\
 \hline
 \end{tabular}
 \end{table}
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-20}Sensitivity of kmeans with standardized data}
+\caption{\label{tab:unnamed-chunk-21}Sensitivity of kmeans with standardized data}
 \centering
 \begin{tabular}[t]{l|l|l|l|l|l|l|l|l|l|l}
 \hline
   & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10\\
 \hline
-Anglica & 0.52 & 0.02 & 0 & 0 & 0.18 & 0.19 & 0 & 0.18 & 0.02 & 0.02\\
+Anglica & 0.19 & 0.02 & 0.18 & 0.19 & 0 & 0 & 0.28 & 0.18 & 0 & 0.02\\
 \hline
-Cuneifolia & 0.34 & 0.02 & 0.02 & 0 & 0 & 0 & 0 & 0.02 & 0.04 & 0.04\\
+Cuneifolia & 0 & 0.06 & 0 & 0 & 0.34 & 0.52 & 0 & 0.02 & 0.02 & 0.3\\
 \hline
-Intermedia & 0.95 & 0 & 0.05 & 0 & 0 & 0 & 0 & 0 & 0.05 & 0\\
+Intermedia & 0.95 & 0 & 0 & 0 & 0 & 0 & 0.95 & 0.05 & 0.05 & 0.95\\
 \hline
-Leyana & 0.04 & 0.04 & 0.21 & 0.04 & 0.04 & 0.19 & 0 & 0.04 & 0.04 & 0\\
+Leyana & 0.21 & 0.21 & 0.67 & 0 & 0.19 & 0 & 0.02 & 0.21 & 0.04 & 0.02\\
 \hline
-Minima & 0.07 & 0 & 0 & 0 & 0.07 & 0.03 & 0.07 & 0 & 0.07 & 0\\
+Minima & 0.87 & 0 & 0.07 & 0 & 0.83 & 0.07 & 0 & 0 & 0.07 & 0.03\\
 \hline
-Mougeotii & 0 & 0 & 0.08 & 0.08 & 0.48 & 0.06 & 0.08 & 0 & 0.06 & 0\\
+Mougeotii & 0 & 0.04 & 0 & 0.1 & 0 & 0.06 & 0 & 0.32 & 0.06 & 0.06\\
 \hline
-Arranensis & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 1 & 0\\
+Arranensis & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0.09 & 0\\
 \hline
 \end{tabular}
 \end{table}
@@ -390,7 +405,7 @@ Arranensis & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 1 & 0\\
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-22}Accuracy obtained in hierarchical clustering using different distance metrics for non standarized data}
+\caption{\label{tab:unnamed-chunk-23}Accuracy obtained in hierarchical clustering using different distance metrics for non standarized data}
 \centering
 \begin{tabular}[t]{l|l|l|l|l|l}
 \hline
@@ -404,7 +419,7 @@ Accuracy & 0.3 & 0.18 & 0.29 & 0.42 & 0.3\\
 \end{table}
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-23}Accuracy obtained in hierarchical clustering using different distance metrics for standardized data}
+\caption{\label{tab:unnamed-chunk-24}Accuracy obtained in hierarchical clustering using different distance metrics for standardized data}
 \centering
 \begin{tabular}[t]{l|l|l|l|l|l}
 \hline
@@ -422,7 +437,7 @@ Accuracy & 0.41 & 0.14 & 0.36 & 0.25 & 0.41\\
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-24}Confusion matrix for Canberra method using non-standardized data}
+\caption{\label{tab:unnamed-chunk-25}Confusion matrix for Canberra method using non-standardized data}
 \centering
 \begin{tabular}[t]{l|r|r|r|r|r|r|r}
 \hline
@@ -449,7 +464,7 @@ Mougeotii & 0 & 0 & 0 & 0 & 12 & 0 & 11\\
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-25}Confusion matrix for Canberra method with standardized data}
+\caption{\label{tab:unnamed-chunk-26}Confusion matrix for Canberra method with standardized data}
 \centering
 \begin{tabular}[t]{l|r|r|r|r|r|r|r}
 \hline
@@ -479,7 +494,7 @@ Mougeotii & 0 & 0 & 0 & 3 & 0 & 0 & 20\\
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-27}Precision for standardized and non-standardized data}
+\caption{\label{tab:unnamed-chunk-28}Precision for standardized and non-standardized data}
 \centering
 \begin{tabular}[t]{l|l|l}
 \hline
@@ -506,7 +521,7 @@ Class7 & 0.58 & 0.61\\
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-28}Precision for standardized and non-standardized data}
+\caption{\label{tab:unnamed-chunk-29}Sensitivity for standardized and non-standardized data}
 \centering
 \begin{tabular}[t]{l|l|l}
 \hline
@@ -533,19 +548,17 @@ Arranensis & 0.48 & 0.87\\
 
 \newpage
 
-#Appendix 3 Decision tree results
+#Appendix III Decision tree results
 
 
 
 
 <img src="figure/dectree-1.png" title="Decision tree" alt="Decision tree"  />
 
-\center
-![Figure . Decision tree](figure/dectree-1.png){width=100%, height=100%}\ 
-\center
+
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-30}Proportions of each species in test set}
+\caption{\label{tab:unnamed-chunk-31}Proportions of each species in test set}
 \centering
 \begin{tabular}[t]{l|r}
 \hline
@@ -570,7 +583,7 @@ Mougeotii & 0.06\\
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-31}Accuracy of the decision tree}
+\caption{\label{tab:unnamed-chunk-32}Accuracy of the decision tree}
 \centering
 \begin{tabular}[t]{r}
 \hline
@@ -580,7 +593,7 @@ Mougeotii & 0.06\\
 \end{table}
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-32}Confusion matrix for the decision tree}
+\caption{\label{tab:unnamed-chunk-33}Confusion matrix for the decision tree}
 \centering
 \begin{tabular}[t]{l|r|r|r|r|r|r|r|r}
 \hline
@@ -605,7 +618,7 @@ Mougeotii & 1 & 3 & 0 & 0 & 0 & 0 & 3 & 7\\
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-33}Sensitivity for the decision tree}
+\caption{\label{tab:unnamed-chunk-34}Sensitivity for the decision tree}
 \centering
 \begin{tabular}[t]{l|l}
 \hline
@@ -631,7 +644,7 @@ Mougeotii & 0.43\\
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-34}Precision for the decision tree}
+\caption{\label{tab:unnamed-chunk-35}Precision for the decision tree}
 \centering
 \begin{tabular}[t]{l|l}
 \hline
@@ -654,10 +667,13 @@ class\_Mougeotii & 0.43\\
 \end{tabular}
 \end{table}
 
+\clearpage
+\newpage
 
+#Appendix IV Comparison of hierachical clustering and decision tree
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-35}Sensitivity for hierarchical clustering and decision tree}
+\caption{\label{tab:unnamed-chunk-36}Sensitivity for hierarchical clustering and decision tree}
 \centering
 \begin{tabular}[t]{l|l|l|l}
 \hline
@@ -683,7 +699,7 @@ Arranensis & 0.48 & 0.87 & 0.43\\
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-36}Precision for hierarchical clustering and decision tree}
+\caption{\label{tab:unnamed-chunk-37}Precision for hierarchical clustering and decision tree}
 \centering
 \begin{tabular}[t]{l|l|l|l}
 \hline
