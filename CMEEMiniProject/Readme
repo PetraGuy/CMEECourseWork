@@ -1,5 +1,7 @@
-Rstudio version 1.1.383
-
+R version 3.2.3 (2015-12-10)
+Python 2.7.12
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 16.04.3 LTS
 
 Data.
 The only data file required is SorariaCompact1.csv in the /Data directory.
@@ -8,16 +10,46 @@ Libraries.
 
 Modelling libraries required:
 
-ggplot2 (boxplots)
-reshape (in order to present all the boxplots on one page)
-rpart (for the decision tree)
-rpart.plot (for the tree plot)
-knitr (to knit the Rmarkdown file)
-kableExtra (this was the only way I could find to produced reasonable looking, numbered tables)
+ggplot2_2.2.1 (boxplots)
+reshape_0.8.7 (in order to present all the boxplots on one page) depends R>2.6.1
+rpart_4.1-11(for the decision tree) dependencies R>2.15.0, 
+rpart.plot_2.1.2(for the tree plot) depends R>3.2.0 rpart > 4.1-10
+knitr_1.17  (to knit the Rmarkdown file) depends R>3.1.0
+kableExtra_0.7.0 knitr_1.17  (this was the only way I could find to produced reasonable looking, numbered tables)
 
 Rmarkdown packages required
 lineno (for line numbering)
 setspace (for line spacing)
 float (for fixing images in the text, but this didn't seem to be working anyway)
 
+Python packages used
+subprocess (to use command line and run bash)
 
+Directory structure
+
+Code
+CompileMiniProj2.sh. Bash file to move requried files to correct locations and compile the Rmarkdown document.
+MiniProj3.Rmd. R markdown file containing all the code.
+run_MiniProject.py. Python file, execute this to run the project.
+
+Data
+Sorariacompact1.csv. data used in the project
+
+Documents
+bibliography.bib. Bibliography for the project
+Miniproj3.md. Will be created after compilation, kept as a log.
+ProjectText.odt. Text for the rmd file was written here and copied in. This allowed word count and was easier to manipulate.
+Sorbusaucuparia.pdf. Nice cover picture (Wiki images) for front of project.
+
+Results/figure
+3 graphs produced by markdown on compilation will be placed here
+
+Sandbox
+Various practice code which might be useful.
+
+Dataflow
+
+execute run_MiniProject.py, this will execute CompileMiniProj2.sh, this collects bibliograpy, cover picture, clears results directory of earlier graphs, compiles the Rmarkdown, then tidies up by moving figure to results, moving compilation files and bibliography back to Documents.
+
+
+Documen
