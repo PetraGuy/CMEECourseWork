@@ -32,7 +32,6 @@ species = with(data2001_data, table(data2001_data$PLOT, data2001_data$NEST))
 species = as.data.frame(species)
 colnames(species) = c("Plot","Nest","frequency")
 
-
 ```
 
 Look at the number of species in each nest
