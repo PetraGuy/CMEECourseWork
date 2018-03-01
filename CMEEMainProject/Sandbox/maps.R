@@ -19,16 +19,12 @@ wood_rich = cbind(woods,d)
 lat_range =c(50,59)
 lon_range = c(-7,2)
 
-####### This ggplot thing stopped working ###
+####### This map funny shape, projection?
 
 UK <- map_data(map = "world", region = "UK")
 
-ggplot() + geom_polygon(data = UK, aes(x = long, y = lat),group = group) +
-  coord_map()+
-  geom_point(data=wood_rich, aes(x = Long,y=Lat)) 
 
-###############################
-  
+
 ggplot(UK, aes(x = long, y = lat),group = group)+
   geom_polygon(colour = "black", size = 0.25, fill = "white", aes(group = group)) +
   geom_point(data = wood_rich, aes(x = Long, y = Lat, col = d), size = 3)

@@ -13,8 +13,11 @@ library(dplyr)
 library(ggplot2)
 ```
 
-This analysis will take the vegetation data and compute species richness by nest and by plot. These values will be saved to CSV files which can be added to the Nest and Plot level data sets
+```{r}
+#This analysis will take the vegetation data and compute species richness by nest,plot and site. These values will be saved to csv files which can be added to the Nest and Plot level data sets.
+#wood_rich from maps.R required
 
+```
 
 ```{r}
 #Input all the ground flora data
@@ -77,7 +80,7 @@ plot_rich = plot_richness(Data_Yr2_veg)
 
 #plot_rich[i,j] returns richness for site i plot j. May not equate to sum of nest richness because saplings are included.
 
- #Missing plots come up as 0s - but note, some "missing" plots do have vegetation entries. Handle within each #woodland modelled??
+#Missing plots come up as 0s - but note, some "missing" plots do have vegetation entries. Handle within each #woodland modelled??
 write.csv(plot_rich,"../Data/plot_rich.csv")
 
 #species richness per nest is not saved to csv because its a list.
