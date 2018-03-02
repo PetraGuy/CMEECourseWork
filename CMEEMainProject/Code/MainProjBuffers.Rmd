@@ -44,7 +44,7 @@ buffers_index = function(data){
 
 LandCoverIndices = buffers_index(land_buffers)
 colnames(LandCoverIndices) = c("Buffer1","Buffer2","Buffer3")
-# LandCoverIndices is a 103 by 16 dataframe, [i,j] the item is index for plot i buffer j
+# LandCoverIndices is a 103 by 3 dataframe, [i,j]  is site i buffer j
 #Buffer 1 is the 1500m buffer. 
 write.csv(LandCoverIndices, "../Data/LandCoverIndices.csv")
 

@@ -109,7 +109,7 @@ ggplot(data = NegativeHeterogIndices, aes(x = SITE, y = no_rows)) +
 ```
 
 ```{r}
-#save the idices to merge with the site data 
+#save the indices to merge with the site data 
 colnames(PositiveHeterogIndices) = c("Site", "Pos_Hetero_Index")
 colnames(NegativeHeterogIndices) = c("Site", "Neg_Hetero_Index")
 
