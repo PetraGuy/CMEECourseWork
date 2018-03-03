@@ -191,7 +191,7 @@ map<- get_map(location = c(lon = -1.5, lat = 54),
                          source = "google",
                          maptype = "satellite",
                          zoom = 6) 
-  
+png("../Data/Talk/Map.png") 
 ggmap(map, extent ='device')+
     geom_point(aes(x = Long, y = Lat, colour = d),data = wood_rich, size = 2, alpha=1)+
     scale_color_gradient(low = "yellow", high="red")+
@@ -245,6 +245,7 @@ plot_site = function(sitevector){
     p = ggplot(melted_cf)+
       geom_point(aes(x = area, y = value), colour = "black")+
       labs(title = siteno)+
+      ylab("cumulative richness")+
       theme(plot.title = element_text(size = 10))
      plot_list[[i]] = p
      
@@ -263,17 +264,20 @@ plot_list =list()
 
 plots_all = plot_site(site_to_plot)
 
+png("../Data/Talk/8Bestcf.png")
 grid.arrange(plots_all[[1]], plots_all[[2]], plots_all[[3]],
              plots_all[[4]], plots_all[[5]], plots_all[[6]],
              plots_all[[7]],plots_all[[8]], ncol = 2)
 ```
 
 ```{r, message=FALSE, warning=FALSE, paged.print=FALSE}
-#scatter plots of raw cf for wosrt 8 woods
+#scatter plots of raw cf for worst 8 woods
 lo_woods = wood_rich%>%filter(d<45)
 site_to_plot = lo_woods$Site
 plot_list =list()
 plots_all = plot_site(site_to_plot)
+
+png("../Data/Talk/8worst.png")
 grid.arrange(plots_all[[1]], plots_all[[2]], plots_all[[3]],
              plots_all[[4]], plots_all[[5]], plots_all[[6]],
              plots_all[[7]],plots_all[[8]], ncol = 2)
@@ -356,6 +360,8 @@ ggplot(melted_cf)+
 site83 = Data_Yr2_veg%>%filter(SITE==83)
 site83distinctBRC = distinct(site83,BRC_number)
 species_list = inner_join(site83distinctBRC, veg_codes)
+png("../Data/Talk/richlist")
+grid.table(species_list)
 species_list
 ```
 
@@ -401,7 +407,7 @@ melted_f$area = areas
 melted_f$area = as.factor(melted_f$area) # ps, wont plot as separate plots if x continous
 ggplot(melted_f, (aes_string(x='area', y='value', na.rm = TRUE)) )+
    geom_boxplot(na.rm = TRUE, outlier.shape = 7, outlier.size = 3)+
-   ggtitle("Site 78, best wood, spread of richness per nest across all plots")
+   ggtitle("Site 78, worst wood, spread of richness per nest across all plots")
 
 #box plots now just space out neatly, not to scale, so cant put on same graph
 ```
@@ -410,6 +416,7 @@ ggplot(melted_f, (aes_string(x='area', y='value', na.rm = TRUE)) )+
 
 ```{r, warning=FALSE, error=FALSE, message=FALSE}
 #raw data cf scatter plot worst wood
+png("../Data/Talk/8Worst.png")
 ggplot(melted_cf)+
  geom_point(aes(x = area, y = value), colour = "black")+
   ggtitle("Raw data, site 78, cumulative richness across all plots with increasing area")+
@@ -423,6 +430,8 @@ ggplot(melted_cf)+
 site78 = Data_Yr2_veg%>%filter(SITE==78)
 site78distinctBRC = distinct(site78,BRC_number)
 species_list = inner_join(site78distinctBRC, veg_codes)
+png("../Data/Talk/poorlist")
+grid.table(species_list)
 species_list
 ```
 
@@ -484,5 +493,12 @@ ggplot()+
 
 Exploring the best and worst woods.
 
+```{r}
+png("../Data/Talk/slopes_hist")
+ggplot(fits, aes(slope))+
+  geom_histogram(binwidth = 0.05, col = "black", fill = "grey")+
+  ggtitle("Distribution of slopes in linear mixed effect ln/ln fit", subtitle = "S = cA^0.25 ish")
+dev.off()
 
+```
 

@@ -5,6 +5,8 @@ date: "19 February 2018"
 output: pdf_document
 ---
 
+#not finished
+
 ```{r, echo = FALSE}
 #clear the workspace
 rm(list = ls())
@@ -41,4 +43,6 @@ for (i in 1:103){
     }
   }
 }
+
+
 ```

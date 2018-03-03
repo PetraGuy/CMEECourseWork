@@ -51,12 +51,12 @@ PlotPlot = function(i,j){
   t2 = paste("plot",j)
   Title = paste(t1,t2, sep = " ")
   Plot = ggplot(data = data, aes(x = DBH_class, y = Count)) +
-    geom_bar(stat = "identity", col = "black", fill = "green") +
+    geom_bar(stat = "identity", col = "black", fill = "green", width = 1) +
     scale_x_continuous("DBH class",
                        breaks = 1:20,
                        labels = c(1:20),
                        limits = c(0, 20))+
-    labs(title = Title)#+
+    labs(title = Title)#+ount
   #theme(axis.ticks = element_blank(), axis.text.x = element_blank())
   #print(Plot)
   return(Plot)
