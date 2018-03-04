@@ -16,4 +16,4 @@ mv Sorbusaucuparia.pdf ../Documents
 mv figure ../Results
 mv MiniProj3.md ../Documents
 mv bibliography.bib ../Documents
-
+#os.system("Rscript -e rmarkdown::render('MiniProjMainDocument.Rmd')")

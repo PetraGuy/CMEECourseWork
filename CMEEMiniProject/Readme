@@ -28,28 +28,25 @@ subprocess (to use command line and run bash)
 Directory structure
 
 Code
-CompileMiniProj2.sh. Bash file to move requried files to correct locations and compile the Rmarkdown document.
-MiniProj3.Rmd. R markdown file containing all the code.
-run_MiniProject.py. Python file, execute this to run the project.
+MiniProjMainDocument.Rmd - rmarkdown file containg all code and text
+run_MiniProject.py - Execute this to compile the rmarkdowndocument. NB, evince is used to open the pdf which produces some error codes. The document opens, and SO implies these error codes are not important but relate to the document vier being opened from command line.
+bashrender.sh python was unable to render the rmarkdown file and it was much easier to do that from a bash script within the python script.
 
 Data
 Sorariacompact1.csv. data used in the project
 
 Documents
+
 bibliography.bib. Bibliography for the project
-Miniproj3.md. Will be created after compilation, kept as a log.
 ProjectText.odt. Text for the rmd file was written here and copied in. This allowed word count and was easier to manipulate.
 Sorbusaucuparia.pdf. Nice cover picture (Wiki images) for front of project.
 
-Results/figure
-3 graphs produced by markdown on compilation will be placed here
 
 Sandbox
 Various practice code which might be useful.
 
 Dataflow
+run_MiniProject.py, this will move files to correct locations and execute the bashrender program. After rendering the documents will be mved back out of Code, including the .pdf output
 
-execute run_MiniProject.py, this will execute CompileMiniProj2.sh, this collects bibliograpy, cover picture, clears results directory of earlier graphs, compiles the Rmarkdown, then tidies up by moving figure to results, moving compilation files and bibliography back to Documents.
 
 
-Documen
