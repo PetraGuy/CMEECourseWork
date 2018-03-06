@@ -1,5 +1,6 @@
 
-### This bit of code will allow species lists for different sites to be pulled out.
+### This bit of code will allow species lists for different sites to be pulled out. 
+###will include bryophytes unless joined with veg_codes
 
 groundflora = read.csv("../Data/GroundCover.csv")
 colnames(groundflora) = c("Site","Plot","Nest","Cover","BRC","Year")

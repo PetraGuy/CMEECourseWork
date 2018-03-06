@@ -34,10 +34,13 @@ Data = read.csv("../Data/GroundCover.csv")
 Data_Yr2 = Data%>%filter(Yr_2 == 2)#%>%select(SITE,PLOT,NEST,COV,Amalgams)
 colnames(Data_Yr2) = c("SITE", "PLOT","NEST","Cover","BRC_number","Year")
 veg_codes = read.csv("../Data/vegetation_codes.csv")
-# the  bryophytes, lichen etc have already been removed from these. 
+
+# the  bryophytes, lichen etc have already been removed from these, so the veg codes csv files is no bryophytes, so need to join this with ground cover to eliminate bryophytes from counts
+
 
 colnames(veg_codes) = c("Species", "BRC_number")
 Data_Yr2_veg = Data_Yr2%>% inner_join(veg_codes)
+# now using Dat_Yr2_veg means analysis is carried out without bryophytes
 ```
 
 
@@ -253,6 +256,29 @@ plot_site = function(sitevector){
   }
   return(plot_list)
 }
+
+# repeat above but plot on A^0.25 axis to show relationship more easily
+
+plot_site_trans = function(sitevector){
+ #browser()
+  for (i in 1:length(sitevector)){
+    site = sitevector[i]
+    cf_site = cum_rich_all[[site]]
+    cf_site$plot = plots
+    melted_cf = melt(cf_site)
+    melted_cf$area = areas
+    siteno  = paste("Site",site)
+    p = ggplot(melted_cf)+
+      geom_point(aes(x = (area)^0.25, y = value), colour = "black")+
+      labs(title = siteno)+
+      ylab("cumulative richness")+
+      theme(plot.title = element_text(size = 12))
+     plot_list[[i]] = p
+     
+      
+  }
+  return(plot_list)
+}
 ```
 
 
@@ -262,9 +288,9 @@ up_woods =  wood_rich%>%filter(d>115)
 site_to_plot = up_woods$Site
 plot_list =list()
 
-plots_all = plot_site(site_to_plot)
+plots_all = plot_site_trans(site_to_plot)
 
-pdf("../Results/8Bestcf.pdf")
+png("../Data/Talk/8Bestcf.png")
 grid.arrange(plots_all[[1]], plots_all[[2]], plots_all[[3]],
              plots_all[[4]], plots_all[[5]], plots_all[[6]],
              plots_all[[7]],plots_all[[8]], ncol = 2)
@@ -275,9 +301,9 @@ grid.arrange(plots_all[[1]], plots_all[[2]], plots_all[[3]],
 lo_woods = wood_rich%>%filter(d<45)
 site_to_plot = lo_woods$Site
 plot_list =list()
-plots_all = plot_site(site_to_plot)
+plots_all = plot_site_trans(site_to_plot)
 
-pdf("../Results/8worst.pdf")
+png("../Data/Talk/8worst.png")
 grid.arrange(plots_all[[1]], plots_all[[2]], plots_all[[3]],
              plots_all[[4]], plots_all[[5]], plots_all[[6]],
              plots_all[[7]],plots_all[[8]], ncol = 2)
