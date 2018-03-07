@@ -1,6 +1,6 @@
 
-### This bit of code will allow species lists for different sites to be pulled out. 
-###will include bryophytes unless joined with veg_codes
+### This bit of code will allow species lists for different sites to be pulled out.
+###NB ground flors has bryophytes - need to joing with veg_codes to remove these
 
 groundflora = read.csv("../Data/GroundCover.csv")
 colnames(groundflora) = c("Site","Plot","Nest","Cover","BRC","Year")
@@ -10,6 +10,13 @@ colnames(veg_codes) = c("Species","BRC")
 year2groundcover = groundflora%>%filter(Yr_2 == 2)
 colnames(year2groundcover) = c("Site","Plot","Nest","Cover","BRC","Year")
 species_per_plot = inner_join(year2groundcover, veg_codes)
+
+ellenbergs = read.csv("../Data/Ellenbergs.csv")
+colnames(ellenbergs) = c("BRC","Taxon name","Light","Moisture","pH","Nitrogen","Silinity")
+  
+##############################
+
+
 
 species78_2 = species_per_plot%>%filter(Site==78)%>%filter(Plot==2)
 png("../Data/Talk/78_2.png")
@@ -35,5 +42,5 @@ dev.off()
 ggplot(data, aes(DBH_class))
   geom_bar()
  
-
+#### add the ellenbergs
 

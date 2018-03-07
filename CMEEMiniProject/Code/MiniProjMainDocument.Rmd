@@ -280,18 +280,18 @@ Bottom up hierarchical clustering assigns each data-point to a single cluster, t
 
 R was the main language used in this project within Rstudio, [@R]  although there is no reason, in terms of functionality, why python could not be used. A  benefit of  R was that it can easily be used in conjunction with R markdown, which is used by the data providers and who may want to modify the model.  If the focus of the project had been machine learning itself, the caret package [@caret] would have been more efficient than the methods written here; it provides hundreds of algorithms, training options, plotting and cross fold validation all wrapped up within its functions. The package would allow more thorough and robust models to be produced. 
 
-A python script was used to compile the markdown file, which has the benefit of allowing neater folders. For example, compiling within Rstudio will not always retrieve images from folders other than the working directory, and therefore the Code directory can become cluttered with non-code files. Using a pyhton compilation script means the image files can be stored outside the Code directory and moved in and out when compiling.   
+A python script was used to compile the markdown file, which has the benefit of allowing neater folders. For example, compiling within Rstudio will not always retrieve images from folders other than the working directory, and therefore the Code directory can become cluttered with non-code files. Using a python compilation script means the image files can be stored outside the Code directory and moved in and out when compiling.   
 
-Bash was used to run the python script to fullfill the criteria of the project, and to give a simple one line run command from a console.
+Bash was used to render the rmarkdown file because python would not easily handle the syntax of the command. This was not a problem in bash and it was therefore easier to incorporate one line of a bash call within the python script for this.
 
 R markdown was used as it provides the same functionality as Latex, allowing the use of Latex commands directly within the document, but with the added benefit of being a dynamic document that is commonly used by other researchers in ecology, and in particular, the data providers.
 
 #4.Data exploration.
 
-If the data is separated into clearly defined groups, we can be sure that a clustering algorithm will work. Box plots are presented for the standardized and non-standardized data and show how the scale and separation between groups could be an issue for the clustering algorithms. The plots also show that certain features are clearly differentiate in certain species. For instance, fruit width would separate \textit{S. anglica}, and then fruit length would subsequently separate \textit{S. leyana}. This suggests that a decision tree algorithm could be successful. 
+If the data is separated into clearly defined groups, we can be sure that a clustering algorithm will work. Box plots are presented for the standardized, which is used for the clustering algorithms and non-standardized data used in the decision tree. The plots  show that certain features are clearly differentiate in certain species. For instance, fruit width would separate \textit{S. anglica}, and then fruit length would subsequently separate \textit{S. leyana}. This suggests that a decision tree algorithm could be successful. 
 
 
-```{r boxplot1,  fig.cap="Box plots for standardized data" }
+```{r boxplot1,fig.align = "centre", out.width="70%",message = FALSE,fig.cap="Box plots for standardized data. There is alot of overlap between the species. FS leyana stands out as having longer fruits and S anglica with its larger leaves. The leaf ratio separates S mougeotti because of its very lanceolate leaf. But the other species overlap in most variables" }
 # data exploration - box plots
 melted = melt(Scaled_df)
 ggplot(data = melted) +  geom_boxplot(aes(x=Species,y=value, fill = Species)) +   facet_wrap(~variable) +
@@ -304,25 +304,50 @@ ggplot(data = melted) +  geom_boxplot(aes(x=Species,y=value, fill = Species)) + 
 
 \newpage
 
-
-```{r boxplot2, message = FALSE, fig.cap="Box plots for non-standardized data" }
-# data exploration - box plots
+```{r, message = FALSE}
 melted = melt(Imputed_df)
-ggplot(data = melted) +  geom_boxplot(aes(x=Species,y=value, fill = Species)) +   facet_wrap(~variable) +
+melted1 = subset(melted,variable=="LeafLength"|variable=="LeafWidth"|variable=="WidestPoint")
+melted2 = subset(melted,variable=="FruitLength"|variable=="FruitWidth"|variable=="Veins"|variable=="Angles")
+melted3 = subset(melted,variable=="FruitRatio"|variable=="LeafRatio"|variable=="Lobing")
+```
+
+```{r,out.width="60%", fig.align = "centre",message = FALSE, fig.cap="Box plots for non-standardized data: Leaf length and width,and position of widest point. Leaf width and leaf length separate S. mougeotti and S anglica with their very narrow and very wide leaves, the other variables show a lot of overlap"}
+
+
+ggplot(data = melted1) +  
+  geom_boxplot(aes(x=Species,y=value, fill = Species)) +  
+  facet_wrap(~variable) +
   theme(axis.ticks = element_blank(), axis.text.x = element_blank())
-#ggsave("boxplot2.pdf", plot = boxplot2)
+```
+
+```{r,out.width="60%", fig.align = "centre",message = FALSE, fig.cap="Box plots for non-standardized data: number of veins,fruit length and fruit width. Fruit length separates S leyana, which has very long fruits and S mougeotti, which has very short fruits. There is a lot of overlap between species in the number of veins"}
+
+ggplot(data = melted2) +  
+  geom_boxplot(aes(x=Species,y=value, fill = Species)) +   
+  facet_wrap(~variable) +
+  theme(axis.ticks = element_blank(), axis.text.x = element_blank())
+```
+
+```{r,message = FALSE,fig.align = "centre", fig.cap="Box plots for non-standardized data: ratio of  fruit length and width, ratio of leaf length and width and depth of lobes. S mougeotti stands out as having lanceolate leaves  whereas those of S anglica are more ovate.", out.width="60%"}
+
+ggplot(data = melted3) +  
+  geom_boxplot(aes(x=Species,y=value, fill = Species)) +  
+  facet_wrap(~variable) +
+  theme(axis.ticks = element_blank(), axis.text.x = element_blank())
 ```
 
 
-\clearpage
 
-\newpage
 
 \flushleft
 
+
 #5. Results
 
-Since the output of the machine learning algorithms is mainly in the form of tables, many of these have been placed in the appendices for clarity. A couple of exemplar talbes only are used in the results section.
+Since the output of the machine learning algorithms is mainly in the form of tables, many of these have been placed in the appendices for clarity. A couple of exemplar tables only are used in the results section.
+
+\clearpage
+\newpage
 
 ##5.1 Kmeans
 
@@ -411,11 +436,11 @@ rownames(accs) = c("Distance Method", "Accuracy")
 colnames(accs) = c(" ", " "," ", " "," ")
 ```
 
-Table 2  shows that the Canberra metric gives an accuracy of 0.42 for the non-standardized data. The Euclidean and Minkowski methods give slightly worse accuracy of 0.41 for the standardized data, shown in table 12 of Appendix II. As in K-means, the performance of the standardized and non-standardized data is contrary to expectations, with the standarizeed data not giving obviously better results.
+Table 2  shows that the Canberra metric gives an accuracy of 0.42 for the non-standardized data. The Euclidean and Minkowski methods give slightly worse accuracy of 0.41 for the standardized data, shown in table 12 of Appendix II. As in K-means, the performance of the standardized and non-standardized data is contrary to expectations, with the standardized data not giving obviously better results.
 
-The confusion matrix in table 3 shows that while 69% of \textit{S. anglica} is allocated to the correct class, for \textit{S. arrenensis, S. leyana} and \textit{S. minima} this number is 0% or nearly so. The confusion matrix for the standardized data shown in table 13 of Appendix II does not show markedly better results.
+The confusion matrix in table 3 shows that while 69% of \textit{S. anglica} is allocated to the correct class, for \textit{S. arranensis, S. leyana} and \textit{S. minima} this number is 0% or nearly so. The confusion matrix for the standardized data shown in table 13 of Appendix II does not show markedly better results.
 
-The sensitivity and precision calculated for standardized and non-standardized data are shown in tables 14 and 15. The results are again inconsistent,  a high precision and sensitivity of 0.69 and 0.68 is achieved for \textit{S. anglia} using standardized data, but those values are 0 for \textit{S. Intermedia}.
+The sensitivity and precision calculated for standardized and non-standardized data are shown in tables 14 and 15. The results are again inconsistent,  a high precision and sensitivity of 0.69 and 0.68 is achieved for \textit{S. anglia} using standardized data, but those values are 0 for \textit{S. Inter media}.
 
 In summary, the hierarchical clustering technique gives low accuracy and inconsistent precision and sensitivity across the species and classes.
 \clearpage
@@ -461,7 +486,7 @@ The plot shows the decisions on which the tree has been split. The percentage is
 
 The plot shows that the first decision splits the data roughly in half depending on the fruit being either greater or less than 11mm wide. The thinner fruit is then predominantly assigned to \textit{S. anglica} based on the length being less than 13mm.  The wider fruits take more decisions to assign the species. Fruit ratio (fruit width/fruit length) and fruit length < 9.8mm gives 14% of the data, most of which is allocated to \textit{S.intermedia} with some \textit{S. cuneifolia}.  The \textit{S. minima} leaf contains only that species (high precision) but only 6% of the data instead of 13% so we can see that around half this species has been incorrectly assigned (low sensitivity).
 
-The accuracy of the tree, shown in table 4, 0.68. The confusion matrix in table 5 shows that most of \textit{S. anglica, S. intermedia, S.leyana}, and {\textit{S.minima} are grouped together. The sensitivity and precision shown in tables 17 and 18 of Appendix III, demonstrate sensitivity above 43% for 6 out of the 7 species while precision is above 50% for 6 classes and 100% for \textit{S. minima}. 
+The accuracy of the tree, shown in table 4, is 0.68. The confusion matrix in table 5 shows that most of \textit{S. anglica, S. intermedia, S.leyana}, and {\textit{S.minima} are grouped together. The sensitivity and precision shown in tables 17 and 18 of Appendix III, demonstrate sensitivity above 0.6 for 5 out of the 7 species while precision is above 0.5 for 5 classes and 100% for \textit{S. minima}. 
 
 \clearpage
 \newpage
@@ -527,22 +552,22 @@ The decision tree is the most successful of the algorithms achieving the highest
 
 K-means was not successful in separating the data into clusters which could be interpreted as species of \textit{Sorbus}. The algorithm was seen to be unrepeatable and the accuracy was always less 0.3.  Sometimes high precision or sensitivity was achieved for a single species, but this was not reflected in the other species and it was not repeatable. The standardized data gave only slightly better results. It is not clear from this analysis whether it is the nature of the data itself that is the cause of the poor performance of this technique; Raykov et al [@raykov] describe the need for data subsets of equal variance and size, which was not the case here. Or the data preparation may have been at fault. Different methods of standardization have been shown to influence the outcome of K-means, and the method used here may not be the optimum, [@steinley]. 
 
-Hierarchical clustering achieved  an accuracy of 0.42 using the Canberra method in non-standardized data and 0.41 using the Euclidean and Minowski method in standardized data. The confusion matrix for the non-standardized data showed better allocation of \textit{S Anglica} but the confusion matrix for standardized data was better for allocating \textit{S mougeotii}. The sensitivity and precision also gave inconsistent results for the standardized and non-standardized data. Neither data treatment being better overall for all species. Overall, hierarchical clustering was not successful, and again, it is not clear whether this is due to the data preparation of the nature of the data. The fact that the non-standardized data sometimes gave better results is unexpected and has not been addressed.
+Hierarchical clustering achieved  an accuracy of 0.42 using the Canberra method in non-standardized data and 0.41 using the Euclidean and Minowski method in standardized data.  The sensitivity and precision demonstrated inconsistent results for the standardized and non-standardized data. Neither data treatment being better for all species. Overall, hierarchical clustering was not successful, and again, it is not clear whether this is due to the data preparation of the nature of the data. The fact that the non-standardized data sometimes gave better results is unexpected and has not been addressed.
 
-The decision tree method performed more consistently than hierarchical clustering. Although a single species might have a higher sensitivity in clustering, across all species the decision tree performed better, with  five of the seven species achieving greater than 0.6 sensitivity and precision above 0.5 in all but one class. The overall accuracy was also the highest at 0.68.
+The decision tree method performed more consistently than hierarchical clustering. Although a single species might have a higher sensitivity in clustering, across all species the decision tree performed better, with  four of the seven species achieving greater than 0.6 sensitivity and precision above 0.5 in five of seven classes. The overall accuracy was also the highest at 0.68.
 
-In conclusion, machine learning using a decision tree algorithm looks to be a successful method for identifying species of \textit{Sorbus}.
+In conclusion, machine learning using a decision tree algorithm was a successful method for identifying species of \textit{Sorbus}.
 
 
 #7 Further work
 
 Different methods of standardization could be tried for the unsupervised methods, as well as other clustering algorithms which may be better able to model this data.
 
-All the variables were used in the decision tree, which may not be the best model. Rpart provides information on the importance of variables which can be used to ascertain which can be removed, and this might further improve the performance of the model.
+All the variables were used in the decision tree, which may not be the best model. Rpart provides information on the importance of variables which can be used to ascertain which can be removed, and this might further improve performance.
 
-The decision tree model could be extended to include cross fold validation in order to give more robust predictions. Other species of \textit{Sorbus} could be modeled to see if the success was due to the specific morphological characteristics of the \textit{Soraria} subgenus and compare results for other subgenera. 
+The decision tree could be extended to include cross fold validation in order to give more robust predictions. Other species of \textit{Sorbus} could be modeled to see if the success was due to the specific morphological characteristics of the \textit{Soraria} subgenus and compare results for other subgenera. 
 
-\textit{Sorbus} are  particularly difficult to identify due to the similarity between species. It would therefore be an interesting comparison to use this model to asses more easily differentiated plants, such as grasses or sedges. These can be problematic to recorders due to the number of features that must be cross-referenced, but these features are more differentiated than in \textit{Sorbus}.
+\textit{Sorbus} are  particularly difficult to identify due to the similarity between species. It would therefore be interesting to use this model to asses more easily differentiated plants, such as grasses or sedges. These can be problematic to recorders due to the number of features that must be cross-referenced, but these features are more differentiated than in \textit{Sorbus}.
 
 \clearpage
 
