@@ -30,7 +30,7 @@ knitr::opts_chunk$set(echo = FALSE,message = FALSE,fig.pos = "H" ,comment=NA, fi
 
 ```{r, echo = FALSE, comment=NA}
 date = format(Sys.Date(), "%B %d %Y")
-cat(c(date, ",   word count 3384"))
+cat(c(date, ",   word count 3450"))
 ```
 
 \center
