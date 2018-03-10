@@ -16,6 +16,7 @@ rpart_4.1-11(for the decision tree) dependencies R>2.15.0,
 rpart.plot_2.1.2(for the tree plot) depends R>3.2.0 rpart > 4.1-10
 knitr_1.17  (to knit the Rmarkdown file) depends R>3.1.0
 kableExtra_0.7.0 knitr_1.17  (this was the only way I could find to produced reasonable looking, numbered tables)
+pandoc 1.12.3 for rendering rmarkdown
 
 Rmarkdown packages required
 lineno (for line numbering)

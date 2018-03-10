@@ -79,8 +79,8 @@ y = all_plot_vars$plot_richness
 x1 = as.factor(all_plot_vars$ShortNVC)
 x2= as.factor(round(all_plot_vars$pHYr2, digits = 0))
 x3 = as.factor(round(all_plot_vars$SOMYr2, digits = 0))
-x4 = as.factor(round(all_plot_vars$LiveBasalAreaYr2, digits = 0))
-x5 =  as.factor(round(all_plot_vars$mean_dbh, digits = 0))
+x4 = as.factor(round(all_plot_vars$LiveBsalAreaYr2, digits = 0))
+x5 =  as.factor(round(all_plot_vars$mean_dbha, digits = 0))
 x6 =  as.factor(round(all_plot_vars$`tree density`, digits = 1))
 
 png("../Data/Talk/plot_vars.png")
