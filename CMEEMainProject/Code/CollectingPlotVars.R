@@ -72,6 +72,7 @@ tmp_all = inner_join(tmp_all, data_density_long)
 all_plot_vars = inner_join(tmp_all, data_rich_long)
       
 all_plot_vars$ShortNVC = gsub("[[:lower:]]","",all_plot_vars$Yr2NVC)
+write.csv(all_plot_vars,"../Data/AllPlotsVarsRichness.csv")
 
 #plot of all NVC codes and richnesses across all woods, so spread is due to wood.
 
@@ -80,7 +81,7 @@ x1 = as.factor(all_plot_vars$ShortNVC)
 x2= as.factor(round(all_plot_vars$pHYr2, digits = 0))
 x3 = as.factor(round(all_plot_vars$SOMYr2, digits = 0))
 x4 = as.factor(round(all_plot_vars$LiveBsalAreaYr2, digits = 0))
-x5 =  as.factor(round(all_plot_vars$mean_dbha, digits = 0))
+x5 =  as.factor(round(all_plot_vars$mean_dbh, digits = 0))
 x6 =  as.factor(round(all_plot_vars$`tree density`, digits = 1))
 
 png("../Data/Talk/plot_vars.png")
@@ -113,7 +114,6 @@ model_lm = lm(plot_richness~ pHYr2, data = var_matrix)
 
 #################################
 
-#species accumulation curve example
 
 
 

@@ -237,8 +237,11 @@ The above graphs show the plots with the four most negative indices. In each cas
 max_class = DBH_Yr2_agg%>%filter(DBH_class == max(DBH_class)) #=32, but not for many things
 highest_freq = DBH_Yr2_agg%>%filter(Count == max(Count)) #=372 in dbh 1 at Site103 plot14
 # modal_dbh  = Mode(DBH_Yr2_agg%>%select(DBH_class))#1
+```
 
-# get the means of each plot
+```{r}
+# get the means of each plot but add in NAs for missing plots - these might have no tres or might be missing
+
 Means_df = data.frame()
 dbh_classes = c(1:32)
 dbh_values = seq(from = 7.5, to = 162.5, length = 32)
@@ -249,10 +252,14 @@ for (i in 1:103){
     Means_df[i,j] = round(sum(plotdata$Count*(plotdata$DBH_class*5+2.5))/sum(plotdata$Count), digits = 2)
     }
 }
+
 rownames(Means_df) = c(1:103)
 colnames(Means_df) = c(1:16)
-#the Nan a=might be an issue, I think its Ok to replace them with zeros
-Means_df = replace(Means_df, is.na(Means_df),0)
+#the Nan a=might be an issue, I think its Ok to replace them with zeros, no leave as Nan - sort later as appropriate
+#sometimes need the nan to know nohing was there
+#Means_df = replace(Means_df, is.na(Means_df),0)
+
+
 write.csv(Means_df, "../Data/dbh_means.csv")
 
 ##PS dplyr method, but then you dont get the nice df accessed y row col for site plot

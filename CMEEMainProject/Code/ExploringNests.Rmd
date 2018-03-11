@@ -22,6 +22,7 @@ These analysis will take the vegetation data (Groundcover.csv) and compute speci
 ```{r}
 #the wood location data
 
+
 woods = read.csv("../Data/EastingNorthing.csv")
 colnames(woods) = c("Site", "Easting","Northing","GridRef","Lat","Long")
 
@@ -115,6 +116,7 @@ basic_richness = function(data){
   return(d)
 } 
 d = basic_richness(Data_Yr2_veg)
+write.csv(d,"../Data/SiteRichness.csv")
 
 ```
 

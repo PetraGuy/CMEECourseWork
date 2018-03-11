@@ -112,9 +112,13 @@ ggplot(data = NegativeHeterogIndices, aes(x = SITE, y = no_rows)) +
 #save the indices to merge with the site data 
 colnames(PositiveHeterogIndices) = c("Site", "Pos_Hetero_Index")
 colnames(NegativeHeterogIndices) = c("Site", "Neg_Hetero_Index")
-
+# Some sites have no records, so ensure 0 appears, not missing row.
+Sitedf = as.data.frame( c(1:103))
+colnames(Sitedf) = "Site"
+PositiveHeterogIndices = right_join(PositiveHeterogIndices,Sitedf)
+NegativeHeterogIndices = right_join(NegativeHeterogIndices,Sitedf)
 PositiveHeterogIndices = write.csv(PositiveHeterogIndices,"../Data/PositiveHeterogIndices.csv")
-NegativeHeterogIndices = write.csv(NegativeHeterogIndices, "../Data/NegativeHeterogIndices")
+NegativeHeterogIndices = write.csv(NegativeHeterogIndices, "../Data/NegativeHeterogIndices.csv")
 
 ```
 
