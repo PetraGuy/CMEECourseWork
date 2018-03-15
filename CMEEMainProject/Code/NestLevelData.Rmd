@@ -1,0 +1,283 @@
+---
+title: "NestLevelData"
+author: "PetraGuy"
+date: "15 March 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+cat("\014")
+rm(list = ls())
+library(dplyr)
+library(ggplot2)
+library(ggmap)
+library(ggrepel)
+library(nlme)
+library(reshape)
+library(gridExtra)
+```
+
+The change in species richness across the nests for all woods was explored using linear mixed effect model in which the random variable is the plot. 
+There are no environmental varialble collected at nest scale, therefore this analysis can only look at area.
+
+```{r, comment=FALSE,message=FALSE}
+#Input all the ground flora data
+Data = read.csv("../Data/GroundCover.csv")
+Data_Yr2 = Data%>%filter(Yr_2 == 2)#%>%select(SITE,PLOT,NEST,COV,Amalgams)
+colnames(Data_Yr2) = c("SITE", "PLOT","NEST","Cover","BRC_number","Year")
+veg_codes = read.csv("../Data/vegetation_codes.csv")
+
+# the  bryophytes, lichen etc have already been removed from veg codes csv so join this with ground cover to eliminate bryophytes from counts
+
+
+colnames(veg_codes) = c("Species", "BRC_number")
+Data_Yr2_veg = Data_Yr2%>% inner_join(veg_codes)
+# now using Dat_Yr2_veg means analysis is carried out without bryophytes
+
+d = read.csv("../Data/SiteRichness.csv")
+```
+
+```{r}
+nest_richness = function(data){
+  site_list = list()
+  #browser()
+    for (i in 1:103){
+    sitedata = data%>%filter(SITE == i)
+    plot_nest_df = data.frame()
+    for (j in 1:16){
+      plotdata = sitedata%>%filter(PLOT == j)
+      tmp = vector()
+       for (k in 1:5){
+        nestdata = plotdata%>%filter(NEST ==k)
+        tmp = c(tmp, nrow(nestdata))
+        }
+      plot_nest_df = rbind(plot_nest_df, tmp)
+      colnames(plot_nest_df) = c("nest1","nest2","nest3","nest4","nest5")
+    }
+   site_list[[i]]= plot_nest_df
+  }
+return(site_list)   
+}
+spec_rich = nest_richness(Data_Yr2_veg)
+
+#spec_rich[[site]] gives the values for each nest/plot in a site. need to make them cumulative
+# in order to plot species area curve
+```
+
+```{r}
+## cumulative richness for site i, for all 16 plots.
+##need spec_rich calculated above
+
+cum_rich_all = list()
+for ( i in 1:103){
+  #browser()
+  site = spec_rich[[i]]
+  site = as.data.frame(site)
+  cum_rich_site = data.frame()
+   for (j in 1:16) {
+    plot = site[j,]
+    r = 0
+    cumrich = rep(0,5)
+    for (n in 1:5){
+      r = r + plot[[n]]
+      cumrich[n] = r
+    }
+    cum_rich_site = rbind(cum_rich_site, cumrich)
+   }
+  colnames(cum_rich_site) = c("nest1","nest2","nest3","nest4","nest5")
+  cum_rich_all[[i]] = cum_rich_site
+  }
+
+```
+
+
+```{r, warning=FALSE, error=FALSE, message=FALSE}
+##fit every wood and look at coefficients, F and p
+#prepare data
+plots = c("plot1","plot2","plot3","plot4","plot5","plot6","plot7",
+          "plot8","plot9","plot10","plot11","plot12","plot13","plot14","plot15","plot16")
+area = c("4","25","50","100","200") 
+areas = sort(as.numeric(rep(area,16)), decreasing = FALSE)
+
+fits_all_woods = function(){
+  coef_df = data.frame(matrix(ncol = 2, nrow = 0))
+  
+  #prepare data
+  for (i in 1:103){
+    #browser()
+    cf_site = cum_rich_all[[i]]
+    cf_site$plot = plots
+    melted_cf = melt(cf_site)
+    melted_cf$area = areas
+    # zeros will freak this model out, make them NAs
+    melted_cf[melted_cf==0]=NA
+    #model
+    model_nlme_area_log = lme(log(value)~log(area),random = ~1|plot, data = melted_cf, na.action = na.omit)
+    
+    #get coefficients
+    int = model_nlme_area_log$coefficients$fixed[[1]]
+    slope = model_nlme_area_log$coefficients$fixed[[2]]
+    t_slope =summary(model_nlme_area_log)$tTable[2,4]
+    p_slope = summary(model_nlme_area_log)$tTable[2,5] # this is wrong selection
+    F_value = anova(model_nlme_area_log)[2,3]
+    next_row = c(int,slope, t_slope,p_slope,F_value)
+    coef_df = rbind(coef_df,next_row)
+  }
+  colnames(coef_df) = c("intercept","slope","t_slope","p_slope","F_value")
+  return(coef_df)
+}
+fits = fits_all_woods()
+
+```
+
+
+
+```{r}
+#pdf("../Results/slopes_hist")
+
+cplots = ggplot(fits, aes(intercept))+
+  geom_histogram(binwidth = 0.05, col = "black", fill = "grey")+
+  ggtitle("Distribution of intercepts in linear mixed effect ln/ln fit", subtitle = "S = cA^0.25 ish")
+
+zplots = ggplot(fits, aes(slope))+
+  geom_histogram(binwidth = 0.05, col = "black", fill = "grey")+
+  ggtitle("Distribution of slopes in linear mixed effect ln/ln fit", subtitle = "S = cA^0.25 ish")
+
+#tplots =  ggplot(fits, aes(t_slope))+
+  #geom_histogram(binwidth = 0.05, col = "black", fill = "grey")+
+  #ggtitle("Distribution of t values for slope in linear mixed effect ln/ln fit", subtitle = "S = cA^0.25 ish")
+
+#pplots = ggplot(fits, aes(p_slope))+
+ # geom_histogram(binwidth = 0.05, col = "black", fill = "grey")+
+ # ggtitle("Distribution of p values for slope in linear mixed effect ln/ln fit", subtitle = "S = cA^0.25 ish")
+
+#Fplots = ggplot(fits, aes(F_value))+
+ # geom_histogram(binwidth = 0.05, col = "black", fill = "grey")+
+  #ggtitle("Distribution of F values for slope in linear mixed effect ln/ln fit", subtitle = "S = cA^0.25 ish")
+
+
+grid.arrange(cplots, zplots,ncol = 1)
+```
+
+The first graph shows the distribution of ln(C), the intercept, in the linear fit of ln(species richness) against ln(Area).
+
+The intercept represents the number of species found in a 4m^2 nest. The minimum value being 1 up to a maximum of around 12.
+
+The second histogram shows the distribution of the gradient of the model across the 103 woodlands. This suggests that for many woods that the canonical equation would be given by S = cA^0.25.
+
+The F value of the model is large, the smallest value found being 40, with the t value for the slope always being greater than 6 and the minimum p values all less than 0.0001. The area is a significant predictor of species richness at this scale. 
+
+However, looking at an example plot of cumulative richness across nests, it is clear that plot is also significant, as can be seen in the standard deviation of the random intercepts, but easier to visualise using the  cumulative species curves.
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+
+sitevector = c(78,83)
+
+plot_list =list()
+plot_site_trans = function(sitevector){
+ #browser()
+  for (i in 1:length(sitevector)){
+    site = sitevector[i]
+    cf_site = cum_rich_all[[site]]
+    cf_site$plot = plots
+    melted_cf = melt(cf_site)
+    melted_cf$area = areas
+    siteno  = paste("Site",site)
+    p = ggplot(melted_cf)+
+      geom_point(aes(x = (area)^0.25, y = value), colour = "black")+
+      labs(title = siteno)+
+      ylab("cumulative richness")+
+      theme(plot.title = element_text(size = 12))
+     plot_list[[i]] = p
+     
+      
+  }
+  return(plot_list)
+}
+
+
+plots_all = plot_site_trans(sitevector)
+
+grid.arrange(plots_all[[1]], plots_all[[2]], ncol = 2)
+
+```
+The two species richness plots above for the poorest and richest sites show that as you increase area, you increase species richness (not so much for site 78). They also show that if you change plot you change richness.
+
+```{r}
+
+plots = c("plot1","plot2","plot3","plot4","plot5","plot6","plot7",
+          "plot8","plot9","plot10","plot11","plot12","plot13","plot14","plot15")
+area = c("4","25","50","100","200") 
+areas = sort(as.numeric(rep(area,15)), decreasing = FALSE)
+
+cf_bestsite = cum_rich_all[[83]]
+cf_bestsite = cf_bestsite[-16,]
+#cf_bestsite[cf_bestsite==0]=NA
+cf_bestsite$plot = plots
+
+melted_cf = melt(cf_bestsite)
+melted_cf$area = areas
+
+model_nlme_area_log = lme(log(value)~log(area),random = ~1|plot, data = melted_cf, na.action = na.omit)
+fit3 = predict(model_nlme_area_log)
+melted_cf$fit3 = fit3
+```
+
+```{r, error=FALSE, message=FALSE, warning=FALSE}
+#model plot for best wood
+ggplot(melted_cf)+
+  geom_point(aes(x=log(area),y=log(value),na.rm =TRUE), colour = "black") +
+  geom_line(aes(x=log(area), y = fit3, group = plot), colour = "red")+
+  geom_abline(intercept = 2.2497,slope = 0.2357, size = 2, colour = "blue")+
+  ggtitle("Site 83, best wood, species area curve")+
+  annotate("text",x = 2, y = 4, label  = "S = 9.9A^0.24")
+```
+
+The graph above shows the fitted plots for site 83, demonstrating that the deviation of the intercepts is large.
+
+```{r}
+# get the change across nests and across plots - dS/dA and dS/dP
+
+range_df = data.frame()
+ for(i in 1:103){
+   site = cum_rich_all[[i]]
+   nestRange = max(site[,5]-site[,1])
+   plotRange = max(site[,5])-min(site[,5])
+   next_row = cbind(nestRange,plotRange)
+   range_df = rbind(range_df,next_row)
+ }
+colnames(range_df) = c("nest_range", "plot_range")
+
+```
+
+```{r message=FALSE, warning=FALSE}
+
+#ggplot(range_df, aes(nest_range))+
+ # geom_histogram(binwidth = 1, col = "black", fill = "grey")  
+
+#ggplot(range_df, aes(plot_range))+geom_histogram(binwidth = 1, col = "black", fill = "grey")
+melted =  melt(range_df)
+ggplot(melted, aes(value, fill = variable) )+ 
+  geom_histogram(position = "identity", alpha = 0.2)
+
+  
+```
+
+The histogram above shows the maximum range in the change richness due to nests - i.e. increasing area from 4m^2 to 200m^2 and the maximum range in change in richness due to the plots. In many cases the change due to plot is as large or large than the change due to area.
+
+
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+
+ggplot(melted) + geom_boxplot(aes_string(x = "variable", y = "value"))
+
+```
+
+The boxplots again show how the range of richness is as large for plot as it is for area.
+
+This change in richness across the plots of the woods is due to the heterogeneity of the woodland, and it is the physical and environmental drivers of this heterogenity induced increase in species richness that we want to investigate.
+
+
+
+

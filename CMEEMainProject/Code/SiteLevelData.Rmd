@@ -1,18 +1,31 @@
+---
+title: "SiteLevelData"
+author: "PetraGuy"
+date: "15 March 2018"
+output: pdf_document
+---
 
-# exploring relationship between richness of a site and various env vars
-#using d[site]  which is the site richness of the 16 plots, so all equal area.
-#need d[site] from ExploringNests saved to SiteRichness.csv
-#need AllPlotVarsRichness from CollectingPlotCars this conatains plot level richness, but also range of pH, dbh etc in each site
-#the ranges/sd will be extracted to use as heterogeneity of the site
-#Need Site descriptor codes 
-#Need Site level vars
-#need land cover in buffers
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+The richness of all 16 plots in each site was explored with various environmental variables. Since all the areas are then equal, the effect on richness is only due to environmental variables.
+
+The first four graphs plot richness against various physical factors:
+
+The site level variables are altitude (Alt_m), Area (Area_ha), perimeter (perim_m), the ratio of area to perimeter (area_ratio), the location (Easting and Northing) and the proportion of positive buffer zones at 1500m, 2500m and 3500m radius around the wood (Buffer1,Buffer2, Buffer3). Positive buffer zones are woodland or natural landscapes, not arable or urban. 
+Some plot level variables have been averaged across the plots and are also used, these are mean dbh (meandbh), mean pH (meanph), mean soil organic matter (meanSOM) and mean live basal area (mean LBA).
+
+The next two graphs plot richness again factors which can be taken to represent the heterogeneity of the woodlands:
+The number of different NVC codes (no_NVC), the number of positive side codes recorded (Pos_Hetero_Index), the standard deviation of the soil pH and soil organic matter (sd_pH, sd_SOM), the number of different major soil groups recorded (no_MSG), the standard deviation of the live basal area (sd_LBA), standard deviation of the mean dbh  of a plot (sd_meandbh), standard deviation of the tree density of the plots (sd_treedensity) and the number of plots with no trees recorder (no_trees).
+
+The final two plots just use the Ellenberg values. The first plot uses the standard deviation of the Ellenbergs across the plots, the final plot uses the mean values of the Ellenberg for all the plots.
+
+NB - for all the plots I have normalised the x axis to 1, just to make everything fit neatly on the same axis.
+I didnt do that for the Ellenberg plots because they are in roughly the same scale anyway
 
 
-#The data files are at different levels - the higher levels (nest/plot) are used to get range/sd of variables
-#The ramges/sd will be added as variable to the lowest level (Site) file along with simple site richness
-#Simple site richness = unique richness of the 16 plots no extrapolation
-
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 library(dplyr)
 library(ggplot2)
 library(reshape2)
@@ -164,9 +177,10 @@ CompleteSiteLevelVars = inner_join(CompleteSiteLevelVars,means)
 # add area/perim ratio
 CompleteSiteLevelVars$area_ratio = CompleteSiteLevelVars$Area_ha*10000/CompleteSiteLevelVars$Perim_m
 
-#################################################################
+```
 
-#####PHYSICL##########
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 #Now first consider "physical" variables, select subset of CompleteSiteLevelVars
 
 physical_vars = c("Site","Alt_m", "Area_ha","Perim_m" ,"area_ratio", "Easting" , "Northing","Buffer1","Buffer2" ,
@@ -198,27 +212,33 @@ set1 = melted_physical%>%filter(variable == "Alt_m" | variable == "Area_ha" |
 #pdf("../Results/set1.pdf")
 ggplot(set1, aes(value,Richness_rep))+geom_point(aes(colour = variable))+
   geom_smooth(method = "lm", aes(colour = variable))
+```
 
+```{r}
 set2 = melted_physical%>%filter(variable == "Easting" | variable == "Northing")
 
 #pdf("../Results/set2.pdf")
 ggplot(set2, aes(value,Richness_rep))+geom_point(aes(colour = variable))+
   geom_smooth(method = "lm", aes(colour = variable))
+```
 
+```{r}
 set3 = melted_physical%>%filter(variable == "Buffer1" | variable == "Buffer2" | variable == "Buffer3")
 
 #pdf("../Results/set3.pdf")
 ggplot(set3, aes(value,Richness_rep))+geom_point(aes(colour = variable))+
   geom_smooth(method = "lm", aes(colour = variable))
+```
 
+```{r}
 set4 = melted_physical%>%filter(variable == "meandbh" | variable == "meanph" | 
                                   variable == "meanSOM" | variable == "meanLBA")
 #pdf("../Results/set4.pdf")
 ggplot(set4, aes(value,Richness_rep))+geom_point(aes(colour = variable))+
   geom_smooth(method = "lm", aes(colour = variable))
+```
 
-
-#####HETERO #####################
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 #now do heterogeneity variables,
 #have dataframe called hetero_vars before joined to richness, but I'll subract from the complete
 heterog_vars = c("Site","Richness","no_NVC", "Pos_Hetero_Index", "sd_pH", "sd_SOM", "no_MSG", "sd_LBA",
@@ -247,13 +267,17 @@ set5 =  melted_heterog%>%filter(variable == "no_NVC" | variable == "no_MSG" | va
 #pdf("../Results/set5.pdf")
 ggplot(set5, aes(value,Richness_rep))+geom_point(aes(colour = variable))+
   geom_smooth(method = "lm", aes(colour = variable))
+```
 
+```{r}
 set6 = melted_heterog%>%filter(variable == "sd_meandbh" | variable == "sd_treedensity" |
                                  variable == "sd_LBA" | variable == "no_trees")
 #pdf("../Results/set6.pdf")
 ggplot(set6, aes(value,Richness_rep))+geom_point(aes(colour = variable))+
   geom_smooth(method = "lm", aes(colour = variable))
+```
 
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 ########## ELLENBERGS #############################
 
 ellenberg_vars = c("Site","Richness","sd_R","mean_R","sd_N","mean_N",
@@ -277,26 +301,45 @@ set7 =  melted_ellenberg%>%filter(variable == "sd_R" | variable == "sd_N" |
 #pdf("../Results/set7.pdf")
 ggplot(set7, aes(value,Richness_rep))+geom_point(aes(colour = variable))+
   geom_smooth(method = "lm", aes(colour = variable))
+```
 
+```{r}
 set8 = melted_ellenberg%>%filter(variable == "mean_R" | variable == "mean_N" |
                                  variable == "mean_W" | variable == "mean_L")
 #pdf("../Results/set8.pdf")
 ggplot(set8, aes(value,Richness_rep))+geom_point(aes(colour = variable))+
   geom_smooth(method = "lm", aes(colour = variable))
 
-#### this function does nice pairs plots
-#mydata = norm_physical[-c(1,2)]
-#my_fn <- function(data, mapping, ...){
-#  p <- ggplot(data = data, mapping = mapping) + 
-#    geom_point() + 
-#    geom_smooth(method=loess, fill="red", color="red", ...) +
-#    geom_smooth(method=lm, fill="blue", color="blue", ...)
-#  p
-#}
+```
 
-#g = ggpairs(mydata,columns = 1:4, lower = list(continuous = my_fn))
-#h = ggpairs(mydata,columns = 5:8, lower = list(continuous = my_fn))
-#i = ggpairs(mydata,columns = 9:12, lower = list(continuous = my_fn))
-###################
+The plots show:
+Positive correlation for the area of the wood. Larger woods have greater species richness in the 16 plots - possibly due to large species pool?
+There is a negative correlation with altitude.
+
+Positive correlation with northing - the northern woods are richer. Not sure why - are many of the southern woods beech??
+
+Positive correlation with greater proportion of positive buffer - similar effect to having larger wood, species pool etc??
+
+**Negative correlation with mean live basal area and mean dbh, as you would expect.**
+**Negative correlation with soil organic matter - due to deep litter smothering** growth?? 
+
+**Postive correlation with number of postive side codes recorded**
+**Positive correlation with number of NVCs recorded.**
+
+**Positive correlation with number of sites without trees**
+Positive correlations with standard deviations of mean dbh, tree density and live basal area
+
+**Positive correlation with increasing R and W ellenberg values**
+
+This last correlation seems in agreement with the Boch paper and corresponds to the positive correlation of number of plots with no trees. As open areas are introduced, through forest management or the presence of tracks or riparian zones (all recorded in the Pos_Hetero_Index) light demanding species are seen, which add to the richness.
+
+Possibly the positive correlation of the Ellenberg W corresponds to the correlation with the number of NVC codes or positive site codes. Both of these are reflecting different habitat types. 
+
+The purpose of this exploration was a) to see which variables are having the strongest effect on the richness, and b)  to see what the effect o he different "groups" of variables - physical/heterogeneous/Ellenbergs.
+
+
+
+
+
 
 

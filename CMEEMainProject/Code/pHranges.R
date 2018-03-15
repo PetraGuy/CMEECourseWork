@@ -9,7 +9,7 @@ colnames(groundflora) = c("Site","Plot","Nest","Cover","BRC","Year")
 veg_codes = read.csv("../Data/vegetation_codes.csv")
 colnames(veg_codes) = c("Species","BRC")
 
-year2groundcover = groundflora%>%filter(Yr_2 == 2)
+year2groundcover = groundflora%>%filter(Year == 2)
 colnames(year2groundcover) = c("Site","Plot","Nest","Cover","BRC","Year")
 species_per_plot = inner_join(year2groundcover, veg_codes)
 
@@ -27,7 +27,7 @@ colnames(phdata) =c("site83","site78")
 melted = as.data.frame(melt(phdata))
 colnames(melted) = c("plot","site","pH")
 
-png("../Data/Talk/soilpH.png")
+#png("../Data/Talk/soilpH.png")
 ggplot(melted)+geom_boxplot(aes_string(x="site", y="pH",na.rm = TRUE))+
   ggtitle("range of soil pH measured")+
   theme(axis.text=element_text(size = 12))
@@ -51,7 +51,7 @@ meltedsite83data=melt(site83data)
 
 twosites = rbind(meltedsite78data,meltedsite83data)
 
-png("../Data/Talk/ellenbergs.png")
+#png("../Data/Talk/ellenbergs.png")
 ggplot(data = twosites, aes_string(x = "variable", y = "value"))+
   facet_wrap(~Site, nrow = 2 )+
   geom_boxplot()+

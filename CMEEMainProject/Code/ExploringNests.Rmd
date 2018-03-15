@@ -154,7 +154,7 @@ for ( i in 1:103){
 
 ```{r}
 #some stats, might use these
-wood_rich = cbind(woods,d) # just add richness to loactions
+wood_rich = cbind(woods,d) # just add richness to locations
 max_wood = wood_rich%>%filter(Site==match(max(d),d))
 min_wood = wood_rich%>%filter(Site==match(min(d),d))
 #wont work with 0s
@@ -172,7 +172,7 @@ values = c(max(d),min(d),max_range,min_range)
 n = colnames(stats)
 n = c(n[-7],"values")
 colnames(stats) = n
-rownames(stats) = c("max richness","min richness","max range","min range")
+#rownames(stats) = c("max richness","min richness","max range","min range")
 
 ```
 
@@ -293,7 +293,7 @@ plot_list =list()
 
 plots_all = plot_site_trans(site_to_plot)
 
-png("../Data/Talk/8Bestcf.png")
+#png("../Data/Talk/8Bestcf.png")
 grid.arrange(plots_all[[1]], plots_all[[2]], plots_all[[3]],
              plots_all[[4]], plots_all[[5]], plots_all[[6]],
              plots_all[[7]],plots_all[[8]], ncol = 2)
@@ -306,7 +306,7 @@ site_to_plot = lo_woods$Site
 plot_list =list()
 plots_all = plot_site_trans(site_to_plot)
 
-png("../Data/Talk/8worst.png")
+#ng("../Data/Talk/8worst.png")
 grid.arrange(plots_all[[1]], plots_all[[2]], plots_all[[3]],
              plots_all[[4]], plots_all[[5]], plots_all[[6]],
              plots_all[[7]],plots_all[[8]], ncol = 2)
@@ -389,13 +389,10 @@ ggplot(melted_cf)+
 site83 = Data_Yr2_veg%>%filter(SITE==83)
 site83distinctBRC = distinct(site83,BRC_number)
 species_list = inner_join(site83distinctBRC, veg_codes)
-png("../Data/Talk/richlist")
+#png("../Data/Talk/richlist")
 grid.table(species_list)
 species_list
 ```
-
-
-
 
 
 
@@ -445,7 +442,7 @@ ggplot(melted_f, (aes_string(x='area', y='value', na.rm = TRUE)) )+
 
 ```{r, warning=FALSE, error=FALSE, message=FALSE}
 #raw data cf scatter plot worst wood
-png("../Data/Talk/8Worst.png")
+#png("../Data/Talk/8Worst.png")
 ggplot(melted_cf)+
  geom_point(aes(x = area, y = value), colour = "black")+
   ggtitle("Raw data, site 78, cumulative richness across all plots with increasing area")+
@@ -459,7 +456,7 @@ ggplot(melted_cf)+
 site78 = Data_Yr2_veg%>%filter(SITE==78)
 site78distinctBRC = distinct(site78,BRC_number)
 species_list = inner_join(site78distinctBRC, veg_codes)
-png("../Data/Talk/poorlist")
+#png("../Data/Talk/poorlist")
 grid.table(species_list)
 species_list
 ```
@@ -493,10 +490,11 @@ fits_all_woods = function(){
     #get coefficients
     int = model_nlme_area_log$coefficients$fixed[[1]]
     slope = model_nlme_area_log$coefficients$fixed[[2]]
-    row = c(int,slope)
+    p_slope = summary(model_nlme_area_log)$tTable[2,5]
+    row = c(int,slope, p_slope)
     coef_df = rbind(coef_df,row)
   }
-  colnames(coef_df) = c("intercept","slope")
+  colnames(coef_df) = c("intercept","slope","p_slope")
   return(coef_df)
 }
 fits = fits_all_woods()
@@ -523,11 +521,11 @@ ggplot()+
 Exploring the best and worst woods.
 
 ```{r}
-pdf("../Results/slopes_hist")
+#pdf("../Results/slopes_hist")
 ggplot(fits, aes(slope))+
   geom_histogram(binwidth = 0.05, col = "black", fill = "grey")+
   ggtitle("Distribution of slopes in linear mixed effect ln/ln fit", subtitle = "S = cA^0.25 ish")
-dev.off()
+
 
 ```
 
