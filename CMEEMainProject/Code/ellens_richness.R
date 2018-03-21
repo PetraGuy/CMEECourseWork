@@ -164,6 +164,8 @@ CompleteSiteLevelVars = inner_join(CompleteSiteLevelVars,means)
 # add area/perim ratio
 CompleteSiteLevelVars$area_ratio = CompleteSiteLevelVars$Area_ha*10000/CompleteSiteLevelVars$Perim_m
 
+write.csv(CompleteSiteLevelVars, "../Data/SiteLevelVars.csv")
+
 #################################################################
 
 #####PHYSICL##########
