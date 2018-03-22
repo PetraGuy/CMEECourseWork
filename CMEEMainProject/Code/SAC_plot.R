@@ -1,6 +1,8 @@
 rm(list = ls())
 cat("\014")
 library(dplyr)
+library(ggplot2)
+library(nlme)
 #plot level SAC
 
 
@@ -36,7 +38,7 @@ colnames(missing) = c("Site", "Plot")
 #select plot with least amount of species
 
 
-sac = list()
+sac_max = list()
 
 for (i in 1:103){
   f = vector()
@@ -77,6 +79,101 @@ for (i in 1:103){
           startplot = rbind(startplot, nextplotveg)
   }
     }
-  sac[[i]] = cumsum(f)
+  sac_max[[i]] = cumsum(f)
 }
   
+
+# We have the cumsums in sac_max for the maximum gradient.
+# Repeat fro the minimum gradient
+
+sac_min = list()
+
+for (i in 1:103){
+  f = vector()
+  plotvect = c(1:16)
+  sitevector = plotrichness[i,] # vector of richnesses of each plot for site i
+  # remove zero values of missing plots
+  sitevector = sitevector[sitevector != 0]
+  start = which.max(sitevector) # take plot with min richness
+  siteveg = Data_Yr2_veg %>% filter(SITE == i) #get species data for site i
+  startplot = siteveg %>% filter(PLOT == start) # get species data for min plot
+  f[1] = length(unique(startplot$Species)) # first frequency  is just richness of min plot
+  restofplots = siteveg %>% filter(PLOT != start) # take out the min plot
+  plotvect = plotvect[-start] # take out the plot number of min plot
+  j = 1
+  while (length(plotvect != 0)) {
+    #browser()
+    j = j + 1 # counter for position in f vector
+    #inner joins of all other plots to min plot, tmp 2 lists all species in
+    #next plot that were not in min plot.
+    tmp2 = restofplots %>% group_by(PLOT) %>% anti_join(., startplot, by = "Species")
+    if (length(tmp2$SITE) == 0) {
+      break
+    } else {
+      # this just gives the numbers of new species
+      nos = as.data.frame(tmp2 %>% group_by(PLOT) %>% summarise(length(unique(Species))))
+      #find location i.e.plot numer of biggest new no. of species
+      position = which.min(nos[, 2])
+      nextplot = nos[, 1][position]
+      # make the next frequency the biggest jump
+      f[j] = min(nos[, 2]) #next f along, the extra species only
+      #remove that plot number
+      plotvect = plotvect[which(plotvect != nextplot)]
+      # remove that plot species list
+      restofplots = filter(siteveg, PLOT %in% plotvect)
+      nextplotveg = siteveg %>% filter(PLOT == nextplot)
+      # add the species for the removed plot to the start plot so only additional
+      #new species are counted
+      startplot = rbind(startplot, nextplotveg)
+    }
+  }
+  sac_min[[i]] = cumsum(f)
+}
+
+
+areas = seq(from = 200, to = 3200, by = 200)
+
+# make a long df from the min cumsums
+long_sac_min = data.frame()
+
+for (i in 1:103){
+  y = as.numeric(sac_min[[i]])
+  l = length(y)
+  x = as.numeric(areas[1:l])
+  sitecol =  rep(i,l)
+  cols = as.data.frame(cbind(sitecol,x,y))
+  colnames(cols) = c("Site","area","min_cf")
+  long_sac_min = rbind(long_sac_min,cols)
+}
+
+
+#make a long df from the max cumsums
+  
+long_sac_max = data.frame()
+
+for (i in 1:103){
+  y = as.numeric(sac_max[[i]])
+  l = length(y)
+  x = as.numeric(areas[1:l])
+  sitecol =  rep(i,l)
+  cols = as.data.frame(cbind(sitecol,x,y))
+  colnames(cols) = c("Site","area","max_cf")
+  long_sac_max = rbind(long_sac_max,cols)
+}
+  
+# the max/min cf for each site may be different lengths
+# work out average by padding zeros
+
+
+
+
+
+
+
+
+
+
+
+
+
+
