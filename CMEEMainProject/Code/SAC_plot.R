@@ -3,6 +3,7 @@ cat("\014")
 library(dplyr)
 library(ggplot2)
 library(nlme)
+library(gridExtra)
 #plot level SAC
 
 
@@ -347,6 +348,32 @@ for(i in 1:103){
 colnames(min_data_fits) = c("Site","slope","R2")
 row.names(min_data_fits) = c(1:103)
 
+#########################################
+
+#look at slopes and r2 from the three dataframes
+
+avehist = ggplot(ave_data_fits, aes(slope))+
+  geom_histogram(binwidth = 0.05, col = "black", fill = "grey")+
+  ggtitle("Distribution of slopes in average of two methods")
+aveR2 = ggplot(ave_data_fits, aes(R2))+
+  geom_histogram(binwidth = 0.05, col = "black", fill = "grey")+
+  ggtitle("Distribution of R2 in average of two methods")
+
+minhist = ggplot(min_data_fits, aes(slope))+
+  geom_histogram(binwidth = 0.05, col = "black", fill = "grey")+
+  ggtitle("Distribution of slopes from minimum method")
+minR2 = ggplot(ave_data_fits, aes(R2))+
+  geom_histogram(binwidth = 0.05, col = "black", fill = "grey")+
+  ggtitle("Distribution of R2 using minimum method")
+
+maxhist =ggplot(max_data_fits, aes(slope))+
+  geom_histogram(binwidth = 0.05, col = "black", fill = "grey")+
+  ggtitle("Distribution of slopes from maximum method")
+maxR2=ggplot(ave_data_fits, aes(R2))+
+  geom_histogram(binwidth = 0.05, col = "black", fill = "grey")+
+  ggtitle("Distribution of R2 using maximum method")
+
+grid.arrange(avehist,aveR2,minhist,minR2,maxhist,maxR2, nrow = 3)
 
 
 
