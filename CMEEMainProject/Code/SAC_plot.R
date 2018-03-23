@@ -36,6 +36,8 @@ colnames(missing) = c("Site", "Plot")
 
 # calculate SAC starting from least rich plot
 #select plot with least amount of species
+#remove missing plots from Data_Yr2_veg
+
 
 
 sac_max = list()
@@ -45,7 +47,8 @@ for (i in 1:103){
   plotvect = c(1:16)
   sitevector = plotrichness[i,] # vector of richnesses of each plot for site i
   # remove zero values of missing plots
-  sitevector = sitevector[sitevector != 0]
+  #sitevector = sitevector[sitevector != 0]
+  sitevector[sitevector == 0] = NA
   start = which.min(sitevector) # take plot with min richness
   siteveg = Data_Yr2_veg %>% filter(SITE == i) #get species data for site i
   startplot = siteveg %>% filter(PLOT == start) # get species data for min plot
@@ -84,7 +87,7 @@ for (i in 1:103){
   
 
 # We have the cumsums in sac_max for the maximum gradient.
-# Repeat fro the minimum gradient
+# Repeat for the minimum gradient
 
 sac_min = list()
 
@@ -93,8 +96,10 @@ for (i in 1:103){
   plotvect = c(1:16)
   sitevector = plotrichness[i,] # vector of richnesses of each plot for site i
   # remove zero values of missing plots
-  sitevector = sitevector[sitevector != 0]
-  start = which.max(sitevector) # take plot with min richness
+  #make NA to keep plot position
+  #sitevector = sitevector[sitevector != 0]
+  sitevector[sitevector == 0] = NA
+  start = which.max(sitevector) # take plot with max richness
   siteveg = Data_Yr2_veg %>% filter(SITE == i) #get species data for site i
   startplot = siteveg %>% filter(PLOT == start) # get species data for min plot
   f[1] = length(unique(startplot$Species)) # first frequency  is just richness of min plot
@@ -160,19 +165,187 @@ for (i in 1:103){
   colnames(cols) = c("Site","area","max_cf")
   long_sac_max = rbind(long_sac_max,cols)
 }
+
+#Now have long df of cf for each site by max and min method.
+#Want to create an average of the two
+
+######################################################
+#For example of the issue, consider site 1
+
+site1_max = long_sac_max%>%filter(Site == 1)
+site1_min = long_sac_min%>%filter(Site == 1)
+
+longest =  vector()
+shortest = vector()
+
+x1 = site1_max$max_cf
+x2 = site1_min$min_cf
+
+if (length(x1)>length(x2)){
+  longest = x1
+  shortest = x2
+}else {
+  longest = x2
+  shortest = x1
+}
+
+diff = length(longest)  - length(shortest)
+longest_cut = longest[1:length(shortest)] # take off the end cf's on longest
+
+ave = (shortest + longest_cut)/2 # calcualte average
+
+
+
+if (diff > 1){
+index_replace = c((length(shortest)+1) : (length(shortest)+diff))
+}else{
+  index_replace = (length(shortest)+1)
+}
+
+replace = longest[index_replace] # now add the cut of bits back on
+ave_full = c(ave,replace)
+
+#make new dataframe of average values and areas, add log columns
+
+ave_data =  as.data.frame(cbind(areas,ave_full))
+ave_data$logarea = log(ave_data$areas)
+ave_data$logavecf = log(ave_data$ave_full)
+
+#check out the log/log for the max and min data
+site1_max$logarea = log(site1_max$area)
+site1_max$logcf = log(site1_max$max_cf)
+
+site1_min$logarea = log(site1_min$area)
+site1_min$logcf = log(site1_min$min_cf)
+
+ggplot()+
+  geom_point(data = site1_max, aes(x = area, y = max_cf), color="red") +
+  geom_point(data = site1_min, aes(x = area, y = min_cf),color="blue")+
+  geom_point(data = ave_data, aes(x = areas, y = ave_full),color="black")+
+  labs(title = "min, max and average cf methods")
+
+
+ggplot(data = ave_data, aes(x = logarea, y = logavecf))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  labs(title = "average")
+
+ggplot(data = site1_max, aes(x = logarea, y = logcf))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+labs(title = "max method")
+
+ggplot(data = site1_min, aes(x = logarea, y = logcf))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+ labs(title = "min method")
+#####################################################
+
+## run a linear model for every wood using min/max and average and see what's what.
+# first create the average dataframe
+
+ave_data = data.frame()
+
+for (i in 1:103){
   
-# the max/min cf for each site may be different lengths
-# work out average by padding zeros
+  site_max = long_sac_max%>%filter(Site == i)
+  site_min = long_sac_min%>%filter(Site == i)
+  
+  longest =  vector()
+  shortest = vector()
+  
+  x1 = site_max$max_cf
+  x2 = site_min$min_cf
+  
+  if (length(x1)>length(x2)){
+    longest = x1
+    shortest = x2
+  }else {
+    longest = x2
+    shortest = x1
+  }
+  
+  diff = length(longest)  - length(shortest)
+  longest_cut = longest[1:length(shortest)] # take off the end cf's on longest
+  
+  ave = (shortest + longest_cut)/2 # calcualte average
+  
+  
+  
+  if (diff > 1){
+    index_replace = c((length(shortest)+1) : (length(shortest)+diff))
+  }else{
+    index_replace = (length(shortest)+1)
+  }
+  
+  replace = longest[index_replace] # now add the cut of bits back on
+  ave_full = c(ave,replace)
+  
+  areas = seq(from = 200, to = 3200, by = 200) # make the correct length
+  areas_cut = areas[1:length(ave_full)]
+  Site = rep(i,length(ave_full))
+  #make a dataframe
+  aves=  as.data.frame(cbind(Site,areas_cut,ave_full))
+  ave_data = rbind(ave_data,aves)
+}
+
+#######################################################
 
 
 
+#Now look at R2 etc for the min/max and average
+
+ave_data$logarea = log(ave_data$area)
+ave_data$logave = log(ave_data$ave_full)
+
+ave_data_fits = data.frame()
+for(i in 1:103){
+  #browser()
+  site = ave_data%>%filter(Site == i)
+  model_ave = lm(site$logave ~ site$logarea)
+  s = summary(model_ave)
+  slope = model_ave$coefficients[2]
+  r2 = s$r.squared
+  this_row = as.data.frame(cbind(i,slope,r2))
+  ave_data_fits= rbind(ave_data_fits, this_row)
+}
+colnames(ave_data_fits) = c("Site","slope","R2")
+row.names(ave_data_fits) = c(1:103)
+##########################################
 
 
+long_sac_max$logarea = log(long_sac_max$area)
+long_sac_max$log_cf_max = log(long_sac_max$max_cf)
 
+max_data_fits = data.frame()
+for(i in 1:103){
+  site = long_sac_max%>%filter(Site ==i)
+  model_max= lm(site$log_cf_max ~ site$logarea)
+  s = summary(model_max)
+  slope = model_max$coefficients[2]
+  r2 = s$r.squared
+  this_row = as.data.frame(cbind(i,slope,r2))
+  max_data_fits = rbind(max_data_fits, this_row)
+}
+colnames(max_data_fits) = c("Site","slope","R2")
+row.names(max_data_fits) = c(1:103)
+#######################################
 
+long_sac_min$logarea = log(long_sac_min$area)
+long_sac_min$log_cf_min = log(long_sac_min$min_cf)
 
-
-
+min_data_fits = data.frame()
+for(i in 1:103){
+  site = long_sac_min%>%filter(Site ==i)
+  model_min= lm(site$log_cf_min ~ site$logarea)
+  s = summary(model_min)
+  slope = model_min$coefficients[2]
+  r2 = s$r.squared
+  this_row = as.data.frame(cbind(i,slope,r2))
+  min_data_fits = rbind(min_data_fits, this_row)
+}
+colnames(min_data_fits) = c("Site","slope","R2")
+row.names(min_data_fits) = c(1:103)
 
 
 
