@@ -1,0 +1,214 @@
+---
+title: "ExaminingCovariatesII"
+author: "PetraGuy"
+date: "27 March 2018"
+header-includes: 
+- \usepackage{pdflscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
+output: pdf_document
+---
+##Repeat of covariance analysis without sites 23, 53 , 74
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE,
+	out.width="50%"
+)
+rm(list = ls())
+cat("\014")
+library(dplyr)
+library(visreg) # for visreg plots 
+library(ggplot2)
+library(GGally) # for ggpairs
+library(factoextra)
+library(FactoMineR)# these two for PCA
+library(corrplot)
+```
+
+
+```{r}
+sitevars =  read.csv("../Data/SiteLevelVars.csv")
+toremove = c(23,53,74)
+sitevars = sitevars%>%filter(!Site %in% toremove)
+```
+
+```{r}
+physical_df = sitevars%>%select("Alt_m", "Area_ha","Perim_m","Easting","Northing","Buffer3","meandbh","meanph","meanSOM","meanLBA","area_ratio")
+hetero_df = sitevars%>%select("Pos_Hetero_Index","no_NVC","sd_pH", "sd_SOM" , "no_MSG", "sd_LBA", "sd_meandbh", "sd_treedensity","no_trees"  )
+hetero_df[is.na(hetero_df)] = 0
+```
+
+Physical Variables
+```{r}
+colnames(physical_df)
+```
+
+Heterogeneity variables
+
+```{r}
+colnames(hetero_df)
+```
+
+#Effect of each variable on richness using multiple linear regression, simple additive model.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+physical_df_incRich = as.data.frame(cbind(sitevars$Richness, physical_df))
+colnames(physical_df_incRich) = c("Richness","Alt_m" ,"Area_ha" ,"Perim_m" ,"Easting","Northing" ,"Buffer3" , "meandbh" , "meanph" ,"meanSOM" , "meanLBA","area_ratio" )
+physical_model = lm(Richness ~., data = physical_df_incRich)
+
+visreg(physical_model)
+```
+
+
+The plots show that the following variables appear to influence the species richness:
+Northing, Buffer, mean dbh, mean SOM, area to perimeter ratio.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+heter_df_incRich = as.data.frame(cbind(sitevars$Richness, hetero_df))
+colnames(heter_df_incRich) = c("Richness","Pos_Hetero_Index","no_NVC", "sd_pH" ,"sd_SOM", "no_MSG", "sd_LBA" ,"sd_meandbh" , "sd_treedensity" , "no_trees"  ) 
+hetero_model = lm(Richness ~., data = heter_df_incRich)
+
+visreg(hetero_model)
+```
+
+The plots show that the following variables appear to influence the species richness:
+number of NVC codes, number of sites with no trees, standard devitation of LBA. The slope of Richness with positive heterogeneity index has decreased with the removal of the two sites withhigh indices. 
+\clearpage
+\newpage
+\blandscape
+
+#Colinearity of variables using pair plots
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="250%"}
+
+ggpairs(physical_df, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+
+```
+The largest correlation os between area ratio and area, as you'd expect, apart from that, buffer and northing have a correlation coefficient of 0.509, easting and mean SOM have correltion coefficient of -0.386
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE,out.width="250%"}
+
+ggpairs(hetero_df, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+```
+\clearpage
+\newpage
+\elandscape
+
+The larges correlation coefficient is -0.324 between sd tree density and sd mean dbh. sd tree desnsity and sd siol pH, number of sites with no trees and number NVC codes and number MSG and sd SOM all have coefficients around 0.3
+
+#PCA
+##Physical variables
+
+```{r}
+physical_PCA = PCA(physical_df, scale.unit = TRUE, ncp = 11, graph = FALSE)
+var = get_pca_var(physical_PCA)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+eig.val_physical = get_eigenvalue(physical_PCA)
+eig.val_physical
+```
+
+5 components explain 76% of the variance, the first 2 explain 45%
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_eig(physical_PCA, addlabels = TRUE, ylim = c(0,30))
+```
+    
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_pca_var(physical_PCA, col.var = "cos2", repel = TRUE)
+```
+
+ 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+corrplot(var$cos2)
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_cos2(physical_PCA, choice = "var")
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_contrib(physical_PCA, choice = "var", axes = 1, top = 10)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_contrib(physical_PCA, choice = "var", axes = 2, top = 10)
+
+```
+
+Area. perimeter and buffer contribute to the first component, area ratio and area to the second, mean dbh and mean LBA to the third, northing to the fourth.
+
+
+The
+
+```{r}
+area_outier = sitevars%>%filter(Area_ha == max(Area_ha))
+
+
+```
+
+```{r}
+hetero_PCA = PCA(hetero_df, scale.unit = TRUE, ncp = 11, graph = FALSE)
+var = get_pca_var(hetero_PCA)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+eig.val_hetero = get_eigenvalue(hetero_PCA)
+eig.val_hetero
+```
+
+75% of variance is expressed by the first 5 components,  41% by the first 2
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_eig(hetero_PCA, addlabels = TRUE, ylim = c(0,30))
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_pca_var(hetero_PCA, col.var = "cos2", repel = TRUE)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+corrplot(var$cos2)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+fviz_cos2(hetero_PCA, choice = "var")
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_contrib(hetero_PCA, choice = "var", axes = 1, top = 10)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_contrib(hetero_PCA, choice = "var", axes = 2, top = 10)
+
+```
+
+The standard deviation of soil organic matter, tree density, mean dbh and positive heterogeneity index contribute the first principle component. Number of NVC codes, sd of soil pH  to the second and number of MSG to the third. 
+
+
+

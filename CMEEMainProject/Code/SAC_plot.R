@@ -219,27 +219,31 @@ site1_max$logcf = log(site1_max$max_cf)
 site1_min$logarea = log(site1_min$area)
 site1_min$logcf = log(site1_min$min_cf)
 
-ggplot()+
+allmethods = ggplot()+
   geom_point(data = site1_max, aes(x = area, y = max_cf), color="red") +
   geom_point(data = site1_min, aes(x = area, y = min_cf),color="blue")+
   geom_point(data = ave_data, aes(x = areas, y = ave_full),color="black")+
   labs(title = "min, max and average cf methods")
 
 
-ggplot(data = ave_data, aes(x = logarea, y = logavecf))+
+avefit = ggplot(data = ave_data, aes(x = logarea, y = logavecf))+
   geom_point()+
   geom_smooth(method = "lm")+
   labs(title = "average")
 
-ggplot(data = site1_max, aes(x = logarea, y = logcf))+
+maxfit = ggplot(data = site1_max, aes(x = logarea, y = logcf))+
   geom_point()+
   geom_smooth(method = "lm")+
 labs(title = "max method")
 
-ggplot(data = site1_min, aes(x = logarea, y = logcf))+
+minfit = ggplot(data = site1_min, aes(x = logarea, y = logcf))+
   geom_point()+
   geom_smooth(method = "lm")+
  labs(title = "min method")
+
+pdf("../Results/Site1SAC.pdf")
+grid.arrange(allmethods,avefit,maxfit,minfit, nrow = 2)
+dev.off()
 #####################################################
 
 ## run a linear model for every wood using min/max and average and see what's what.
@@ -362,18 +366,19 @@ aveR2 = ggplot(ave_data_fits, aes(R2))+
 minhist = ggplot(min_data_fits, aes(slope))+
   geom_histogram(binwidth = 0.05, col = "black", fill = "grey")+
   ggtitle("Distribution of slopes from minimum method")
-minR2 = ggplot(ave_data_fits, aes(R2))+
+minR2 = ggplot(min_data_fits, aes(R2))+
   geom_histogram(binwidth = 0.05, col = "black", fill = "grey")+
   ggtitle("Distribution of R2 using minimum method")
 
 maxhist =ggplot(max_data_fits, aes(slope))+
   geom_histogram(binwidth = 0.05, col = "black", fill = "grey")+
   ggtitle("Distribution of slopes from maximum method")
-maxR2=ggplot(ave_data_fits, aes(R2))+
+maxR2=ggplot(max_data_fits, aes(R2))+
   geom_histogram(binwidth = 0.05, col = "black", fill = "grey")+
   ggtitle("Distribution of R2 using maximum method")
 
+pdf("../Results/AcrossPlotSAC.pdf")
 grid.arrange(avehist,aveR2,minhist,minR2,maxhist,maxR2, nrow = 3)
-
+dev.off()
 
 
