@@ -1,5 +1,5 @@
 ---
-title: "ExaminingCovariatesII"
+title: "ExaminingCovariatesIII"
 author: "PetraGuy"
 date: "27 March 2018"
 header-includes: 
@@ -8,7 +8,9 @@ header-includes:
 - \newcommand{\elandscape}{\end{landscape}}
 output: pdf_document
 ---
-##Repeat of covariance analysis without sites 23, 53 , 74
+##Repeat of covariance analysis without sites 23, 53 , 74.
+##Drop perimeter, meanLBA, sdmean_dbh, sd_treedensity, sd_SOM
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
@@ -33,12 +35,15 @@ library(corrplot)
 sitevars =  read.csv("../Data/SiteLevelVars.csv")
 toremove = c(23,53,74)
 sitevars = sitevars%>%filter(!Site %in% toremove)
+
 ```
 
 ```{r}
 physical_df = sitevars%>%select("Alt_m", "Area_ha","Perim_m","Easting","Northing","Buffer3","meandbh","meanph","meanSOM","meanLBA","area_ratio")
 hetero_df = sitevars%>%select("Pos_Hetero_Index","no_NVC","sd_pH", "sd_SOM" , "no_MSG", "sd_LBA", "sd_meandbh", "sd_treedensity","no_trees"  )
 hetero_df[is.na(hetero_df)] = 0
+physical_df = subset(physical_df, select = -c(Perim_m,meanLBA))
+hetero_df = subset(hetero_df, select=-c(sd_meandbh,sd_treedensity,sd_SOM))
 ```
 
 Physical Variables
@@ -57,17 +62,16 @@ colnames(hetero_df)
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 physical_df_incRich = as.data.frame(cbind(sitevars$Richness, physical_df))
-colnames(physical_df_incRich) = c("Richness","Alt_m" ,"Area_ha" ,"Perim_m" ,"Easting","Northing" ,"Buffer3" , "meandbh" , "meanph" ,"meanSOM" , "meanLBA","area_ratio" )
+colnames(physical_df_incRich) = c("Richness","Alt_m" ,"Area_ha"  ,"Easting","Northing" ,"Buffer3" , "meandbh" , "meanph" ,"meanSOM" ,"area_ratio" )
 physical_model = lm(Richness ~., data = physical_df_incRich)
 
 visreg(physical_model)
 ```
 
 
-
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 heter_df_incRich = as.data.frame(cbind(sitevars$Richness, hetero_df))
-colnames(heter_df_incRich) = c("Richness","Pos_Hetero_Index","no_NVC", "sd_pH" ,"sd_SOM", "no_MSG", "sd_LBA" ,"sd_meandbh" , "sd_treedensity" , "no_trees"  ) 
+colnames(heter_df_incRich) = c("Richness","Pos_Hetero_Index","no_NVC", "sd_pH" , "no_MSG", "sd_LBA"  , "no_trees"  ) 
 hetero_model = lm(Richness ~., data = heter_df_incRich)
 
 visreg(hetero_model)
@@ -200,11 +204,19 @@ fviz_contrib(hetero_PCA, choice = "var", axes = 2, top = 10)
 ```
 
 #Discussion
+Regression of Richness:
+Abiotic
+Still postive correlations for Northing,buffer, negative correlations for mean dbh and mean SOM. 
+Hetero
+Still positive for positive hetero index, no NVC sd LBA and no_trees
 
-Removing the outliers in area and positive heterogeneity index has:
-Reduced slope of richness ~ pos hetero index
-Redued the contribution of altidude to component 4, (Site 74 is Glen Beasdale, could be up on the hill).
-Area contribution now more distributed towards component 2.
+**Since sd_LBA is related to no_ trees, and I'm not sure about the sd variables (what hapens when they are standardised??) maybe sd_LBA shold be dropped**
+**sd pH doesnt seem to be contributing to anything - drop this**
+
+**Now combine all variables and look at correlations again**
+
+
+
 
 
 

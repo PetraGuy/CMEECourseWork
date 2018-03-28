@@ -31,10 +31,11 @@ library(corrplot)
 ```{r}
 sitevars =  read.csv("../Data/SiteLevelVars.csv")
 ```
-Several approaches will be used to examine the collineartiy of the variates used in the to explain he richness of the 16 plots in each site, and the response of the richness to the variates will be considered,
+Several approaches will be used to examine the colinearity of the variates used in the to explain he richness of the 16 plots in each site, and the response of the richness to the variates will be considered,
 
-A) Visref will be used to plot scatter graphs of individual variables used in a simple additive multiple linear regression.
-B) Pairs plots will be used to examine collinearity between all variables.
+A) Visref will be used to plot scatter graphs of individual variables used in a simple additive multiple linear regression. 
+Using visref to look at the variables allows a multiple regression to be carried out and the effect of each variable is shown with the other variables held constant. This allows for the effect of each variable on the richness, in the presence of the other variables to be considered.
+B) Pairs plots will be used to examine colinearity between all variables.
 C) PCA will be used to see if we can extract a few key variables to represent the data.
 D) VIR values will be calculated
 E) p values for the variables will be recorded as variables are removed from the regression.
@@ -61,7 +62,6 @@ colnames(hetero_df)
 
 #Effect of each variable on richness using multiple linear regression, simple additive model.
 
-Using visref to look at the variables allows a multiple regression to be carried out and the effect of each variable is shown with the other variables held constant. This allows for the effect of each variable on the richness, in the presence of the other variables to be considered.
 
 ```{r}
 physical_df_incRich = as.data.frame(cbind(sitevars$Richness, physical_df))
@@ -72,9 +72,6 @@ visreg(physical_model)
 ```
 
 
-The plots show that the following variables appear to influence the species richness:
-Northing, Buffer, mean dbh, mean SOM, area to perimeter ratio.
-
 
 ```{r}
 heter_df_incRich = as.data.frame(cbind(sitevars$Richness, hetero_df))
@@ -84,8 +81,7 @@ hetero_model = lm(Richness ~., data = heter_df_incRich)
 visreg(hetero_model)
 ```
 
-The plots show that the following variables appear to influence the species richness:
-Number of positive heterogeneity indices (Although this may be heavily influenced by the two outliers, Site 23 with 97 and Site 53 with 78), number of NVC codes, number of sites with no trees, standard devitation of the tree density, (weak).
+
 
 \clearpage
 \newpage
@@ -93,7 +89,7 @@ Number of positive heterogeneity indices (Although this may be heavily influence
 
 #Colinearity of variables using pair plots
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="250%", fig.cap= "The pairs plots show no correlation greather than 0.52 between any variables, accept area and perimeter and area ratio - as you'd expect. Buffer and Northing have correlation coefficient of 0.52 and Easting and mean SOM of  -0.417."}
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="250%", }
 
 ggpairs(physical_df, axisLabels="none",
         lower = list(continuous="smooth"),
@@ -110,7 +106,7 @@ theme(legend.position = "none",
 \clearpage
 \newpage
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="250%", fig.cap="The largest correlation coefficient is 0.385, between standard deviation of mean dbh and number of sites with no trees, not unexpected. Number of major soil groups and standard devation of SOM have correlation coefficient of 0.337 and number of NVC codes and number of plots with no trees has 0.299."}
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="250%", }
 
 ggpairs(hetero_df, axisLabels="none",
         lower = list(continuous="smooth"),
@@ -170,17 +166,6 @@ fviz_contrib(physical_PCA, choice = "var", axes = 2, top = 10)
 
 ```
 
-Area, perimeter, buffer contribute to the first component, area ratio and areA to the second, mean dbh and mean LBA to the third, northing and altitUde to the fourth.
-
-The PCA suggests including these variables would explain 68% of the variance.
-
-The multiple linear regression shows a positive correlation of Northing, buffer, and mean SOM to richness, and a neative correlation with mean dbh. Area did not have a strong correlation with richness.  
-
-The strong contribution of area and perimeter may be due to the outlier - one wood had a area of over 300ha,(Site 74) the others were all below 150ha. Site 74 will be removed and the analysis repeated.
-
-
-The inclusion of area, perimeter and area/periemter ratio ay seems strange, but they may have different effects on richness. A large area may increase richnes due to increased species pool. A large area/perimeter ratio may increase richness due to the increased possibility of species migration, or conversely have a negative impact because the wood may then not contain a core of undisturbed woodland with poorly dispersing woodland species, whcih are then lost. Buffer may be a good substitute for all the above variables because it also represents a species pool, a wood with a large perimeter and a large area will equally have a large buffer. 
-
 ```{r}
 area_outier = sitevars%>%filter(Area_ha == max(Area_ha))
 
@@ -224,10 +209,52 @@ fviz_contrib(hetero_PCA, choice = "var", axes = 2, top = 10)
 
 ```
 
-The standard deviation of soil organic matter, tree density, LBA and mean dbh contribute the first principle component. Number of NVC codes, sd of soil pH and number of sites with no trees to the second and number of MSG to the third. The corr plot shows sd SOM increases with sd of tree density and sd of mean dbh, and that number of NVC codes increase with sd of soil pH.
+#Regression
+The plots show that the following variables have a positive correlation with species richness : Northing, Buffer, mean SOM, area to perimeter ratio ,Number of positive heterogeneity indices,number of NVC codes, number of sites with no trees, standard deviation of the tree density.
 
-The PCA suggests including sd SOM, sd mean dbh, sd tree density, number NVC, sd pH, and number NVC codes would explain 54% of the variance, adding positive heterogeneity index would increase that to around 75%
-The multiple inear regression shows that Positive hetero index, number of NVC and number of plots with no trees correlate positively with richness.
+Mean dbh has a negative corrleation.
 
-The correlation of positive hetero indices with richness may be due to the two outliers, Site 53 and site 23. Analysis will be repearted without these.
+The correlation with Positive heterogenity index may be heavily influenced by the two outliers, Site 23 with 97 and Site 53 with 78),
+
+#Pairs Plots
+Abiotic variables: No correlation is greather than 0.52 between any variables, accept area and perimeter and area ratio - as you'd expect. 
+Buffer and Northing have correlation coefficient of 0.52 and Easting and mean SOM of  -0.417."
+
+Heterogenity variables: The largest correlation coefficient is 0.385, between standard deviation of mean dbh and number of sites with no trees, not unexpected. Number of major soil groups and standard devation of SOM have correlation coefficient of 0.337 and number of NVC codes and number of plots with no trees has 0.299."
+
+#PCA
+
+Abiotic : Area, perimeter, buffer contribute to the first component, area ratio and area to the second, mean dbh and mean LBA to the third, northing and altitude to the fourth.
+The corr plot shows area, perimeter, buffer and mean soil organic matter increse together, as domean dbh and mean LBA, as well as Northing and altitude.
+
+The strong contribution of area and perimeter may be due to the outlier - one wood had a area of over 300ha,(Site 74) the others were all below 150ha. 
+
+
+The inclusion of area, perimeter and area/perimeter ratio may seems strange, but they may have different effects on richness. A large area may increase richness due to increased species pool. A large area/perimeter ratio may increase richness due to the increased possibility of species migration, or conversely have a negative impact because the wood may then not contain a core of undisturbed woodland with poorly dispersing woodland species, which are then lost. Buffer may be a good substitute for all the above variables because it also represents a species pool, a wood with a large perimeter and a large area will equally have a large buffer. 
+
+Heterogeneity: The standard deviation of soil organic matter, tree density, LBA and mean dbh contribute the first principle component. Number of NVC codes, sd of soil pH and number of sites with no trees to the second and number of MSG to the third. 
+
+The corr plot shows sd SOM increases with sd of tree density and sd of mean dbh, and that number of NVC codes increase with sd of soil pH.
+
+#Discussion
+
+Abiotic vars.
+Area, perimeter and area ratio show correlations above 0.7, as you would expect. Only area has strong relationship with richness, but this may be due to the outlier. Of the three variables perimeter is not required as it is the area, or the geometry of the wood, expressed in the area/preimeter ratio that might affect richness. Therefore the outlier will be removed and the perimeter will be removed.
+
+The other correlations are all below 0.5 and there isnt a clear reason why any should be dropped, e.g. buffer and northing are not ecologically related, so it doesnt make sense to drop one at this stage.
+
+PCA shows mean_dbh and mean_lba increase together, and they are obviously related, so one of these coud be dropped. Its not obvious why they are not more strongly correlated??
+
+**DROP?? perimeter, meanLBA, outlier**
+
+Heterovars.
+Number of sites with no trees and sd mean dbh show correlation of 0.385 - since they are computationally related both may be unnecessary. PCA shows that sd_treedensity increases with sd_mean dbh - again related variables, it might be worth dropping both since mean dbh  which has a strong influence on richness, and is being used. Since number of sites with no trees has the strongest influence on richness, keep this variable and drop se_meandbh, sd_treedensity, sd_meandbh.
+
+Number of MSG and sd SOM groups, likewise
+
+
+**PS = Check correlation between no_trees and mean dbh** you would expect the to be related, but they werent considered her because of the way the variables ahve been split into two groups. 
+
+**DROP?? sd meandbh, sd_treedensity, sd_MSG, outliers**
+
 

@@ -71,3 +71,5 @@ fitphysical6 = fitphysical = lm(Richness ~  Area_ha + Northing +
                                   Buffer3 + meandbh +  meanSOM, data =  sitevars)
 fitphysical6 = fitphysical = lm(Richness ~ Northing +
                                   Buffer3 + meandbh +  meanSOM, data =  sitevars)
+
+
