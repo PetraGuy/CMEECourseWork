@@ -8,10 +8,7 @@ header-includes:
 - \newcommand{\elandscape}{\end{landscape}}
 output: pdf_document
 ---
-##Repeat of covariance analysis without sites 23, 53 , 74.
-##Already dropped :perimeter, meanLBA, sdmean_dbh, sd_treedensity, sd_SOM
-##Now drop sd_LBA, sd_pH, and combine the variables##
-##Now drop Easting and Altitude no_trees and no MSG, and meanpH
+
 
 
 ```{r setup, include=FALSE}
@@ -36,8 +33,8 @@ library(car)
 
 ```{r}
 sitevars =  read.csv("../Data/SiteLevelVars.csv")
-toremove = c(23,53,74)
-sitevars = sitevars%>%filter(!Site %in% toremove)
+#toremove = c(23,53,74)
+#sitevars = sitevars%>%filter(!Site %in% toremove)
 
 ```
 
@@ -45,7 +42,7 @@ sitevars = sitevars%>%filter(!Site %in% toremove)
 physical_df = sitevars%>%select("Alt_m", "Area_ha","Perim_m","Easting","Northing","Buffer3","meandbh","meanph","meanSOM","meanLBA","area_ratio")
 hetero_df = sitevars%>%select("Pos_Hetero_Index","no_NVC","sd_pH", "sd_SOM" , "no_MSG", "sd_LBA", "sd_meandbh", "sd_treedensity","no_trees"  )
 hetero_df[is.na(hetero_df)] = 0
-physical_df = subset(physical_df, select = -c(Perim_m,meanLBA,Alt_m,Easting, meanph))
+physical_df = subset(physical_df, select = -c(Northing, Area_ha, Perim_m, meanLBA, Alt_m, Easting, meanph))
 hetero_df = subset(hetero_df, select=-c(sd_meandbh,sd_treedensity,sd_SOM, sd_LBA, sd_pH, no_MSG, no_trees))
 combo_df = as.data.frame(cbind(physical_df,hetero_df))
 ```
@@ -60,7 +57,7 @@ colnames(combo_df)
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combo_df_incRich = as.data.frame(cbind(sitevars$Richness, combo_df))
-colnames(combo_df_incRich) = c("Richness", "Area_ha","Northing",  "Buffer3" , "meandbh" ,  "meanSOM"  , "area_ratio" , "Pos_Hetero_Index", "no_NVC" )
+colnames(combo_df_incRich) = c("Richness", "Buffer3" , "meandbh" ,  "meanSOM"  , "area_ratio" , "Pos_Hetero_Index", "no_NVC" )
 combo_model = lm(Richness ~., data = combo_df_incRich)
 
 visreg(combo_model)
@@ -136,37 +133,13 @@ fviz_contrib(combo_PCA, choice = "var", axes = 2, top = 10)
 
 ```
 
-##Now looking at regression on these variables.
 
 
-ggplotRegression <- function (fit) {
-  
-ggplot(fit$model, aes_string(x = names(fit$model)[2], y = names(fit$model)[1])) + 
-    geom_point() +
-    stat_smooth(method = "lm", col = "red") +
-    labs(title = paste("Adj R2 = ",signif(summary(fit)$adj.r.squared, 5),
-                       "Intercept =",signif(fit$coef[[1]],5 ),
-                       " Slope =",signif(fit$coef[[2]], 5),
-                       " P =",signif(summary(fit)$coef[2,4], 5)))
-}
 
-
-fitall<- lm(formula = Richness ~ Area_ha +  Northing +Buffer3 + meandbh + 
-                meanSOM+area_ratio + Pos_Hetero_Index + no_NVC,
-                data = combo_df_incRich)
-summary(fitall)
-plot(fitall)
-
-fit_lessArea = lm(formula = Richness ~ Northing +Buffer3 + meandbh + 
+fitall<- lm(formula = Richness ~  Buffer3 + meandbh + 
                 meanSOM+area_ratio + Pos_Hetero_Index + no_NVC,
                 data = combo_df_incRich)
 
-fit_less_PosHetero =  lm(formula = Richness ~ Area_ha +  Northing +Buffer3 + meandbh + 
-                meanSOM+area_ratio +  no_NVC,
-                data = combo_df_incRich)
-
-fit_less_area_PosHetero = lm(formula = Richness ~  Northing +Buffer3 + meandbh + 
-                meanSOM+area_ratio + no_NVC,  data = combo_df_incRich)
 
 
 

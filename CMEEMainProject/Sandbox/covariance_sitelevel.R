@@ -1,7 +1,8 @@
 
 
 
-#Various ways of looking at colinearity and most important variables
+#Various ways of looking at colinearity and most important variables, redone most of this 
+#in AnalysingCovariance files
 
 
 siterich =  read.csv("../Data/SiteRichness.csv")

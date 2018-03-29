@@ -5,6 +5,9 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
+# To create positive heterogeneity indices
+#INPUTS LookUpSiteDescriptorCodes.csv, Site_descriptors00-03, access
+#OUTPUTS PositiveHeterogIndices.csv and NegativeHeterogIndies
 knitr::opts_chunk$set(echo = FALSE)
 library(dplyr)
 library(ggplot2)

@@ -7,6 +7,9 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+#INPUTS from access, ground cover, eg codes, species lists, SiteVars
+#       from other progs, posheterogindices, allplotvarsrichness, siterichness, landcoverindices
+#OUTPUTS, none - this just for graphing
 ```
 
 The richness of all 16 plots in each site was explored with various environmental variables. Since all the areas are then equal, the effect on richness is only due to environmental variables.
@@ -66,7 +69,7 @@ AllPlotsvars = read.csv("../Data/AllPlotsVarsRichness.csv")
 SiteCodes = read.csv("../Data/PositiveHeterogIndices.csv")
 
 #all other site level vars
-SiteLevelVars = read.csv("../Data/AnalysisEnvdataLevelSite.csv")
+SiteLevelVars = read.csv("../Data/SiteVars.csv")
 
 #land cover in buffers
 Buffers = read.csv("../Data/LandCoverIndices.csv")

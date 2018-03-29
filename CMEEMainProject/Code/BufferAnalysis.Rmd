@@ -6,6 +6,8 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
+#INPUTS land cover in buffers from access
+#OUTPUTS LandCoverIndices.csv, a file wit proportions of buffer whih is a postive area, eg woodland or natural
 knitr::opts_chunk$set(echo = FALSE)
 rm(list = ls())
 cat("\014")

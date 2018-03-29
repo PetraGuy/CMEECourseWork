@@ -8,12 +8,12 @@ output: pdf_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 library(dplyr)
-#library(plyr)
 library(ggplot2)
 library(gridExtra) # for the ggplots created in for loops
 ```
 
-
+This code was origianl code for examining DBH and trying to get dbh statistic. I then decided to use only tree density and mean dbh.
+To simplify code the dbh code has been moved to DBHAnalysis
 
 ```{r, echo = FALSE}
 #clear the workspace
@@ -255,7 +255,7 @@ for (i in 1:103){
 
 rownames(Means_df) = c(1:103)
 colnames(Means_df) = c(1:16)
-#the Nan a=might be an issue, I think its Ok to replace them with zeros, no leave as Nan - sort later as appropriate
+#the Nan might be an issue, I think its Ok to replace them with zeros, no leave as Nan - sort later as appropriate
 #sometimes need the nan to know nohing was there
 #Means_df = replace(Means_df, is.na(Means_df),0)
 

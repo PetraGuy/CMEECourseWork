@@ -6,6 +6,13 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
+# INPUTS ground cover and vegetation BRC codes
+# OUTPUTS SiteRichness.csv  = cum richness across all plots giving single richness for each site
+#         z_c_NestFits.csv = z and c values from linear mixed effect model on each site. nest as fixed,
+#                             plot as random giving single z and c for each site at Nest scale
+#IN PROGRAM LISTS = spec_rich[[Site]], spec richness per nest per plot per site
+#                       cum_rich[[Site]], cumulative richness across nests per plot per site
+
 knitr::opts_chunk$set(echo = FALSE)
 cat("\014")
 rm(list = ls())
@@ -128,7 +135,9 @@ fits_all_woods = function(){
   return(coef_df)
 }
 fits = fits_all_woods()
-write.csv(fits,"../Data/fits.csv")
+write.csv(fits,"../Data/Z_C_from_NestFits.csv")
+#Output file is the z's and c's from mixed effects linear model across nests, plot is random
+# z and c for each site for nest scale.
 
 ```
 

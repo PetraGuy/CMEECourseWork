@@ -1,8 +1,18 @@
 
+# Vars collected from various locations and grouped together to make file
+# with richness, mean dbh, and tree density added
 
-#open all required files
 
-##run ExploringNests.Rmd to caluculate rchnesses - but plot_rich.csv exists
+
+#INPUT GroundCover, access
+#     PlotVars, access
+#     veg codes, csv file
+#     plot_rich, ExploringNests
+#     tree_density, dbh_means,  DBHAnalysis
+#OUTPUT AllPlotVarsRichness.csv combines PlotVars with tree density, mean dbh and richness from
+#       DBH analysis and ExploringNests
+
+
 
 Data = read.csv("../Data/GroundCover.csv")
 Data_Yr2 = Data%>%filter(Yr_2 == 2)#%>%select(SITE,PLOT,NEST,COV,Amalgams)
@@ -13,7 +23,7 @@ Data_Yr2_veg = Data_Yr2%>% inner_join(veg_codes)
 # now using Dat_Yr2_veg means analysis is carried out without bryophytes
 
 
-data_plots = read.csv("../Data/AnalysisEnvDataLevelPlot.csv") # this provides pH, livebasal area, SOM
+data_plots = read.csv("../Data/PlotVars.csv") # this provides pH, livebasal area, SOM
 
 #means come from MainProjDBH
 data_dbh = read.csv("../Data/dbh_means.csv")

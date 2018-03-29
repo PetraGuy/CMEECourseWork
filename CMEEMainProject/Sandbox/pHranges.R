@@ -1,6 +1,7 @@
 
 # just small bit of analysis for talk
 # import plot level vars and ground cover to look at riches and poorest site
+# not very useful
 
 plotcsvfile = read.csv("../Data/AnalysisEnvDataLevelPlot.csv")
 

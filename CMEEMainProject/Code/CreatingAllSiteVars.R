@@ -1,8 +1,17 @@
 
+
+#INPUTS SiteVars, access, SiteRichness(NestLevelData, for Richness), AllPlotVars (CollectingPlotVars, has tree density ad mean dbh added)
+#         LandCoverIndices, poshetergindices (SiteDescAnaysis)
+
+#OUTPUT CompleteSiteLevelVars.csv, all site vars from SiteVars (The access data) plus sd's created here
+#       and pos heterog indices etc created in other programs
+
+
 # exploring relationship between richness of a site and various env vars
 #using d[site]  which is the site richness of the 16 plots, so all equal area.
 #need d[site] from ExploringNests saved to SiteRichness.csv
-#need AllPlotVarsRichness from CollectingPlotCars this conatains plot level richness, but also range of pH, dbh etc in each site
+#need AllPlotVarsRichness from CollectingPlotVars this conatains plot level richness,
+#but also range of pH, dbh etc in each site
 #the ranges/sd will be extracted to use as heterogeneity of the site
 #Need Site descriptor codes 
 #Need Site level vars
@@ -53,7 +62,7 @@ AllPlotsvars = read.csv("../Data/AllPlotsVarsRichness.csv")
 SiteCodes = read.csv("../Data/PositiveHeterogIndices.csv")
 
 #all other site level vars
-SiteLevelVars = read.csv("../Data/AnalysisEnvdataLevelSite.csv")
+SiteLevelVars = read.csv("../Data/SiteVars.csv")
 
 #land cover in buffers
 Buffers = read.csv("../Data/LandCoverIndices.csv")
@@ -164,7 +173,7 @@ CompleteSiteLevelVars = inner_join(CompleteSiteLevelVars,means)
 # add area/perim ratio
 CompleteSiteLevelVars$area_ratio = CompleteSiteLevelVars$Area_ha*10000/CompleteSiteLevelVars$Perim_m
 
-write.csv(CompleteSiteLevelVars, "../Data/SiteLevelVars.csv")
+write.csv(CompleteSiteLevelVars, "../Data/CompleteSiteLevelVars.csv")
 
 #################################################################
 

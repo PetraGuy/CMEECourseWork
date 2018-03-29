@@ -5,6 +5,10 @@ date: "1 March 2018"
 output: pdf_document
 ---
 ```{r setup, include=FALSE, message=FALSE, comment=FALSE,error=FALSE}
+# MUCH OF THIS IS A REPEAT OF NestLevelData coz I wanted things for my talk.
+# Have added map of sites and bit to look at pread of richness in woods and calcuation of plot richness
+# INPUTS ground cover and vegetation BRC codes
+# OUTPUTS plot_rich.csv df of all sites/plots - richness of each full plot in each site
 knitr::opts_chunk$set(echo = FALSE)
 rm(list = ls())
 cat("\014")
@@ -116,7 +120,7 @@ basic_richness = function(data){
   return(d)
 } 
 d = basic_richness(Data_Yr2_veg)
-write.csv(d,"../Data/SiteRichness.csv")
+#write.csv(d,"../Data/SiteRichness.csv") - this done in NestLevelData
 
 ```
 

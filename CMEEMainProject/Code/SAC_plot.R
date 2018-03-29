@@ -1,3 +1,12 @@
+
+# Calculating SAC using maxmum and Minimum slope methods
+#INPUTS plot_rich.csv (ExploringNests)
+#       GroundCover.csv, access
+#       VegCodes.csv, csv file
+#OUTPUTS Some charts to Results     
+
+
+
 rm(list = ls())
 cat("\014")
 library(dplyr)

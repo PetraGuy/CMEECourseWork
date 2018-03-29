@@ -126,7 +126,7 @@ eig.val_physical
 
 
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 fviz_eig(physical_PCA, addlabels = TRUE, ylim = c(0,30))
 ```
     
@@ -146,17 +146,17 @@ corrplot(var$cos2)
 fviz_cos2(physical_PCA, choice = "var")
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 fviz_contrib(physical_PCA, choice = "var", axes = 1, top = 10)
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 fviz_contrib(physical_PCA, choice = "var", axes = 2, top = 10)
 
 ```
 
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 area_outier = sitevars%>%filter(Area_ha == max(Area_ha))
 
 
@@ -174,7 +174,7 @@ eig.val_hetero
 
 
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 fviz_eig(hetero_PCA, addlabels = TRUE, ylim = c(0,30))
 ```
 
@@ -190,11 +190,11 @@ corrplot(var$cos2)
 fviz_cos2(hetero_PCA, choice = "var")
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 fviz_contrib(hetero_PCA, choice = "var", axes = 1, top = 10)
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 fviz_contrib(hetero_PCA, choice = "var", axes = 2, top = 10)
 
 ```

@@ -137,7 +137,7 @@ eig.val_physical
 
 5 components explain 76% of the variance, the first 2 explain 45%
 
-```{r}
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 fviz_eig(physical_PCA, addlabels = TRUE, ylim = c(0,30))
 ```
     
@@ -157,16 +157,16 @@ corrplot(var$cos2)
 fviz_cos2(physical_PCA, choice = "var")
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 fviz_contrib(physical_PCA, choice = "var", axes = 1, top = 10)
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 fviz_contrib(physical_PCA, choice = "var", axes = 2, top = 10)
 
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 area_outier = sitevars%>%filter(Area_ha == max(Area_ha))
 
 
@@ -184,7 +184,7 @@ eig.val_hetero
 
 75% of variance is expressed by the first 5 components,  41% by the first 2
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 fviz_eig(hetero_PCA, addlabels = TRUE, ylim = c(0,30))
 ```
 
@@ -200,11 +200,11 @@ corrplot(var$cos2)
 fviz_cos2(hetero_PCA, choice = "var")
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 fviz_contrib(hetero_PCA, choice = "var", axes = 1, top = 10)
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 fviz_contrib(hetero_PCA, choice = "var", axes = 2, top = 10)
 
 ```

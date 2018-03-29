@@ -1,0 +1,373 @@
+---
+title: "ExaminingCovariatesVI"
+author: "PetraGuy"
+date: "27 March 2018"
+header-includes: 
+- \usepackage{pdflscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
+output: pdf_document
+---
+From previous analysis it became obvious (maybe should have been in the first place) that most of the variables I had "created" in order to express heterogeneity were already contained within the existing variates. Eg, the standard deviation of pH and  number of major soil groups. In addition, I wasnt sure what standardising a standard deviation in the PCA would mean? And - there were so many variables the analysis was becoming harder  rather than simpler - none of the additional varaibles added any clear effects. So I decided to strip the variables back to those that were originally measured and recorded.
+
+Here I will go through these and remove some that are either not correlated with species richess or are correlated with each other - eg. we dont want all of area, permimeter and area_ratio, but which is most important for richness?
+
+There are also a few outliers that may affect the analysis, one site(74) has area > 300ha, the others area less that 150ha. Including this site gives a stronger correlation with richness and area than when it is removed.
+Two sites have positive heterogeneity indices above 78, the rest are below 40. Again, the correlation with richness is reduced if they are removed. 
+
+In previous analysis I split the variables in two - physical variables (eg mean dbh) and heterogeneoty variables. The problem with this was that correlations across the two groups, in the presence of the other variables could not be seen.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE,
+	out.width="50%"
+)
+rm(list = ls())
+cat("\014")
+library(dplyr)
+library(visreg) # for visreg plots 
+library(ggplot2)
+library(GGally) # for ggpairs
+library(factoextra)
+library(FactoMineR)# these two for PCA
+library(corrplot)
+library(car)
+```
+
+
+```{r}
+sitevars =  read.csv("../Data/SiteLevelVars.csv")
+#toremove = c(23,53,74)
+#sitevars = sitevars%>%filter(!Site %in% toremove)
+colnames(sitevars)
+```
+
+```{r}
+sitevars_reduced = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffer1,Buffer2,sd_pH, 
+                                                sd_SOM,sd_LBA, sd_meandbh,sd_treedensity,
+                                                sd_R,mean_R, sd_N,mean_N , sd_W, mean_W,
+                                                sd_L, mean_L ))
+sitevars_all_lesRich = subset(sitevars_reduced, select = -c(Richness))
+```
+
+
+#Effect of each variable on richness using multiple linear regression, simple additive model.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+model_all = lm(Richness ~., data = sitevars_reduced)
+
+visreg(model_all)
+```
+No correlation with:      Altitude, Area, perimeter, Easting, number MSG, mean pH, meanLBA
+Slight correlation with:  Northing,no trees, area ratio
+Strongest correlation with:PostHeteroIndex,buffer,number NVC,mean dbh, mean SOM
+
+
+
+
+
+\clearpage
+\newpage
+\blandscape
+
+#Colinearity of variables using pair plots
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="250%"}
+
+ggpairs(sitevars_all_lesRich, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+
+```
+
+Strong correlations of area, perimieter and area ratio, obvs.
+number MSG correlated with area (0.314 - bigger site means more MSG possible?),
+perimeter (As previous), mean pH( -0.37, different groups have different pH), 
+meanSOM with Easting (-0.417, eastern woods have loewr pH soils, not unexpected) 
+meanLBA with no trees (-0.48, obvs, but why not as strongly with mean dbh?)
+meandbh with buffer (0.324, woods with larger buffers are older??)
+Buffer correlated with Northing (0.52 - Northern woods in less populated areas have larger buffers?)
+
+\clearpage
+\newpage
+\elandscape
+
+
+#PCA
+
+
+```{r}
+all_PCA = PCA(sitevars_all_lesRich, scale.unit = TRUE, ncp = 11, graph = FALSE)
+var = get_pca_var(all_PCA)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+eig.val = get_eigenvalue(all_PCA)
+eig.val
+```
+7 components required to express 75% of variance.
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_cos2(all_PCA, choice = "var")
+```
+Strongest correlation with:PostHeteroIndex,buffer,number NVC,mean dbh, mean SOM, BUT
+Of these only Buffer, meanSOM contribute to variance
+
+
+##Summary
+No correlation with:      Altitude, Area, perimeter, Easting, numner MSG, mean pH, meanLBA
+Slight correlation with:  Northing,no trees, area ratio
+Strongest correlation with:PostHeteroIndex,buffer,number NVC,mean dbh, mean SOM
+
+Strong correlations of area, perimieter and area ratio, obvs.
+number MSG correlated with area (0.314 - bigger site means more MSG possible?),perimeter (As previous), mean pH( -0.37, different groups have different pH)
+Buffer correlated with Northing (0.52 - Northeren woods in less populated areas have larger buffers?)
+
+7 components required to express 75% of variance.
+
+Strongest correlation with:PostHeteroIndex,buffer,number NVC,mean dbh, mean SOM, BUT
+Of these only Buffer, meanSOM contribute to variance.
+Main contribution to variance from Area, perimeter, buffer, meanSOM, no MSG, area ratio
+
+SINCE AREA CORRELATED WITH AREA RATIO AND PERIMETER, AND SINCE AREA-RATIO POTENTALLY MORE IMPORTANT FOR RICHNESS, 
+AND SINCE AREA AND PERIMETER DO NOT CORRELATE WITH RICHNESS, DROP BOTH VARIABLES. AREA AND PERIMETER CONTRIBUTE TO VARIANCE, BUT THIS MAY BE DUE TO OUTLIER.
+
+```{r}
+fitall = lm(Richness ~ ., data = sitevars_reduced)
+summary(fitall)
+```
+No correlation with:      Altitude, 0.56 Area, 0.99 perimeter, 0.91 Easting, 0.65 numbner MSG, 0.97
+mean pH, 0.8 meanLBA 0.75
+Slight correlation with:  Northing, 0.12 no trees, 0.28 area ratio 0.4
+Strongest correlation with:PostHeteroIndex, 0.007 buffer, 0.035 number NVC, 0.00042 mean dbh, 0.07  mean SOM 0.004
+R2 0.44
+
+#Removing area and perimeter
+
+```{r}
+sitevars_reduced = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffer1,Buffer2,sd_pH, 
+                                                sd_SOM,sd_LBA, sd_meandbh,sd_treedensity,
+                                                sd_R,mean_R, sd_N,mean_N , sd_W, mean_W,
+                                                sd_L, mean_L, Area_ha, Perim_m ))
+sitevars_all_lesRich = subset(sitevars_reduced, select = -c(Richness))
+
+model_all = lm(Richness ~., data = sitevars_reduced)
+
+visreg(model_all)
+```
+WAS
+No correlation with:      Altitude, Area, perimeter, Easting, number MSG, mean pH, meanLBA
+Slight correlation with:  Northing,no trees, area ratio
+Strongest correlation with:PostHeteroIndex,buffer,number NVC,mean dbh, mean SOM
+NOW
+No correlation with : Altitude, easting, number MSG, mean pH, meanLBA - NO CHANGE
+Slight correlation with : Northing, no trees,
+Strongest correlation with : Pos hetero index, buffer, number NVC, mean dbh, mean SOM, **area ratio**, WAS SLIGHT
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="250%"}
+
+ggpairs(sitevars_all_lesRich, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+
+```
+WAS
+
+Strong correlations of area, perimieter and area ratio, obvs.
+number MSG correlated with area (0.314 - bigger site means more MSG possible?),
+perimeter (As previous), mean pH( -0.37, different groups have different pH), 
+meanSOM with Easting (-0.417, eastern woods have loewr pH soils, not unexpected) 
+meanLBA with no trees (-0.48, obvs, but why not as strongly with mean dbh?)
+meandbh with buffer (0.324, woods with larger buffers are older??)
+Buffer correlated with Northing (0.52 - Northern woods in less populated areas have larger buffers?)
+NOW
+Strongest correlations
+meanLBA, no trees(-0.48, no change), 
+meanSOM wih Easting (-0.417, no change)
+mean pH with no MSG(-0.37, no change)
+meandbh with buffer(0.324, no change)
+buffer with northing(0.52, no change)
+
+```{r}
+all_PCA = PCA(sitevars_all_lesRich, scale.unit = TRUE, ncp = 11, graph = FALSE)
+var = get_pca_var(all_PCA)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+eig.val = get_eigenvalue(all_PCA)
+eig.val
+```
+7 components express 77% of variance, similar
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_cos2(all_PCA, choice = "var")
+```
+WAS
+Strongest correlation with:PostHeteroIndex,buffer,number NVC,mean dbh, mean SOM, BUT
+Of these only Buffer, meanSOM contribute to variance
+NOW
+Strongest correlation with : Pos hetero index, buffer, number NVC, mean dbh, mean SOM, **area ratio**, WAS SLIGHT
+Of these buffer, meanSOM contribute to variance - NO CHANGE
+
+```{r}
+fit_lessAreaPerim = lm(Richness ~ ., data = sitevars_reduced)
+summary(fit_lessAreaPerim)
+```
+WAS
+No correlation with:      Altitude, 0.56 Area, 0.99 perimeter, 0.91 Easting, 0.65 numbner MSG, 0.97
+mean pH, 0.8 meanLBA 0.75
+Slight correlation with:  Northing, 0.12 no trees, 0.28 area ratio 0.4
+Strongest correlation with:PostHeteroIndex, 0.007 buffer, 0.035 number NVC, 0.00042 mean dbh, 0.07  mean SOM 0.004
+R2 0.44
+
+PCA
+Strongest correlation with : Pos hetero index, buffer, number NVC, mean dbh, mean SOM, **area ratio**, WAS SLIGHT
+Of these buffer, meanSOM contribute to variance - NO CHANGE
+NOW
+No correlation with  Altitude 0.55, easting, 0.63 number MSG, 0.99 mean pH, 0.79 meanLBA 0.75- NO CHANGE
+Slight correlation with : Northing 0.09, no trees,0.27 - SIMILAR
+Strongest correlation with : Pos hetero index. 0.005, buffer, number NVC,0.00027 mean dbh,0.065 mean SOM, 0.003,**area ratio**
+
+##Summary
+for the variables 
+Strongest correlations are
+meanLBA, no trees(-0.48, no change), 
+meanSOM wih Easting (-0.417, no change)
+mean pH with no MSG(-0.37, no change)
+meandbh with buffer(0.324, no change)
+buffer with northing(0.52, no change)
+
+
+Easting is correlated with meanSOM - meanSOM is correlated with Richness and explains some variance. 
+Easting is not correlated with richness and does not explan variance, therefore drop Easting.
+Number MSG and meanpH are correlated with each other, neither are correlated with Richness and
+neither contribute to variance. Therefore drop Number MSG and meanpH
+
+##Droppping Easting, number MSG and mean pH
+
+sitevars_reduced = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffer1,Buffer2,sd_pH, 
+                                                sd_SOM,sd_LBA, sd_meandbh,sd_treedensity,
+                                                sd_R,mean_R, sd_N,mean_N , sd_W, mean_W,
+                                                sd_L, mean_L, Easting, no_MSG, meanph))
+sitevars_all_lesRich = subset(sitevars_reduced, select = -c(Richness))
+
+
+
+```{r}
+sitevars_reduced = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffer1,Buffer2,sd_pH, 
+                                                sd_SOM,sd_LBA, sd_meandbh,sd_treedensity,
+                                                sd_R,mean_R, sd_N,mean_N , sd_W, mean_W,
+                                                sd_L, mean_L, Area_ha, Perim_m, Easting, no_MSG, meanph ))
+sitevars_all_lesRich = subset(sitevars_reduced, select = -c(Richness))
+
+model_all = lm(Richness ~., data = sitevars_reduced)
+
+visreg(model_all)
+```
+
+WAS
+No correlation with:      Altitude, Area, perimeter, Easting, number MSG, mean pH, meanLBA
+Slight correlation with:  Northing,no trees, area ratio
+Strongest correlation with:PostHeteroIndex,buffer,number NVC,mean dbh, mean SOM
+THEN
+No correlation with : Altitude, easting, number MSG, mean pH, meanLBA - NO CHANGE
+Slight correlation with : Northing, no trees,
+Strongest correlation with : Pos hetero index, buffer, number NVC, mean dbh, mean SOM, **area ratio**, WAS SLIGHT
+NOW
+No correlation with: Altitude, mean LBA - NO CHANGE
+Slight correlation with : Northing, no trees -NO CHANGE
+Strongest correlation with : Pos heteroIndex, buffer, no NVC, mean dbh, mean SOM, area ratio NO CHANGE
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="250%"}
+
+ggpairs(sitevars_all_lesRich, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+
+```
+WAS
+
+Strong correlations of area, perimieter and area ratio, obvs.
+number MSG correlated with area (0.314 - bigger site means more MSG possible?),
+perimeter (As previous), mean pH( -0.37, different groups have different pH), 
+meanSOM with Easting (-0.417, eastern woods have loewr pH soils, not unexpected) 
+meanLBA with no trees (-0.48, obvs, but why not as strongly with mean dbh?)
+meandbh with buffer (0.324, woods with larger buffers are older??)
+Buffer correlated with Northing (0.52 - Northern woods in less populated areas have larger buffers?)
+THEN
+Strongest correlations
+meanLBA, no trees(-0.48, no change), 
+meanSOM wih Easting (-0.417, no change)
+mean pH with no MSG(-0.37, no change)
+meandbh with buffer(0.324, no change)
+buffer with northing(0.52, no change)
+
+NOW
+meanLBA, no trees(-0.48, no change)
+meandbh with buffer(0.324, no change)
+buffer with northing(0.52, no change)
+
+```{r}
+all_PCA = PCA(sitevars_all_lesRich, scale.unit = TRUE, ncp = 11, graph = FALSE)
+var = get_pca_var(all_PCA)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+eig.val = get_eigenvalue(all_PCA)
+eig.val
+```
+
+5 components express 72% of variance
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_cos2(all_PCA, choice = "var")
+```
+No correlation with: Altitude, mean LBA - NO CHANGE
+Slight correlation with : Northing, no trees -NO CHANGE
+Strongest correlation with : Pos heteroIndex, buffer, no NVC, mean dbh, mean SOM, area ratio NO CHANGE
+Of these, buffer, meanSOM, no trees, Northing contribute to variance.
+
+meanLBA and mean dbh correlated with Richness but do not contribute to variance.
+```{r}
+fit_lessAreaPerim = lm(Richness ~ ., data = sitevars_reduced)
+summary(fit_lessAreaPerim)
+```
+WAS
+No correlation with  Altitude 0.55, easting, 0.63 number MSG, 0.99 mean pH, 0.79 meanLBA 0.75- NO CHANGE
+Slight correlation with : Northing 0.09, no trees,0.27 - SIMILAR
+Strongest correlation with : Pos hetero index. 0.005, buffer, 0.0033, number NVC,0.00027 mean dbh,0.065 mean SOM, 0.003,are ratio 0.091
+
+NOW
+No correlation with: Altitude, 0.54, mean LBA,0.67.  - NO CHANGE
+Slight correlation with : Northing, 0.08, no trees, 0.26 -NO CHANGE
+Strongest correlation with : Pos heteroIndex,0.005 buffer, 0.028 no NVC,0.00014 mean dbh, 0.06, mean SOM,0.002 area ratio, 0.096 NO CHANGE - slight reduction of p values
+
+R2 = 0.4388 - slight decrease.
+
+
+
+
+
