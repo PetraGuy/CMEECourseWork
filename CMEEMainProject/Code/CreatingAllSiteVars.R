@@ -163,10 +163,11 @@ for (i in 1:103){
   meanph = mean(site$pHYr2,na.rm = TRUE)
   meanSOM = mean(site$SOMYr2,na.rm = TRUE)
   meanLBA = mean(site$LiveBasalAreaYr2)
-  tmp = c(i,meandbh,meanph,meanSOM,meanLBA)
+  meantreedensity = mean(site$tree.density, na.rm = TRUE)
+  tmp = c(i,meandbh,meanph,meanSOM,meanLBA,meantreedensity)
   means = rbind(means,tmp)
 }
-  colnames(means) = c("Site","meandbh","meanph","meanSOM","meanLBA")
+  colnames(means) = c("Site","meandbh","meanph","meanSOM","meanLBA","meantreedensity")
 
 CompleteSiteLevelVars = inner_join(CompleteSiteLevelVars,means)
 
@@ -310,4 +311,11 @@ ggplot(set8, aes(value,Richness_rep))+geom_point(aes(colour = variable))+
 #i = ggpairs(mydata,columns = 9:12, lower = list(continuous = my_fn))
 ###################
 
+#This is a revisit of the above code - after looking at Covariane I decided I didnt 
+#want all the standard deviation variables. I will reassemble the CompleteSiteLevelVars dataframe
+#using a subset, i'e with sd. Plus tree density and others in AllPltVars got left out
+#due to error I think.
 
+#what have we got: 
+colnames(AllPlotsvars)
+colnames(tmp)
