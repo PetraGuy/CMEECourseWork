@@ -90,11 +90,11 @@ y = all_plot_vars$plot_richness
 x1 = as.factor(all_plot_vars$ShortNVC)
 x2= as.factor(round(all_plot_vars$pHYr2, digits = 0))
 x3 = as.factor(round(all_plot_vars$SOMYr2, digits = 0))
-x4 = as.factor(round(all_plot_vars$LiveBsalAreaYr2, digits = 0))
+x4 = as.factor(round(all_plot_vars$LiveBasalAreaYr2, digits = 0))
 x5 =  as.factor(round(all_plot_vars$mean_dbh, digits = 0))
 x6 =  as.factor(round(all_plot_vars$`tree density`, digits = 1))
 
-png("../Data/Talk/plot_vars.png")
+#png("../Data/Talk/plot_vars.png")
 par(mfrow =c(3,2), mai = c(0.2,0.2,0.2,0.2))
 
 plot(x = x1, y = y, main = "by NVC")
@@ -114,12 +114,12 @@ dev.off()
 # do linear model of richness against the vars and see which have a correlation
 #playing around with one sit first
 
-colnames(var_matrix) = c("pHYr2" ,"SOMYr2","LiveBasalAreaYr2", "mean_dbh" ,"tree_density","plot_richness" )
-site83 = all_plot_vars%>%filter(Site == 83)
-var_matrix = site83[c(5,6,8,9,10,11,12)]
-var_matrix[var_matrix==0] = NA
+#colnames(var_matrix) = c("pHYr2" ,"SOMYr2","LiveBasalAreaYr2", "mean_dbh" ,"tree_density","plot_richness" )
+#site83 = all_plot_vars%>%filter(Site == 83)
+#var_matrix = site83[c(5,6,8,9,10,11,12)]
+#var_matrix[var_matrix==0] = NA
 
-model_lm = lm(plot_richness~ pHYr2, data = var_matrix)
+#model_lm = lm(plot_richness~ pHYr2, data = var_matrix)
 
 
 #################################

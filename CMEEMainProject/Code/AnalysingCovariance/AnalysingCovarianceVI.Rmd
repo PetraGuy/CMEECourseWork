@@ -61,7 +61,7 @@ sitevars_all_lesRich = subset(sitevars_reduced, select = -c(Richness))
 colnames(sitevars_reduced)
 ```
 
-These are the measured variables - I have calculated mean - which is the mean over all the plots - plots with no trees have a dbh of 0 and therefore this variable also reflects the heterogeneity of the woodland in relation to its cover. This means that number of sites with no trees (no_trees), meanLBA and tree density are probably not all required.
+These are the measured variables - I have calculated mean - which is the mean over all the plots - plots with no trees have a dbh of 0 and therefore this variable also reflects the heterogeneity of the woodland in relation to its cover. This means that number of sites with no trees (no_trees), meanLBA and tree density are not all required. Similarly, area, perimeter and area ratio are not all required and will make model selection difficult.
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="35%"}
@@ -95,7 +95,7 @@ panel.cor <- function(x, y, digits=2, prefix="", cex.cor)
 
 ```
 
-```{r eval=FALSE, fig.align='center', message=FALSE, warning=FALSE, include=FALSE, out.height="595px", out.width="592px", paged.print=FALSE}
+```{r echo=FALSE, fig.align='center', message=FALSE, warning=FALSE, out.height="595px", out.width="592px", paged.print=FALSE}
 
 # too many variables to be legible
 pairs(sitevars_all_lesRich, lower.panel = panel.smooth, upper.panel = panel.cor)
