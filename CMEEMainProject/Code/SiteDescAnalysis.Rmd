@@ -53,6 +53,10 @@ SiteDescriptorsYr2 = as.tbl(read.csv(fullfile))
 #208 - 212 are heaths, marsh, rivers and lakes.
 PositiveCodesSites = c(8,9,10,12,13,14,15,16,17,18,24,54,55,56,57,58,59,61,62,63,64,65,86,87,88,89,90,91,92,93,105,106,107,108,109,110,111,112,113,114,115,116,150,151,152,153,157,158,208,209,210,211,212)
 PositveSites = SiteDescriptorsYr2 %>% select(SITE, SD_code)%>% filter(SD_code %in% PositiveCodesSites)
+
+poscodesused =  LookUpSite%>%filter(SD_code%in% PositiveCodesSites)
+poscodesused = poscodesused%>%select(SD_code,Description) 
+write.csv(poscodesused, "../Data/PosCodesUsed")
 ```
 
 

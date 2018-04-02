@@ -1,5 +1,5 @@
 ---
-title: "ExaminingCovariatesVI"
+title: "ExaminingCovariatesVII"
 author: "PetraGuy"
 date: "27 March 2018"
 header-includes: 
@@ -9,17 +9,15 @@ header-includes:
 - \newcommand{\elandscape}{\end{landscape}}
 output: pdf_document
 ---
-From previous analysis it became obvious (maybe should have been in the first place) that most of the variables I had "created" in order to express heterogeneity were already contained within the existing variates. Eg, the standard deviation of pH and  number of major soil groups. In addition, I wasnt sure what standardising a standard deviation in the PCA would mean? And - there were so many variables the analysis was becoming harder  rather than simpler. Most importantly, none of the additional variables added obvious correlation with richness. So I decided to strip the variables back to those that were originally measured and recorded.
+From previous analysis it became obvious (maybe should have been in the first place) that most of the variables I had "created" in order to express heterogeneity were already contained within the existing variates. Eg, the standard deviation of pH and  number of major soil groups. In addition, I wasn't sure what standardizing a standard deviation in the PCA would mean, there were so many variables the analysis was becoming harder  rather than simpler, none of the additional variables had an obvious correlation with richness and since many were computationally related, they were correlated. So I decided to strip the variables back to those that were originally measured and recorded and start again.
 
-Here I will go through these and remove firstly, those that are not correlated with species richess and/or are correlated with each other - eg. we dont want all of area, permimeter and area_ratio, but which is most important for richness? It has been suggested that the geometry of the wood can be related to richness - eg, an undistrbed core could contain poorly dispersing woodland species, or a long narrow wood would more easily allow recolonisation. So arearatio might be the most useful variable. 
+Here I will go through these and remove firstly, those that are not correlated with species richness and/or are correlated with each other - eg. we don't want all of area, perimeter and area_ratio, but which is most important for richness? It has been suggested that the geometry of the wood can be related to richness - eg, an undisturbed core could contain poorly dispersing woodland species, or a long narrow wood would more easily allow recolonization. So area ratio might be the most useful variable. 
 
-There are also a few outliers that may affect the analysis, one site(74) has area > 300ha, the others area less that 150ha. Including this site gives a stronger correlation with richness and area than when it is removed.
-Two sites have positive heterogeneity indices above 78, the rest are below 40. Again, the correlation with richness is reduced if they are removed.
+There are also a few outliers that may affect the analysis, one site(74) has area > 300ha, the others have areas less that 150ha. Including this site gives a stronger correlation with richness and area than when it is removed.
+Two sites have positive heterogeneity indices above 78, the rest are below 40. Again, the correlation with richness is reduced if they are removed. Plus, the positive heterogeneity index may need tweaking (do some things need to be removed? Are there other woodland management codes which should be included?)
 
-In previous analysis I split the variables in two - physical variables (eg mean dbh) and heterogeneoty variables. The problem with this was that correlations across the two groups, in the presence of the other variables could not be seen.
-
-Bearing inmind that the purpose of this anlaysis is to look for the factors that effect richness, and might therefore be erlated to z and c. It is not to create a predictive model using richness as a fucntion of the varaibles. Therefore looking at R2 and AIC etc may not be best way to proceed. I tried looking at PCA, R2 and p values for various subsets, and the anmount of results and graphs produced didnt add a lot of information. I have therefore decided to simplify the exploration to first looking at the miltiple linear regression plots using visref because these show which variables, in the presence of the others, correlate with richness.
-Secondly I will look at correlations between variables using a standardised correlation matrix. These correlations will be explored to see whether the correlated variables might be confounding.
+Bearing in mind that the purpose of this analysis is to look for the factors that effect richness, and might therefore be related to z and c. It is not to create a predictive model using richness as a function of the variables. Therefore looking at R2 and AIC etc may not be best way to proceed. I tried looking at PCA, R2 and p values for various subsets, and the amount of results and graphs produced didn't add a lot of information. I have therefore decided to simplify the exploration to first looking at the multiple linear regression plots using visref because these show which variables, in the presence of the others, correlate with richness.
+Secondly I will look at correlations between variables using a standardized correlation matrix. These correlations will be explored to see whether the correlated variables might be confounding.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
@@ -41,9 +39,11 @@ library(corrplot)
 library(car)
 library(gridExtra)
 library(reshape)
+library(knitr)
+library(kableExtra)
 
 ```
-
+##Initial set of variables.  
 
 ```{r}
 sitevars =  read.csv("../../Data/CompleteSiteLevelVars.csv")
@@ -51,21 +51,23 @@ sitevars[is.na(sitevars)]=0
 #toremove = c(23,53,74)
 #sitevars = sitevars%>%filter(!Site %in% toremove)
 names(sitevars)[names(sitevars) =="Pos_Hetero_Index"] = "PHI"
-colnames(sitevars)
-```
+names(sitevars)[names(sitevars) =="meantreedensity"] = "meanTD"
 
-These were all the variables I created because I was to express the heterogenity of the woodland. But none showed a correlation with richness.
-
-```{r}
 sitevars_reduced = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffer1,Buffer2,sd_pH, 
                                                 sd_SOM,sd_LBA, sd_meandbh,sd_treedensity,
                                                 sd_R,mean_R, sd_N,mean_N , sd_W, mean_W,
-                                                sd_L, mean_L ))
+                                                sd_L, mean_L, no_trees ))
 sitevars_all_lesRich = subset(sitevars_reduced, select = -c(Richness))
-colnames(sitevars_reduced)
-```
+vars = as.vector(colnames(sitevars_reduced))
+vars
 
-These are the measured variables - I have calculated mean - which is the mean over all the plots - plots with no trees have a dbh of 0 and therefore this variable also reflects the heterogeneity of the woodland in relation to its cover. This means that number of sites with no trees (no_trees), meanLBA and tree density are not all required. Similarly, area, perimeter and area ratio are not all required.
+
+```
+(PS PHI = positive heterogeneity index, meanTD = mean tree density, no_trees = number of sites with no trees, no_NVC = number of NVC codes, no_MSG = number of major soil groups).  
+
+An initial correlation matrix (not shown because huge) shows the expected strong correlations between area, perimeter and area ratio and meanLBA, tree density,  and meandbh. Since area_ratio is potentially the more interesting, this will be retained, and since mean dbh has the strongest correlation with richness,(see visref plots below) that will also be retained along with tree density, which I think might possibly express richness in a slightly different way to meandbh. But aren't meanLBA  meandbh are basically the same thing? so I will drop meanLBA because the correlation with richness is weaker. 
+
+Similarly, area, perimeter and area ratio are not all required, area_ratio shows a slight correlation with richness, whereas area and perimeter do not, (see visref plots), and is potentially the more interesting, so this will be retained.
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="35%"}
@@ -75,26 +77,22 @@ model_all = lm(Richness ~., data = sitevars_reduced)
 visreg(model_all)
 ```
 
-The multiple linear regression using all variables shows the following variables are correlated with richness : Buffer,Northing, no_NVC, no_trees, meandbh, meanSOM, meantreedensity, arearatio. (It is a bit surprising that meanLBA is not included in the correlations with tree variables, perhaps there are too many tree variables?)
+The multiple linear regression using all variables shows the following variables are correlated with richness : Buffer,Northing, no_NVC, meandbh, meanSOM, meanTD, area ratio, meanLBA (slightly)
 
-```{r}
-s = scale(sitevars_all_lesRich)
-c = round(cor(s), digits = 2)
-c
-```
+\newpage
 
+**The new reduced sest of variables will be....**
 
-The correlation matrix shows the expected strong correlations between area, perimeter and area ratio and meanLBA, tree density, no_trees and meandbh. Since area_ratio is potentially the more interesting, this will be retained, and since mean dbh has the strongest correlation with richness, that wil also be retained along with tree desnsity, which I think might possible express richness in a slightly differet way to meandbh. But meanLBA and meandbh are basically the same thing.
-
-```{r}
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 sitevars_reduced1 = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffer1,Buffer2,sd_pH, 
                                                 sd_SOM,sd_LBA, sd_meandbh,sd_treedensity,  sd_R,mean_R,
                                                 sd_N,mean_N , sd_W, mean_W, sd_L, mean_L, meanLBA, 
                                                 no_trees,  Area_ha, Perim_m ))
 sitevars_all_lesRich1 = subset(sitevars_reduced1, select = -c(Richness))
-colnames(sitevars_reduced1)
+vars1 = as.vector(colnames(sitevars_reduced1))
+vars1
 ```
-This is a more workable and realistic sest of variables - in the sense that none are clearly correlated because they are computationally related, and they are all based on the original measured data with little manipulation. 
+This is a more workable and realistic set of variables - in the sense that none are clearly correlated because they are computationally related, and they are all based on the original measured data with little manipulation. 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="35%"}
 
@@ -102,9 +100,11 @@ model_all1 = lm(Richness ~., data = sitevars_reduced1)
 
 visreg(model_all1)
 ```
-_
-The visref plots show no correlation with richness for altitude, Easting, no_MSG groups or meanpH or meantree density.
-Consider Altitude. The range in altitude of the sites is not great, none are particularly high, it is unlikely to be affecting richness, so I'll drop this before we go on.
+
+The visref plots show no correlation with richness for altitude, Easting, no_MSG , meanpH or mean tree density.
+
+#Altitude
+The range in altitude of the sites is not great, none are particularly high, half the woods are between about 75m and 150m, the highest 300m. It is unlikely that these altitudes would affect richness, so I'll drop this before we go on.
 
 ```{r, out.width="50%"}
 ggplot(sitevars, aes(x = "", y = Alt_m))+
@@ -113,30 +113,37 @@ ggplot(sitevars, aes(x = "", y = Alt_m))+
 
 ```
 
-```{r}
+**The new set of reduced variales is now...**
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 sitevars_reduced2 = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffer1,Buffer2,sd_pH, 
                                                 sd_SOM,sd_LBA, sd_meandbh,sd_treedensity,  sd_R,mean_R,
                                                 sd_N,mean_N , sd_W, mean_W, sd_L, mean_L, meanLBA, 
                                                 no_trees,  Area_ha, Perim_m, Alt_m ))
 sitevars_all_lesRich2 = subset(sitevars_reduced2, select = -c(Richness))
-colnames(sitevars_reduced2)
+vars2= as.vector(colnames(sitevars_reduced2))
+vars2
 ```
 
 ```{r}
 s2= scale(sitevars_all_lesRich2)
 c2 = round(cor(s2), digits = 2)
 c2
+
 ```
+&nbsp;
 
 Correlations over 0.3:
 Buffer and Northing 0.52
 meandbh and buffer 0.32
 meanph and buffer -0.36
 meanph and no_MSG -0.37
-meanteredensiy and Easting 0.37
-meantreedes=nsiy and Northing -0.42
-meantreedensity and meandbh -0.44
+meanTD and Easting 0.37
+meanTD and Northing -0.42
+meanTD and meandbh -0.44
 meanSOM and Easting -0.42
+
+#Buffer, Northing, meanpH, meandbh and meanTD
 
 First consider the set of correlations with Northing to buffer to meanph to meandbh. I think these are potentially confounded because why should meandbh be related to meanpH, or meanpH to buffer?
 
@@ -169,18 +176,18 @@ grid.arrange(g1,g2,g3,g4,g5,g6, nrow = 3)
 The northern woods tend to have larger buffers, a lower ph and are more mature. There is no reason for meandbh , buffer or meanpH to correlate with each other, so it seems likely that the correlation is related through the latitude to the distribution and age class of the trees and the pH of the woodland. 
 I.e. Buffer is correlated with meanpH because the Northern woods have lower pH and larger buffers. 
 
-There is also the correlation of richness to buffer to onsider, which may have ecological reasons, does the buffer provide a seed bank for recolonization or protect the woodland from nitrification. But I think if you look at the density of the woods,then the relationship is explained.
+There is also the correlation of richness to buffer to consider, which may have ecological reasons, does the buffer provide a seed bank for recolonization or protect the woodland from nitrification. But I think if you look at the density of the woods,then the relationship is explained.
 
 ```{r, fig.align='center'}
-data = as.data.frame(cbind(sitevars$meantreedensity,sitevars$Northing, sitevars$Easting))
-colnames(data)= c("meantreedensity", "Northing","Easting")
-melted = melt(data, id.vars = "meantreedensity")
+data = as.data.frame(cbind(sitevars$meanTD,sitevars$Northing, sitevars$Easting))
+colnames(data)= c("meanTD", "Northing","Easting")
+melted = melt(data, id.vars = "meanTD")
 
 data2 = as.data.frame(cbind(sitevars$meandbh,sitevars$Northing, sitevars$Easting))
 colnames(data2)= c("meandbh", "Northing","Easting")
 melted2 = melt(data2, id.vars = "meandbh")
 
-g1 = ggplot(melted, aes(x= meantreedensity, y = value))+
+g1 = ggplot(melted, aes(x= meanTD, y = value))+
   geom_point(aes(colour = variable))+
  geom_smooth(method = lm, aes(colour = variable))
 
@@ -191,14 +198,24 @@ g1 = ggplot(melted, aes(x= meantreedensity, y = value))+
  g3 = ggplot(sitevars, aes(x = Northing, y = mean_L))+
    geom_point()+
   geom_smooth(method = lm)
+ g4 = ggplot(sitevars, aes(x = meanTD, y = mean_L))+
+   geom_point() + 
+   geom_smooth(method = lm)
  
-grid.arrange(g1, g2, g3, nrow = 2)
+grid.arrange(g1, g2, g3,g4, nrow = 2)
  
 ```
-The northern woods are both less dense, and have trees with greater dbh and more light loving plants. This suggests that there is an increase in richness due to the reduced tree density which allows the addition of light loving species. It is probably not the buffer or the latitude that is contributing to the richness, but the openness of the woodlands. Therefore buffer and Northing are probably not required to express the richness, rather the openess of the wodland via the meantreedensity is what we want. 
+The northern woods are both less dense, and have trees with greater dbh and more light loving plants. This suggests that there is an increase in richness due to the reduced tree density which allows the addition of light loving species. It is probably not the buffer or the latitude that is contributing to the richness, but the openness of the woodlands. Therefore buffer and Northing are probably not required to express the richness, rather the openness of the woodland via the meanTD is what we want. 
+\clearpage
+\newpage
 
 
-pH correlated with number of major soil groups, which os not surprising, but number of major soil groups doe not correlate with richness. Although meanpH does not appear to correlate either, I am not removing it yet, there there ecological reasons why you would expect it to, but number of mjor soil groups is more likely to be represented by the meanpH. and perhaps the relationship is affected by the other variables. 
+
+#pH and number of major soil groups  
+
+pH is correlated with number of major soil groups, which is not surprising. Number of major soil groups does not correlate with richness and neither does meanpH  but I would prefer to retain meanpH instead of number of major soil groups because: Number of major soil groups is likely to be represented by the meanpH, the variable has small range and is not correlated with any other variables, or richness and we know that plant richness correlates with pH even if we arent seeing it here.  
+
+**The variables are now reduced to...**
 
 ```{r}
 sitevars_reduced3 = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffer1,Buffer2,sd_pH, 
@@ -208,20 +225,23 @@ sitevars_reduced3 = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffe
 sitevars_all_lesRich3 = subset(sitevars_reduced3, select = -c(Richness))
 colnames(sitevars_reduced3)
 ```
+&nbsp;
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="35%"}
 
-model_all2 = lm(Richness ~., data = sitevars_reduced2)
+model_all3 = lm(Richness ~., data = sitevars_reduced3)
 
-visreg(model_all2)
+visreg(model_all3)
 ```
 
 ```{r}
-s3 = scale(sitevars_all_lesRich2)
-c3 = round(cor(s2), digits = 2)
+s3 = scale(sitevars_all_lesRich3)
+c3 = round(cor(s3), digits = 2)
 c3
 ```
+
+#meanSOM, meanpH and Easting.  
 
 There is a correlation with meanSOM and Easting which we saw previously. 
 
@@ -239,9 +259,9 @@ grid.arrange(g1, g2,g3, nrow = 2)
  
 ```
 
-As expected, mean pH decreases with increasing mean SOM. The mean SOM in the Eastern woods is less hence the pH is less. The richness is strongly correlated with meanSOM, and this is related to Easting and mean pH.
+As expected, mean pH decreases with increasing mean SOM. The mean SOM in the Eastern woods is less hence the pH is less. The relationship between Easting and meanSOM is due to relationship between meanSOM and meanpH, and the fact that the meanSOM is reduced in the eastern woods. Since meanSOM is strongly correlated with richness, it is the meanSOM we require, not the Easting. Likewise, since meanSOM explains meanpH, we can probably drop mean pH as well
 
-Therefore the mean SOM would be sufficient to explain richness.
+**The variables are now reduced to...**
 
 ```{r}
 sitevars_reduced4 = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffer1,Buffer2,sd_pH, 
@@ -260,6 +280,10 @@ model_all4 = lm(Richness ~., data = sitevars_reduced4)
 
 visreg(model_all4)
 ```
+  
+All the variables are correlated with richness.  
+
+
 
 ```{r}
 s4 = scale(sitevars_all_lesRich4)
@@ -267,7 +291,7 @@ c4 = round(cor(s4), digits = 2)
 c4
 ```
 
-Meandbh is correlated with meantreedensity(-0.44). Are both required?
+There are no correlations between variables (greater than0.24), but meandbh is correlated with meanTD(-0.44). Are both required?
 
 ```{r}
 
@@ -283,7 +307,7 @@ m4
 
 ```
 
-meandbh is more significant than meantreedensity.
+meandbh is more significant than meanTD.
 
 ```{r}
 sitevars_reduced5 = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffer1,Buffer2,sd_pH, 
@@ -303,14 +327,14 @@ m5
 
 ```
 
-Removing meandbh does not make meantreedensity more significant.
+Removing meandbh does not make meanTD more significant.
 
 ```{r}
 sitevars_reduced6 = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffer1,Buffer2,sd_pH, 
                                                 sd_SOM,sd_LBA, sd_meandbh,sd_treedensity,  sd_R,mean_R,
                                                 sd_N,mean_N , sd_W, mean_W, sd_L, mean_L, meanLBA, 
                                                 no_trees, Area_ha, Perim_m, Alt_m,no_MSG, 
-                                                Buffer3, Northing, meanph, Easting, meantreedensity ))
+                                                Buffer3, Northing, meanph, Easting, meanTD ))
 fit6 = lm(Richness ~ ., data = sitevars_reduced6)
 s = summary(fit6)
 p = round(s$coefficients[,4], digits =2)
@@ -323,12 +347,12 @@ m6
 
 ```
 
-But removing meantreedensity makes meandbh less significant.
+But removing meanTD makes meandbh less significant.
 
 ```{r}
-g1 = ggplot(sitevars, aes(x = mean_L, y = meantreedensity)) + geom_point() + geom_smooth(method = lm)
+g1 = ggplot(sitevars, aes(x = mean_L, y = meanTD)) + geom_point() + geom_smooth(method = lm)
 g2 = ggplot(sitevars, aes(x = mean_L, y = meandbh)) + geom_point() + geom_smooth(method = lm)
-g3 =  ggplot(sitevars, aes(x = meandbh, y = meantreedensity)) + geom_point() +geom_smooth(method = lm)
+g3 =  ggplot(sitevars, aes(x = meandbh, y = meanTD)) + geom_point() +geom_smooth(method = lm)
 g4 =  ggplot(sitevars, aes(x = mean_L, y = Richness)) + geom_point() +geom_smooth(method = lm)
 
 
@@ -338,11 +362,14 @@ grid.arrange(g1,g2,g3,g4)
 ```
 
 Is a correlation of -0.44 OK? 
-The graphs above suggest that meantreedensity is important. As the meantreedensity reduces, the mean Ellenberg L increases. This is not the case for mean dbh. And as mean Ellenberg L increses, richness increases (not sure if this is one of those ciruclar arguments? If I am using mean Ellenberg L, is that OK?)
-We can also see that as meantreedensity decreases, meandbh increases - as you would expect, you are getting high density for smaller trees, low density for larger trees. Looking at these plots I would be tempted to drop meandbh - but I the reduction in significance when they are both included is a bit confusing.
 
-I think you werent convinced about using number of NVC codes Simon, because it might be too subjective. I've left it there for now, we can decide later.
-I following plot made me want to include it.
+The graphs above suggest that meanTD is important. As the meanTD reduces, the mean Ellenberg L increases. This is not the case for mean dbh. And as mean Ellenberg L increases, richness increases.
+We can also see that as meanTD decreases, meandbh increases - as you would expect, you are getting high density for smaller trees, low density for larger trees. Looking at these plots I would be tempted to drop meandbh - but the reduction in significance when they are both included is a bit confusing. 
+
+
+
+I think you weren't convinced about using number of NVC codes Simon, because it might be too subjective. 
+The following plot made me want to include it.
 
 ```{r}
 allplotvars = read.csv("../../Data/AllPlotsVarsRichness.csv")
@@ -360,7 +387,22 @@ ggplot(data, aes(x = x, y = y))+
 
 ```
 
-But perhaps the feature shown here are already expresssed in other variables, such as meanSOM or meantreedensity.
+There is an obvious reduction in richness for the acid oak,beech woods - W14 - W16, and the shady W13 Taxxus baccata. W12, being richer than the others due to its location on more calcareous soils.   The damper W4 - W8 woodlands also being richer - due to the dampness. W10, being more neutral, falling in the intermediate richness range - perhaps because they can sometimes be dominated by bramble and bracken, and sometimes not.  
+
+MG7A - is the the enriched, species poor Lolium perenne leys, and OV24 is likely to be overrun with nettle. So it looks like the richness for the plots does correspond with their classification - but the question is, does their classification express something about the richness that is NOT already expressed by the less subjective variables I have already chosen - meanSOM, tree density, DBH, PHI (positive heterogeneity index), area ratio.
+
+Looking at the above boxplot, I get the impression that the NVC classification is expressing richness in the way you would expect. But I am using number of NVC codes, not the code itself - because I was thinking that the more codes you have, the more different habitats, the more different species. But if you have W13, W14,W15 and W16, you are getting more codes, but proably not more species? So its not a perfect concept. 
+I would like to do some models on richness and the NVC code, or pull out the occurrences of beech, bramble etc and see how they relate to richness - but I'm also thinking that I need to move on to relating these variables to z and c, and then looking at zeta - then come back to this question as an extra later??
+
+You know whether you think this would be variable that could be published, and how reliable the NVC codes are, so I leave it up to you whether it's included or not. 
 
 
+PS - these are the positive heterogeneity codes I selected, shall I remove some??
+
+
+
+```{r}
+PHI =  read.csv("../../Data/PosCodesUsed")
+PHI
+```
 

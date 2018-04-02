@@ -27,7 +27,7 @@ DBH_Yr2_agg = aggregate(Count~DBH_class + PLOT + SITE, data = Yr2_DBH, sum)
 DBH_Yr2_agg = filter(DBH_Yr2_agg, PLOT !=60)
 # Count is now the sum of counts in each DBH class.
 
-# get the means of each plot but add in NAs for missing plots - these might have no tres or might be missing
+# get the means of each plot but add in NAs for missing plots - these might have no trees or might be missing
 
 Means_df = data.frame()
 dbh_classes = c(1:32)
