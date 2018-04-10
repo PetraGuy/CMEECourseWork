@@ -53,13 +53,25 @@ sitevars[is.na(sitevars)]=0
 names(sitevars)[names(sitevars) =="Pos_Hetero_Index"] = "PHI"
 names(sitevars)[names(sitevars) =="meantreedensity"] = "meanTD"
 
+
+# after this analysis I am adding arable buffers
+ArableBuffer = read.csv( "../../Data/LandCoverIndicesArable.csv")
+BufferI = ArableBuffer%>%select("X","Buffer1")
+colnames(BufferI) = c("Site","BufferI")
+sitevars= inner_join(BufferI, sitevars)
+
 sitevars_reduced = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffer1,Buffer2,sd_pH, 
                                                 sd_SOM,sd_LBA, sd_meandbh,sd_treedensity,
                                                 sd_R,mean_R, sd_N,mean_N , sd_W, mean_W,
-                                                sd_L, mean_L, no_trees ))
+                                               sd_L, mean_L, no_trees ))
+BufferI = ArableBuffer%>%select("X","Buffer1")
+colnames(BufferI) = c("Site","BufferI")
+sitevars= inner_join(BufferI, sitevars)
 sitevars_all_lesRich = subset(sitevars_reduced, select = -c(Richness))
 vars = as.vector(colnames(sitevars_reduced))
 vars
+
+# after this analysis I am adding arable buffers
 
 
 ```
@@ -143,38 +155,162 @@ meanTD and Northing -0.42
 meanTD and meandbh -0.44
 meanSOM and Easting -0.42
 
-#Buffer, Northing, meanpH, meandbh and meanTD
+#Bufferi and Buffer3, Northing, meanpH, meandbh and meanTD
 
 First consider the set of correlations with Northing to buffer to meanph to meandbh. I think these are potentially confounded because why should meandbh be related to meanpH, or meanpH to buffer?
 
+#From SSH
+
+"It is possible that mean DBH is causally related to mean pH. The mechanism would be where denser shade and greater input of litter from higher C:N tree leaves and twigs led to higher SOM and C:N in the surface soil and hence lower pH. It should be a a fairly weak and noisy signal though. You could also think of a way in which in high amount of intensive land in the buffer should link to increased pH in the wood because if higher intensive land is a more lwoland feature then lowlands are more likely to have circum-neutral rather than acid pH."
+
+I though this was worth more scrutiny, because I wasnt totally happy about leaving out buffers or soilPh. It may be that SOM explains pH due to dbh as described above, because the change in pH is related to leaf litter and therefore SOM - and in that ase pH is not required. But, if changes in pH are due to surroundng arable land then there is no other variable which captures that effect.
+
+
+
 ```{r, fig.align='center'}
 
-g1 = ggplot(sitevars, aes(x = Buffer3, y = Northing))+
-  geom_point()+
-   geom_smooth(method = "lm")
-g2 = ggplot(sitevars, aes(x = Buffer3, y = meandbh))+
-  geom_point()+
-   geom_smooth(method = "lm")
-g3 = ggplot(sitevars, aes(x = meanph, y = Northing))+
-  geom_point()+
-   geom_smooth(method = "lm")
-g4 = ggplot(sitevars, aes(x = meanph, y = meandbh))+
-  geom_point()+
-   geom_smooth(method = "lm")
-g5 = ggplot(sitevars, aes(x = meandbh, y = Northing))+
-  geom_point()+
-   geom_smooth(method = "lm")
-g6 = ggplot(sitevars, aes(x = meanph, y = Buffer3))+
-  geom_point()+
-   geom_smooth(method = "lm")
+data = as.data.frame(cbind(sitevars$Northing,sitevars$BufferI, sitevars$Buffer3))
+colnames(data)= c("Northing", "BufferI","Buffer3")
+melted = melt(data, id.vars = "Northing")
 
-grid.arrange(g1,g2,g3,g4,g5,g6, nrow = 3)
+g1 = ggplot(melted, aes(x= Northing, y = value))+
+  geom_point(aes(colour = variable))+
+ geom_smooth(method = lm, aes(colour = variable))
 
 
+data = as.data.frame(cbind(sitevars$meandbh,sitevars$BufferI, sitevars$Buffer3))
+colnames(data)= c("meandbh", "BufferI","Buffer3")
+melted = melt(data, id.vars = "meandbh")
+
+g2 = ggplot(melted, aes(x= meandbh, y = value))+
+  geom_point(aes(colour = variable))+
+ geom_smooth(method = lm, aes(colour = variable))
+
+data = as.data.frame(cbind(sitevars$meanSOM,sitevars$BufferI, sitevars$Buffer3))
+colnames(data)= c("meanSOM", "BufferI","Buffer3")
+melted = melt(data, id.vars = "meanSOM")
+
+g3 = ggplot(melted, aes(x= meanSOM, y = value))+
+  geom_point(aes(colour = variable))+
+ geom_smooth(method = lm, aes(colour = variable))
+
+data = as.data.frame(cbind(sitevars$meanTD,sitevars$BufferI, sitevars$Buffer3))
+colnames(data)= c("meanTD", "BufferI","Buffer3")
+melted = melt(data, id.vars = "meanTD")
+
+g4 = ggplot(melted, aes(x= meanTD, y = value))+
+  geom_point(aes(colour = variable))+
+ geom_smooth(method = lm, aes(colour = variable))
+
+data = as.data.frame(cbind(sitevars$meanph,sitevars$BufferI, sitevars$Buffer3))
+colnames(data)= c("meanpH", "BufferI","Buffer3")
+melted = melt(data, id.vars = "meanpH")
+
+g5 = ggplot(melted, aes(x= meanpH, y = value))+
+  geom_point(aes(colour = variable))+
+ geom_smooth(method = lm, aes(colour = variable))
+
+data = as.data.frame(cbind(sitevars$area_ratio,sitevars$BufferI, sitevars$Buffer3))
+colnames(data)= c("area_ratio", "BufferI","Buffer3")
+melted = melt(data, id.vars = "area_ratio")
+
+g6 = ggplot(melted, aes(x= area_ratio, y = value))+
+  geom_point(aes(colour = variable))+
+ geom_smooth(method = lm, aes(colour = variable))
+
+grid.arrange(g1,g2,g3,g4,g5, g6, nrow = 3)
+```
+Because the positive buffer incorporates everything except arable/urban/horticultural, which is buffer code I  - this means that the arable buffer = 1-positive buffer. Therefore each has the inverse relationship to the other to any chosen variable.
+In summary the following show an increase with increasing positive buffer: 
+Northing, meandbh, meanSOM, area_ratio.
+The following decrease with increasing positve buffer:
+meanpH, meanTD
+
+```{r}
+
+data = as.data.frame(cbind(sitevars$meandbh,sitevars$Northing))
+colnames(data) =cbind("meandbh","Northing")
+g1 = ggplot(data, aes(x= meandbh, y = Northing))+
+  geom_point()+
+ geom_smooth(method = lm)
+
+data = as.data.frame(cbind(sitevars$meandbh, sitevars$meanph))
+colnames(data) = cbind("meandbh","meanph")
+g2 = ggplot(data, aes(x= meandbh, y = meanph))+
+  geom_point()+
+ geom_smooth(method = lm)
+
+data = as.data.frame(cbind(sitevars$meandbh,sitevars$meanSOM))
+colnames(data) =cbind("meandbh","meanSOM")
+g3 = ggplot(data, aes(x= meandbh, y = meanSOM))+
+  geom_point()+
+ geom_smooth(method = lm)
+
+data = as.data.frame(cbind(sitevars$meanph,sitevars$meanSOM))
+colnames(data) =cbind("meanph","meanSOM")
+g4 = ggplot(data, aes(x= meanph, y = meanSOM))+
+  geom_point()+
+ geom_smooth(method = lm)
+
+
+data = as.data.frame(cbind(sitevars$Northing,sitevars$meanSOM))
+colnames(data) =cbind("Northing","meanSOM")
+g5 = ggplot(data, aes(x= Northing, y = meanSOM))+
+  geom_point()+
+ geom_smooth(method = lm)
+
+data = as.data.frame(cbind(sitevars$meanTD,sitevars$meanSOM))
+colnames(data) =cbind("meanTD","meanSOM")
+g6 = ggplot(data, aes(x= meanTD, y = meanSOM))+
+  geom_point()+
+ geom_smooth(method = lm)
+
+data = as.data.frame(cbind(sitevars$meanTD,sitevars$Northing))
+colnames(data) =cbind("meanTD","Northing")
+g7 = ggplot(data, aes(x= meanTD, y = Northing))+
+  geom_point()+
+ geom_smooth(method = lm)
+
+data = as.data.frame(cbind(sitevars$BufferI, sitevars$Northing))
+colnames(data) =cbind("BufferI","Northing")
+g8 = ggplot(data, aes(x= BufferI, y = Northing))+
+  geom_point()+
+ geom_smooth(method = lm)
+
+ g9 = ggplot(sitevars, aes(x = Northing, y = mean_L))+
+   geom_point()+
+  geom_smooth(method = lm)
+ g10 = ggplot(sitevars, aes(x = meanTD, y = mean_L))+
+   geom_point() + 
+   geom_smooth(method = lm)
+ g11 = ggplot(sitevars, aes(x = mean_L, y = Richness ))+ geom_smooth(method = lm)
+
+
+grid.arrange(g7,g8,g9,g10, nrow = 2)
+#grid.arrange(g1,g2,g3,g4,g5,g6,g7, nrow =2)
 ```
 
-The northern woods tend to have larger buffers, a lower ph and are more mature. There is no reason for meandbh , buffer or meanpH to correlate with each other, so it seems likely that the correlation is related through the latitude to the distribution and age class of the trees and the pH of the woodland. 
-I.e. Buffer is correlated with meanpH because the Northern woods have lower pH and larger buffers. 
+
+
+Having added BufferI = propotion of the 1500km buffer which is arable you can see that 1) Buffer I not strongly correlated with richness. 2) Buffer I correlated with Northing (-0.48), meanpH(0.39), meanSOM(-0.31) meanTD(0.4), area_ratio(-0.32). 
+#Northing
+Northern woods have larger positive buffers - southern woods have more arable buffers
+#meandbh
+meandbh increases with buffer3, but decreases with bufferI
+Northern woods have larger positive bufferes and are more mature
+Southern woods have larger arable buffers, and are less mature
+#meanpH: 
+Mean pH of wood increases with arable buffer proportion (as expected) and decreases with Buffer3.
+#meanSOM
+MeanSOM decreases with arable buffer - probably due to reduction in surrounding area being woodland. 
+MeanSOM increases with Buffer3 - probably due to increase in surroundeding woodland.
+The meanSOM variable expresses this efect.  
+#meanTD
+Mean tree density increases with arable buffer - this looks like any wood/pasture areas are lost to arable and only the denser woodland is left. This would adversley richness through the reduction in open habitats and heterogeneity of habitats. MeanTD decreases with Buffer3, (but bufferI and buffer 3 will be correlated, negatively, so...)
+#Area_ratio
+Area_ratio decreases with arable buffer. Area_ratio is area/perimeter. The smaller the area_ratio the less circular the woodland. So this correlation implies the woods with large arable buffer are more circular and less linear. This would potentially influence richness in variou ways, eg; more ciruclar woods could have an undisturbed core of woodland species which add to richness(depending on woodland history), less opportunity for recolonization as the perimeter is reduced, and surrounded by arable land. 
+
+
 
 There is also the correlation of richness to buffer to consider, which may have ecological reasons, does the buffer provide a seed bank for recolonization or protect the woodland from nitrification. But I think if you look at the density of the woods,then the relationship is explained.
 
@@ -405,4 +541,14 @@ PS - these are the positive heterogeneity codes I selected, shall I remove some?
 PHI =  read.csv("../../Data/PosCodesUsed")
 PHI
 ```
+
+
+
+```{r}
+
+```
+
+
+
+
 

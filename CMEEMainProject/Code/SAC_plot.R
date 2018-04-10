@@ -182,14 +182,14 @@ for (i in 1:103){
 ######################################################
 #For example of the issue, consider site 1
 
-site1_max = long_sac_max%>%filter(Site == 1)
-site1_min = long_sac_min%>%filter(Site == 1)
+site_max = long_sac_max%>%filter(Site == 83)
+site_min = long_sac_min%>%filter(Site == 83)
 
 longest =  vector()
 shortest = vector()
 
-x1 = site1_max$max_cf
-x2 = site1_min$min_cf
+x1 = site_max$max_cf
+x2 = site_min$min_cf
 
 if (length(x1)>length(x2)){
   longest = x1
@@ -211,27 +211,33 @@ index_replace = c((length(shortest)+1) : (length(shortest)+diff))
 }else{
   index_replace = (length(shortest)+1)
 }
+# make all the ave vector 16 long
+
 
 replace = longest[index_replace] # now add the cut of bits back on
 ave_full = c(ave,replace)
 
 #make new dataframe of average values and areas, add log columns
+ave_data = data.frame()
+# make sure you have same number of points as areas
+num_aves = length(ave_full)
+areas_cut = areas[1:length(ave_full)]
 
-ave_data =  as.data.frame(cbind(areas,ave_full))
-ave_data$logarea = log(ave_data$areas)
+ave_data =  as.data.frame(cbind(areas_cut,ave_full))
+ave_data$logarea = log(ave_data$areas_cut)
 ave_data$logavecf = log(ave_data$ave_full)
 
 #check out the log/log for the max and min data
-site1_max$logarea = log(site1_max$area)
-site1_max$logcf = log(site1_max$max_cf)
+site_max$logarea = log(site_max$area)
+site_max$logcf = log(site_max$max_cf)
 
-site1_min$logarea = log(site1_min$area)
-site1_min$logcf = log(site1_min$min_cf)
+site_min$logarea = log(site_min$area)
+site_min$logcf = log(site_min$min_cf)
 
 allmethods = ggplot()+
-  geom_point(data = site1_max, aes(x = area, y = max_cf), color="red") +
-  geom_point(data = site1_min, aes(x = area, y = min_cf),color="blue")+
-  geom_point(data = ave_data, aes(x = areas, y = ave_full),color="black")+
+  geom_point(data = site_max, aes(x = area, y = max_cf), color="red") +
+  geom_point(data = site_min, aes(x = area, y = min_cf),color="blue")+
+  geom_point(data = ave_data, aes(x = areas_cut, y = ave_full),color="black")+
   labs(title = "min, max and average cf methods")
 
 
@@ -240,19 +246,19 @@ avefit = ggplot(data = ave_data, aes(x = logarea, y = logavecf))+
   geom_smooth(method = "lm")+
   labs(title = "average")
 
-maxfit = ggplot(data = site1_max, aes(x = logarea, y = logcf))+
+maxfit = ggplot(data = site_max, aes(x = logarea, y = logcf))+
   geom_point()+
   geom_smooth(method = "lm")+
 labs(title = "max method")
 
-minfit = ggplot(data = site1_min, aes(x = logarea, y = logcf))+
+minfit = ggplot(data = site_min, aes(x = logarea, y = logcf))+
   geom_point()+
   geom_smooth(method = "lm")+
  labs(title = "min method")
 
-pdf("../Results/Site1SAC.pdf")
+#png("../Results/Site1SAC.png")
 grid.arrange(allmethods,avefit,maxfit,minfit, nrow = 2)
-dev.off()
+#dev.off()
 #####################################################
 
 ## run a linear model for every wood using min/max and average and see what's what.
@@ -386,8 +392,69 @@ maxR2=ggplot(max_data_fits, aes(R2))+
   geom_histogram(binwidth = 0.05, col = "black", fill = "grey")+
   ggtitle("Distribution of R2 using maximum method")
 
-pdf("../Results/AcrossPlotSAC.pdf")
+#png("../Results/AcrossPlotSAC.png")
 grid.arrange(avehist,aveR2,minhist,minR2,maxhist,maxR2, nrow = 3)
-dev.off()
+#dev.off()
 
+##########################################
+
+#Look at max fits for all woods. 
+i = 2
+#need to make each set 3200 long
+max_sac = data.frame()
+for (i in 1:103){
+  data = long_sac_max%>%filter(Site == i)
+  l = length(data$area)
+  diff = 16 - l
+  final_val = max(data$max_cf)
+  pad_vals = rep(final_val, diff)
+  pad_area = areas[(l+1):16]
+  tmp_cf = c(data$max_cf, pad_vals)
+  site = rep(i,16)
+  this_set = cbind(site,areas,tmp_cf)
+  max_sac = rbind(max_sac,this_set)
+}
+
+
+#select subsets of 10 woods to see whats going on
+
+set1 = c(1:25)
+setA = max_sac%>%filter(site %in% set1)
+
+set2 = c(26:50)
+setB = max_sac%>%filter(site %in% set2)
+
+set3 = c(51:75)
+setC = max_sac%>%filter(site %in% set3)
+
+set4 = c(76:103)
+setD = max_sac%>%filter(site %in% set4)
+
+g1 = ggplot(setA , aes(x = areas, y = tmp_cf, group = site, colour = site))+  geom_line()
+  
+
+g2 = ggplot(setB , aes(x = areas, y = tmp_cf, colour = site))+  geom_point()
+g3 = ggplot(setC , aes(x = areas, y = tmp_cf, colour = site))+  geom_point()
+g4 = ggplot(setD , aes(x = areas, y = tmp_cf, colour = site))+  geom_point()
+
+#instead of using final value, continue at gradient of fianl two values
+i = 78
+max_sac2 = data.frame()
+for (i in 1:103){
+  data = long_sac_max%>%filter(Site == i)
+  l = length(data$area)
+  diff = 16 - l
+  grad = data$max_cf[l] - data$max_cf[l-1]
+  final_val = data$max_cf[l]
+  pad_cf = vector()
+  for (j in 1:diff){
+    final_val = final_val + grad
+    pad_cf[j] = final_val
+  }
+  
+  tmp_cf = c(data$max_cf, pad_cf)
+  site = rep(i,16)
+  this_set = cbind(site,areas,tmp_cf)
+  max_sac2 = rbind(max_sac2,this_set)
+}
 

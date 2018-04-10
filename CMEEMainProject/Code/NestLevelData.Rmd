@@ -236,6 +236,7 @@ melted_cf$fit3 = fit3
 
 ```{r, error=FALSE, message=FALSE, warning=FALSE}
 #model plot for best wood
+png("../Results/Site83LME.png")
 ggplot(melted_cf)+
   geom_point(aes(x=log(area),y=log(value),na.rm =TRUE), colour = "black") +
   geom_line(aes(x=log(area), y = fit3, group = plot), colour = "red")+

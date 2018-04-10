@@ -19,11 +19,11 @@ colnames(ellenbergs) = c("BRC","Taxon name","Light","Moisture","pH","Nitrogen","
 ##############################
 
 
-png("../Data/site88.png")
-species88 = species_per_plot%>%filter(Site==88)
-species88 = unique(species88$Species)
-write.csv(species88, "../Data/site88.csv")
-grid.table(unique(species88$Species))
+#png("../Data/site88.png")
+species20 =  species_per_plot%>%filter(Site==20)
+species20 = unique(species20$Species)
+write.csv(species20, "../Data/site20.csv")
+grid.table(unique(species20$Species))
 
 dev.off()
 
