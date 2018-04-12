@@ -1,0 +1,221 @@
+---
+title: "Talk"
+author: "PetraGuy"
+date: "12 April 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls())
+cat("\014")
+library(dplyr)
+library(ggplot2)
+library(visreg)
+# zs from fits to av cf curves from SAC
+ave_data_fits = read.csv("../Data/z_ave_fits")
+#the ave cf calculated from the min and max slope cf in SAC
+ave_cf = read.csv("../Data/ave_cf.csv")
+
+#plot vars if I want data at plot level
+AllplotVars =  read.csv("../Data/AllPlotsVarsRichness.csv")
+
+#site vars inc richness
+AllSiteVars = read.csv("../Data/CompleteSiteLevelVars.csv")
+AllSiteVars = AllSiteVars[-1]
+ave_data_fits = ave_data_fits[-1]
+ave_data_fits = ave_data_fits[-3]
+colnames(ave_data_fits) = c( "Site",  "ave_slope" )
+
+#cumulative richness across each plot - prob dont need this
+plot_cum_richess = readRDS("CumulateveRichness.RDS")
+
+#for the nest modesl - the standard dev of random intercepts
+#from NestFixedEffectsFit, remove unwanted cols and rename
+nestfits = readRDS("nest_mixed_model_fits.RDS")
+nestfits = nestfits[-4]
+colnames(nestfits) = c("Site" , "nest_intercept", "nest_slope" ,"sd_intercept")
+```
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+# join the z's and the standard dev of intercepts
+AllSiteVarsSlope = inner_join(AllSiteVars,ave_data_fits)
+AllSiteVarsSlopeInt = inner_join(AllSiteVarsSlope,nestfits)
+#remove a few cols first
+#not using slopes or intercept from mixed effect model, and dont need Site
+removecols = c(1,2,3,4,5,7,8,10,11,17,22,23,24,25,26,27,28,29,33,37,38)
+AllSiteVarsSlopeIntReduced = AllSiteVarsSlopeInt[-removecols]
+colnames(AllSiteVarsSlopeIntReduced)
+
+
+vars_slope_model = c("Northing","Pos_Hetero_Index", "Buffer3",
+                     "no_NVC" ,"sd_pH", "sd_SOM" ,
+                     "sd_LBA" , "sd_meandbh", "sd_treedensity",
+                     "no_trees","meandbh" , "meanph", "meanSOM",
+                     "meantreedensity" , "area_ratio", "ave_slope")
+vars_richness_model = c("Northing","Pos_Hetero_Index", "Buffer3",
+                     "Richness", "no_NVC" ,"sd_pH", "sd_SOM" ,
+                     "sd_LBA" , "sd_meandbh", "sd_treedensity",
+                     "no_trees","meandbh" , "meanph", "meanSOM",
+                     "meantreedensity" , "area_ratio")
+vars_intercept_model = c("Northing","Pos_Hetero_Index", "Buffer3",
+                    "no_NVC" ,"sd_pH", "sd_SOM" ,"sd_LBA","sd_meandbh",
+                    "sd_treedensity", "no_trees","meandbh" ,"meanph",
+                    "meanSOM","meantreedensity" , "area_ratio",
+                     "sd_intercept" )
+
+
+SlopeVars = AllSiteVarsSlopeIntReduced%>%select(vars_slope_model)
+RichnessVars = AllSiteVarsSlopeIntReduced%>%select(vars_richness_model)
+InterceptVars = AllSiteVarsSlopeIntReduced%>%select(vars_intercept_model)
+
+model_all_slope = lm(ave_slope ~., data = SlopeVars)
+model_all_richness = lm(Richness~.,data = RichnessVars )
+model_all_intercept = lm(sd_intercept ~.,data = InterceptVars)
+
+sum_slope = summary(model_all_slope)
+sum_richness = summary(model_all_richness)
+sum_intercept = summary(model_all_intercept)
+
+coef_slope = round(sum_slope$coefficients[,4],digits = 2)
+coef_richness = round(sum_richness$coefficients[,4], digits = 2)
+coef_intercept = round(sum_intercept$coefficients[,4], digits = 2)
+
+
+coefs_all = cbind(coef_slope,coef_richness,coef_intercept)
+colnames(coefs_all) = c("slope model","richness model","intercept_model")
+coefs_all
+```
+
+```{r}
+
+png("../Results/slope_all.png")
+par(mfrow = c(4,4))
+visreg(model_all_slope, main="slope fit")
+dev.off()
+
+png("../Results/richness_all.png")
+par(mfrow = c(4,4))
+visreg(model_all_richness, main = "richness fit")
+dev.off()
+
+png("../Results/intercepts_all.png")
+par(mfrow = c(4,4))
+visreg(model_all_intercept, main = "intercepts fit")
+dev.off()
+```
+
+
+```{r}
+#remove 5:  buffer, sd_pH, sd_SOM, sd_LBA, area-ratio, leave 10
+vars_slope_model2 = c("Northing","Pos_Hetero_Index",
+                     "no_NVC","sd_meandbh", "sd_treedensity",
+                     "no_trees","meandbh" , "meanph", 
+                     "meanSOM", "meantreedensity" , "ave_slope")
+#remove 5: meanpH,meantreedensity,sd_Som,sd-ph,sd_meandbh
+vars_richness_model2 = c("Northing","Pos_Hetero_Index", "Buffer3",
+                     "Richness", "no_NVC" , "sd_LBA" , "sd_treedensity",
+                     "no_trees","meandbh" , "meanSOM" , "area_ratio")
+#remove no_trees,area_Ratio,meandbh,buffer,sd_meandbh
+vars_intercept_model2 = c("Northing","Pos_Hetero_Index",
+                    "no_NVC" ,"sd_pH", "sd_SOM" ,"sd_LBA",
+                    "sd_treedensity", "meanph",
+                    "meanSOM","meantreedensity" ,"sd_intercept" )
+
+
+SlopeVars2 = AllSiteVarsSlopeIntReduced%>%select(vars_slope_model2)
+RichnessVars2 = AllSiteVarsSlopeIntReduced%>%select(vars_richness_model2)
+InterceptVars2 = AllSiteVarsSlopeIntReduced%>%select(vars_intercept_model2)
+
+model_slope2= lm(ave_slope ~., data = SlopeVars2)
+model_richness2 = lm(Richness~.,data = RichnessVars2 )
+model_intercept2= lm(sd_intercept ~.,data = InterceptVars2)
+
+sum_slope2 = summary(model_slope2)
+sum_richness2 = summary(model_richness2)
+sum_intercept2 = summary(model_intercept2)
+
+coef_slope2 = round(sum_slope2$coefficients[,4],digits = 2)
+coef_richness2 = round(sum_richness2$coefficients[,4], digits = 2)
+coef_intercept2 = round(sum_intercept2$coefficients[,4], digits = 2)
+
+```
+
+```{r}
+
+png("../Results/slope2.png")
+par(mfrow = c(4,4))
+visreg(model_slope2, main="slope2 fit")
+dev.off()
+
+png("../Results/richness2.png")
+par(mfrow = c(4,4))
+visreg(model_richness2, main = "richness2 fit")
+dev.off()
+
+png("../Results/intercepts2.png")
+par(mfrow = c(4,4))
+visreg(model_intercept2, main = "intercepts2 fit")
+dev.off()
+```
+
+
+```{r}
+#remove Northing
+vars_slope_model3 = c("Pos_Hetero_Index",
+                     "no_NVC","sd_meandbh", "sd_treedensity",
+                     "no_trees","meandbh" , "meanph", 
+                     "meanSOM", "meantreedensity" , "ave_slope")
+#remove sd_LBA, sd_treedensity, meandbh
+vars_richness_model3 = c("Northing","Pos_Hetero_Index", "Buffer3",
+                     "Richness", "no_NVC" , "no_trees", "meanSOM" , 
+                     "area_ratio")
+#remove PHI,sd_LBA,sd_pH,meantreedensity
+vars_intercept_model3 = c("Northing","no_NVC" ,"sd_SOM" ,
+                          "sd_treedensity", "meanph",
+                          "meanSOM","sd_intercept" )
+
+
+SlopeVars3 = AllSiteVarsSlopeIntReduced%>%select(vars_slope_model3)
+RichnessVars3 = AllSiteVarsSlopeIntReduced%>%select(vars_richness_model3)
+InterceptVars3 = AllSiteVarsSlopeIntReduced%>%select(vars_intercept_model3)
+
+model_slope3= lm(ave_slope ~., data = SlopeVars3)
+model_richness3 = lm(Richness~.,data = RichnessVars3 )
+model_intercept3= lm(sd_intercept ~.,data = InterceptVars3)
+
+sum_slope3 = summary(model_slope3)
+sum_richness3 = summary(model_richness3)
+sum_intercept3 = summary(model_intercept3)
+
+coef_slope3 = round(sum_slope3$coefficients[,4],digits = 2)
+coef_richness3 = round(sum_richness3$coefficients[,4], digits = 2)
+coef_intercept3 = round(sum_intercept3$coefficients[,4], digits = 2)
+
+```
+
+```{r}
+
+png("../Results/slope3.png")
+par(mfrow = c(4,4))
+visreg(model_slope3, main="slope3 fit")
+dev.off()
+
+png("../Results/richness3.png")
+par(mfrow = c(4,4))
+visreg(model_richness3, main = "richness3 fit")
+dev.off()
+
+png("../Results/intercepts3.png")
+par(mfrow = c(4,4))
+visreg(model_intercept3, main = "intercepts3 fit")
+dev.off()
+
+```
+
+
+
+
+
+
+

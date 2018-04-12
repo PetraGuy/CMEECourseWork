@@ -75,7 +75,7 @@ nest_richness = function(data){
 return(site_list)   
 }
 spec_rich = nest_richness(Data_Yr2_veg)
-
+saveRDS(spec_rich,"SpecRichness.RDS")
 ```
 Since nest level data is only modelled as species~area - no other vars, spec_rich list is all thats needed. This data will be analysed from this document, a csv is not needed because it is not being added #to another file.spec_rich is list, **spec_rich[[1]]** returns **list** of richnesses for plot 1-16, nest 1-5 in site 1 this does not include saplings unless recored - i.e. they will be little baby plants.
 
@@ -149,7 +149,7 @@ for ( i in 1:103){
   colnames(cum_rich_site) = c("nest1","nest2","nest3","nest4","nest5")
   cum_rich_all[[i]] = cum_rich_site
   }
-
+saveRDS(cum_rich_all, "CumulateveRichness.RDS")
 ```
 
 **cum_rich_all** is a **list** of cumulative richness for each plot/site. cum_rich_all[[1]] gives cumulative richness for all plots in site 1 for nest 1 - 5
@@ -375,7 +375,8 @@ ggplot(melted_cf)+
   geom_line(aes(x=log(area), y = fit3, group = plot), colour = "red")+
   geom_abline(intercept = 2.2497,slope = 0.2357, size = 2, colour = "blue")+
   ggtitle("Site 83, best wood, species area curve")+
-  annotate("text",x = 2, y = 4, label  = "S = 9.9A^0.24")
+  ylim(low = -0.6, high = 4)+
+         annotate("text",x = 2, y = 4, label  = "S = 9.9A^0.24")
 ```
 
 ```{r, warning=FALSE, error=FALSE, message=FALSE}
@@ -533,3 +534,13 @@ ggplot(fits, aes(slope))+
 
 ```
 
+```{r}
+data = melted_cf
+fit = model_nlme_area_log
+#model plot for best wood
+ggplot(data, aes(x = log(area), y = log(value), colour = plot )) +
+  geom_point() +
+  geom_line(aes(y = predict(fit), group = plot))
+
+  
+```

@@ -17,7 +17,8 @@
 #     it also finishes on max_cf value. Paths area stored in path_max[[site]]
 #     and path_min[[site]]. The plot numbers in these can be used to access
 #     the variables for each plot through the path.
-
+#     path_min, path_max RDS, for the plot order, ave_cf.csv for the richness on the ave fit 
+#     and ave_fits.csv for the slopse
 
 
 rm(list = ls())
@@ -57,7 +58,6 @@ path_max = list()
 
 for (i in 1:103){
   path = vector()
-  path[1] = NA
   f = vector()
   plotvect = c(1:16)
   sitevector = plotrichness[i,] # vector of richnesses of each plot for site i
@@ -65,7 +65,7 @@ for (i in 1:103){
   #sitevector = sitevector[sitevector != 0]
   sitevector[sitevector == 0] = NA
   start = which.min(sitevector) # take plot with min richness
-  path[2] = start
+  path[1] = start
   siteveg = Data_Yr2_veg %>% filter(SITE == i) #get species data for site i
   startplot = siteveg %>% filter(PLOT == start) # get species data for min plot
   f[1] = length(unique(startplot$Species)) # first frequency  is just richness of min plot
@@ -102,7 +102,7 @@ for (i in 1:103){
   path_max[[i]] = path
   sac_max[[i]] = cumsum(f)
 }
-
+saveRDS(sac_max,"sac_max.RDS")
 
 # We have the cumsums in sac_max for the maximum gradient.
 # Repeat for the minimum gradient
@@ -112,7 +112,6 @@ path_min = list()
 
 for (i in 1:103){
   path = vector()
-  path[1] = NA
   f = vector()
   plotvect = c(1:16)
   sitevector = plotrichness[i,] # vector of richnesses of each plot for site i
@@ -121,7 +120,7 @@ for (i in 1:103){
   #sitevector = sitevector[sitevector != 0]
   sitevector[sitevector == 0] = NA
   start = which.max(sitevector) # take plot with max richness
-  path[2] = start
+  path[1] = start
   siteveg = Data_Yr2_veg %>% filter(SITE == i) #get species data for site i
   startplot = siteveg %>% filter(PLOT == start) # get species data for min plot
   f[1] = length(unique(startplot$Species)) # first frequency  is just richness of min plot
@@ -226,6 +225,7 @@ for (i in 1:103){
   aves = as.data.frame(cbind(Site,areas,ave_cf))
   ave_data = rbind(ave_data,aves)
 }
+write.csv(ave_data,"../Data/ave_cf.csv")
 
 #######################################################
 
