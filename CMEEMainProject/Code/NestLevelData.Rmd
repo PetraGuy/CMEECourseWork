@@ -236,7 +236,7 @@ melted_cf$fit3 = fit3
 
 ```{r, error=FALSE, message=FALSE, warning=FALSE}
 #model plot for best wood
-png("../Results/Site83LME.png")
+#png("../Results/Site83LME.png")
 ggplot(melted_cf)+
   geom_point(aes(x=log(area),y=log(value),na.rm =TRUE), colour = "black") +
   geom_line(aes(x=log(area), y = fit3, group = plot), colour = "red")+
@@ -270,7 +270,8 @@ colnames(range_df) = c("nest_range", "plot_range")
 #ggplot(range_df, aes(plot_range))+geom_histogram(binwidth = 1, col = "black", fill = "grey")
 melted =  melt(range_df)
 ggplot(melted, aes(value, fill = variable) )+ 
-  geom_histogram(position = "identity", alpha = 0.2)
+  geom_histogram(position = "identity", alpha = 0.2)+
+  ggtitle("Change in richness due to area and plot")
 
   
 ```

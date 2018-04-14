@@ -6,12 +6,18 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
 rm(list = ls())
 cat("\014")
 library(dplyr)
 library(ggplot2)
 library(visreg)
+library(car) #for vif
+library(GGally) # for ggpairs
 # zs from fits to av cf curves from SAC
 ave_data_fits = read.csv("../Data/z_ave_fits")
 #the ave cf calculated from the min and max slope cf in SAC
@@ -150,7 +156,7 @@ dev.off()
 
 png("../Results/richness2.png")
 par(mfrow = c(4,4))
-visreg(model_richness2, main = "richness2 fit")
+visreg(model_richness2, main = "richness2 fit")library(GGally) # for ggpairs
 dev.off()
 
 png("../Results/intercepts2.png")
@@ -212,6 +218,533 @@ visreg(model_intercept3, main = "intercepts3 fit")
 dev.off()
 
 ```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="250%", }
+data = RichnessVars3[-4]
+ggpairs(data, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="250%", }
+data = InterceptVars3[-7]
+ggpairs(data, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+
+```
+
+
+#Looking at the slope model only
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="250%", }
+data = SlopeVars3[-10]
+ggpairs(data, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+
+```
+
+
+
+```{r}
+#largest correlation between meanTD and SDTD = 0.738, so remove one.
+#remove meanTD  not SD, because slope about SD?
+vars_slope_model4 = c("Pos_Hetero_Index", "meandbh",
+                     "no_NVC","sd_meandbh", "sd_treedensity",
+                     "no_trees", "meanph", 
+                     "meanSOM", "ave_slope")
+
+SlopeVars4 = AllSiteVarsSlopeIntReduced%>%select(vars_slope_model4)
+
+
+model_slope4= lm(ave_slope ~., data = SlopeVars4)
+
+
+sum_slope4 = summary(model_slope4)
+
+
+coef_slope4 = round(sum_slope4$coefficients[,4],digits = 2)
+coef_slope4
+
+```
+
+```{r}
+# but now p of sdTD high, so TD wasnt as important as we thought?
+vars_slope_model5 = c("Pos_Hetero_Index", "meandbh",
+                     "no_NVC","sd_meandbh", 
+                     "no_trees", "meanph", 
+                     "meanSOM", "ave_slope")
+
+SlopeVars5 = AllSiteVarsSlopeIntReduced%>%select(vars_slope_model5)
+
+
+model_slope5= lm(ave_slope ~., data = SlopeVars5)
+
+
+sum_slope5 = summary(model_slope5)
+
+
+coef_slope5 = round(sum_slope5$coefficients[,4],digits = 2)
+coef_slope5
+```
+```{r}
+# no trees doesnt look significant
+vars_slope_model6 = c("Pos_Hetero_Index", "meandbh",
+                     "no_NVC","sd_meandbh", 
+                      "meanph", "meanSOM", "ave_slope")
+
+SlopeVars6 = AllSiteVarsSlopeIntReduced%>%select(vars_slope_model6)
+
+
+model_slope6= lm(ave_slope ~., data = SlopeVars6)
+
+
+sum_slope6 = summary(model_slope6)
+
+
+coef_slope6 = round(sum_slope6$coefficients[,4],digits = 2)
+coef_slope6
+```
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+data = SlopeVars6[-7]
+ggpairs(data, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+
+```
+```{r}
+#still have this correlation with meandbh and sd dbh take out mean cos sd relates to slope?
+vif(model_slope6)
+```
+```{r}
+#vif looks ok, but try without mean dbh
+
+vars_slope_model7 = c("Pos_Hetero_Index",
+                     "no_NVC","sd_meandbh", 
+                      "meanph", "meanSOM", "ave_slope")
+
+SlopeVars7 = AllSiteVarsSlopeIntReduced%>%select(vars_slope_model7)
+
+
+model_slope7= lm(ave_slope ~., data = SlopeVars7)
+
+
+sum_slope7 = summary(model_slope7)
+
+
+coef_slope7 = round(sum_slope7$coefficients[,4],digits = 2)
+coef_slope7
+```
+```{r}
+# when meandbh removed, p of mean ph increases - implying the correlation between dbh and pH is important. Lets go back to model3, but remove meanpH first, but we know w have the strong correlation
+#of sdTD and meandTD, so take out meanTD and SDTD as well
+
+vars_slope_model8 = c("Pos_Hetero_Index",
+                     "no_NVC","sd_meandbh",
+                     "no_trees","meandbh",
+                     "meanSOM",  "ave_slope")
+
+SlopeVars8 = AllSiteVarsSlopeIntReduced%>%select(vars_slope_model8)
+
+
+model_slope8= lm(ave_slope ~., data = SlopeVars8)
+
+
+sum_slope8 = summary(model_slope8)
+
+
+coef_slope8 = round(sum_slope8$coefficients[,4],digits = 2)
+coef_slope8
+```
+```{r}
+vif(model_slope8)
+```
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+data = SlopeVars8[-7]
+ggpairs(data, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+
+```
+
+```{r}
+#still have correlation with sdDBH and meandbh, remove meanDBH
+vars_slope_model9 = c("Pos_Hetero_Index",
+                     "no_NVC","sd_meandbh",
+                     "no_trees",
+                     "meanSOM",  "ave_slope")
+
+SlopeVars9 = AllSiteVarsSlopeIntReduced%>%select(vars_slope_model9)
+
+
+model_slope9= lm(ave_slope ~., data = SlopeVars9)
+
+
+sum_slope9 = summary(model_slope9)
+
+
+coef_slope9 = round(sum_slope9$coefficients[,4],digits = 2)
+coef_slope9
+```
+```{r}
+# p sdmeandbh still OK - but no_trees now not significant, so remove
+vars_slope_model10 = c("Pos_Hetero_Index",
+                     "no_NVC","sd_meandbh",
+                     "meanSOM",  "ave_slope")
+
+SlopeVars10 = AllSiteVarsSlopeIntReduced%>%select(vars_slope_model10)
+
+
+model_slope10= lm(ave_slope ~., data = SlopeVars10)
+
+
+sum_slope10 = summary(model_slope10)
+
+
+coef_slope10 = round(sum_slope10$coefficients[,4],digits = 2)
+coef_slope10
+```
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+#any correlations?
+data = SlopeVars10[-5]
+ggpairs(data, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+```
+
+```{r}
+par(mfrow = c(2,2))
+visreg(model_slope10)
+```
+
+
+```{r}
+#Not really, would no_trees have effected sd_treedensity? put it back?
+
+vars_slope_model11 = c("Pos_Hetero_Index","sd_treedensity",
+                     "no_NVC","sd_meandbh",
+                     "meanSOM",  "ave_slope")
+
+SlopeVars11 = AllSiteVarsSlopeIntReduced%>%select(vars_slope_model11)
+
+
+model_slope11= lm(ave_slope ~., data = SlopeVars11)
+
+
+sum_slope11= summary(model_slope11)
+
+
+coef_slope11 = round(sum_slope11$coefficients[,4],digits = 2)
+coef_slope11
+```
+```{r}
+#No, not significant, what about sd SOM instad of meanSOM
+
+vars_slope_model12 = c("Pos_Hetero_Index",
+                     "no_NVC","sd_meandbh",
+                     "sd_SOM",  "ave_slope")
+
+SlopeVars12 = AllSiteVarsSlopeIntReduced%>%select(vars_slope_model12)
+
+
+model_slope12= lm(ave_slope ~., data = SlopeVars12)
+
+
+sum_slope12= summary(model_slope12)
+
+
+coef_slope12 = round(sum_slope12$coefficients[,4],digits = 2)
+coef_slope12
+```
+
+```{r}
+#looks like mean SOM better, what about the outliers in PHI?
+outlier1 =  max(AllSiteVars$Pos_Hetero_Index, na.rm = TRUE)#
+maxsite = AllSiteVars%>%filter(Pos_Hetero_Index == 97 )%>%select(Site)# = 23
+
+outlier2 = max(AllSiteVars$Pos_Hetero_Index, na.rm = TRUE)
+nextmaxsite = AllSiteVars%>%filter(Pos_Hetero_Index == 78 )%>%select(Site)#=53
+
+outliers = c(23,53)
+AllSiteVarsLessOut =  AllSiteVarsSlopeInt%>%filter(Site != 23 & Site !=53)
+
+AllSiteVarsIntReduced_phiout = AllSiteVarsLessOut[-removecols]
+AllSiteVarsIntReduced_phiout_slope =AllSiteVarsIntReduced_phiout[-c(4,18)]
+
+
+vars_slope_model14 = c("Pos_Hetero_Index",
+                     "no_NVC","sd_meandbh",
+                     "meanSOM",  "ave_slope")
+
+SlopeVars14 = AllSiteVarsIntReduced_phiout_slope%>%select(vars_slope_model14)
+
+
+model_slope14= lm(ave_slope ~., data = SlopeVars14)
+
+
+sum_slope14 = summary(model_slope14)
+
+
+coef_slope14 = round(sum_slope14$coefficients[,4],digits = 2)
+coef_slope14
+```
+
+
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+#any correlations? PHI less significant now too
+data = SlopeVars14[-4]
+ggpairs(data, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+```
+```{r}
+model_slope15
+```
+
+```{r}
+# have  model with signifcant extimators, but there values are close
+#to zero, so not having a very strong effect.Put some vars back in
+vars_slope_model16 = c("no_NVC","sd_meandbh",
+                     "meanSOM", "meantreedensity", "ave_slope")
+
+SlopeVars16 = AllSiteVarsIntReduced_phiout_slope%>%select(vars_slope_model16)
+model_slope16= lm(ave_slope ~., data = SlopeVars16)
+sum_slope16 = summary(model_slope16)
+coef_slope16 = round(sum_slope16$coefficients[,4],digits = 2)
+coef_slope16
+```
+```{r}
+model_slope16
+```
+
+#Richness fit
+
+```{r}
+
+#start again, without outliers
+vars_richness_modelAll = c("Northing","Pos_Hetero_Index", "Buffer3",
+                     "Richness", "no_NVC" ,"sd_pH", "sd_SOM" ,
+                     "sd_LBA" , "sd_meandbh", "sd_treedensity",
+                     "no_trees","meandbh" , "meanph", "meanSOM",
+                     "meantreedensity" , "area_ratio")
+
+AllSiteVarsIntReduced_phiout_richness =AllSiteVarsIntReduced_phiout[-c(17,18)]
+RichnessVarsAll = AllSiteVarsIntReduced_phiout_richness%>%select(vars_richness_modelAll)
+
+model_richnessAll = lm(Richness~.,data = RichnessVarsAll)
+
+sum_richnessAll = summary(model_richnessAll)
+
+coef_richnessAll = round(sum_richnessAll$coefficients[,4], digits = 2)
+coef_richnessAll
+
+```
+```{r}
+data = RichnessVarsAll[-4]
+ggpairs(data, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+```
+
+```{r}
+#stronget correlation is meanTD and sdTD. meanTD also correlated with no_trees, and meandbh
+#but sdTD only with meandbh, so remove meanTD, sdSOM also stronlgy correlated with meanSOM,
+#so remove sdSOM, becase that also correlated with northing
+vars_richness_model1 = c("Northing","Pos_Hetero_Index", "Buffer3",
+                     "Richness", "no_NVC" ,"sd_pH",
+                     "sd_LBA" , "sd_meandbh", "sd_treedensity",
+                     "no_trees","meandbh" , "meanph", "meanSOM",
+                     "area_ratio")
+
+
+RichnessVars1 = AllSiteVarsIntReduced_phiout_richness%>%select(vars_richness_model1)
+
+model_richness1 = lm(Richness~.,data = RichnessVars1)
+
+sum_richness1 = summary(model_richness1)
+
+coef_richness1= round(sum_richness1$coefficients[,4], digits = 2)
+coef_richness1
+```
+
+```{r}
+data = RichnessVars1[-4]
+ggpairs(data, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+```
+
+
+```{r}
+#lots of strong correlations, Northing to buffer, 0.53, sdTD and sd meanDBH
+#also buffer to meandbh, meandbh to sd meadbh -0.519. Northing, as previous analysis, prob least interesting
+#also mean pH, expressed through SOM and not sig
+vars_richness_model2= c("Pos_Hetero_Index", "Buffer3",
+                     "Richness", "no_NVC" ,
+                     "sd_LBA" , "sd_meandbh", "sd_treedensity",
+                     "no_trees","meandbh" , "meanSOM",
+                     "area_ratio")
+
+
+RichnessVars2 = AllSiteVarsIntReduced_phiout_richness%>%select(vars_richness_model2)
+
+model_richness2= lm(Richness~.,data = RichnessVars2)
+
+sum_richness2= summary(model_richness2)
+
+coef_richness2 =round(sum_richness2$coefficients[,4], digits = 2)
+coef_richness2
+```
+
+```{r}
+data = RichnessVars2[-3]
+ggpairs(data, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+```
+
+```{r}
+#collection of correlations between buffer, meandbh, sddbh. sddbh i in the middle of
+#this colleciton, therefore try dropping that
+vars_richness_model3= c("Pos_Hetero_Index", "Buffer3",
+                     "Richness", "no_NVC" ,
+                     "sd_LBA" , "sd_treedensity",
+                     "no_trees","meandbh" , "meanSOM",
+                     "area_ratio")
+
+
+RichnessVars3 = AllSiteVarsSlopeIntReduced_phiout%>%select(vars_richness_model3)
+
+model_richness3= lm(Richness~.,data = RichnessVars3)
+
+sum_richness3= summary(model_richness3)
+
+coef_richness3 =round(sum_richness3$coefficients[,4], digits = 2)
+coef_richness3
+```
+
+
+```{r}
+data = RichnessVars3[-3]
+ggpairs(data, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+```
+
+```{r}
+# still strong correlation between meandbh and sd tree density. dont want to loose mean dbh
+vars_richness_model4= c("Pos_Hetero_Index", "Buffer3",
+                     "Richness", "no_NVC" ,
+                     "sd_LBA" , "no_trees","meandbh" , "meanSOM",
+                     "area_ratio")
+
+
+RichnessVars4 = AllSiteVarsSlopeIntReduced_phiout%>%select(vars_richness_model4)
+
+model_richness4= lm(Richness~.,data = RichnessVars4)
+
+sum_richness4= summary(model_richness4)
+
+coef_richness4 =round(sum_richness4$coefficients[,4], digits = 2)
+coef_richness4
+```
+
+```{r}
+data = RichnessVars4[-3]
+ggpairs(data, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+```
+
+```{r}
+model_richness4
+summary(model_richness4)
+```
+
+```{r}
+#histogram of sd of intercepts for talk
+ggplot(AllSiteVarsSlopeInt, aes(x = sd_intercept))+
+  geom_histogram()
+```
+
+```{r}
+#histogram of sd of intercepts for talk
+ggplot(AllSiteVarsSlopeInt, aes(x = ave_slope))+
+  geom_histogram(colour = "black", fill = "grey")+
+  ggtitle("Dustribution of slopes from ln/ln fit to average cf SAC curve across plots")
+```
+
+
+
+
+
+
+
 
 
 

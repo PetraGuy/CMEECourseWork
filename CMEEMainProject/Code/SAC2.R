@@ -242,7 +242,7 @@ sac_plot =  function(sitenumber){
   melted = melt(data = data, id.vars = "areas")
   title = paste("Site", sitenumber)
   ggplot(melted, aes(x = areas, y = value, colour = variable))+
-    geom_point()+
+    geom_point(size = 5)+
     labs(title = title)
 }
 
