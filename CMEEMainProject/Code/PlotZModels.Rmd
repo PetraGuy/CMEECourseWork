@@ -1,0 +1,130 @@
+---
+title: "PlotZModels"
+output: 
+  pdf_document: 
+    fig_caption: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+rm(list = ls())
+cat("\014")
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
+library(MuMIn)
+library(reshape)
+library(energy)#dcor
+library(corrplot)
+library(corrr)
+
+
+AllSiteVars = read.csv("../Data/CompleteSiteLevelVars.csv")
+plotZdata = read.csv("../Data/z_ave_fits.csv")
+AllPlotVars= read.csv("../Data/AllPlotsVarsRichness.csv")
+
+
+todelete = c(1,3,4,5,6,7,8,9,11,12,14,18, 22,23,24,25,26,27,28,29,30)
+Sitevars = AllSiteVars[-todelete]
+colnames(Sitevars) = c("Site","PHI","Buffer","Num_NVC","sd_pH", "sd_SOM" ,"sd_LBA",
+                        "sd_meanDBH","sd_TD","meanDBH" , "meanph" , "meanSOM" , "meanLBA" ,
+                        "meanTD", "area_ratio" )
+
+PlotSlope = plotZdata[-c(1,4)]
+#join to SiteData
+SitedataZ = inner_join(Sitevars,PlotSlope)
+SitedataZ[is.na(SitedataZ)] = 0
+
+
+Set_mean = SitedataZ[c(1,2,3,4,10,11,12,13,14,15,16)] 
+Set_sd = SitedataZ[c(1,2,3,4,5,6,7,8,9,15,16)]
+
+
+
+```
+
+This analysis looks at the correlaiton of the slopes obtained from the ln/ln fit the the average SAC curve fitted across the plots (200m^2 to 3200m^2).
+
+I have split the abiotic variables into two groups again - sd, and mean. I think 1) It makes analysis easier, 2) In my mind each set expresses something different and they dont go together 3) For unknown reasons, mean and sd are highly correlated.
+
+We have seen that the distribution of the z's is around 0.4 not 0.25 - which we think is because the slopes from the mixed effects model are effectively averaging the alpha diversity (is that right), whereas the slopes from this fit are expressing the gamma divesrity of the 16 plots (?)
+
+
+
+```{r zhistogram, out.width="50%"}
+
+ggplot(PlotSlope, aes(x = slope))+
+  geom_histogram(binwidth = 0.05, colour = "black",fill = "grey")+
+  ggtitle("Distribution of slopes from SAC across plots")
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="75%"}
+# first look for response of z to the variables
+
+melted = melt(Set_mean[-1], id.vars = "slope")
+
+
+ggplot(melted, aes(x = value, y = slope))+
+  geom_point()+
+  geom_smooth(method = loess)+
+  facet_wrap(~variable, scales = "free")+
+  scale_x_log10()+
+  ggtitle("Slope against mean vars")
+
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="75%"}
+# first look for response of z to the variables
+
+melted = melt(Set_sd [-1], id.vars = "slope")
+
+
+ggplot(melted, aes(x = value, y = slope))+
+  geom_point()+
+  geom_smooth(method = loess)+
+  facet_wrap(~variable, scales = "free")+
+  scale_x_log10()+
+  ggtitle("Slope against sd vars")
+
+```
+
+The scatter graphs hint at a correlation in NVC, sd_meandbh and meanTD (if you look ignore the lower TD)
+
+```{r dcor for slope and sd vars, echo=FALSE, fig.cap="dcor for slope and sd"}
+corrs = sort(round(apply(Set_sd[-c(1,11)],2, function(x) dcor(x,SitedataZ$slope)), digits = 2), decreasing = TRUE)
+corrs = as.data.frame(corrs)
+corrs
+```
+dcor for sd varaibles with slope
+
+```{r}
+corrs = sort(round(apply(Set_sd[-c(1,11)],2, function(x) cor(x,Set_mean$slope)), digits = 2), decreasing = TRUE)
+corrs = as.data.frame(corrs)
+corrs
+
+```
+pearson correlation for sd variables and slope
+
+```{r echo=FALSE}
+corrs = sort(round(apply(Set_mean[-c(1,11)],2, function(x) dcor(x,SitedataZ$slope)), digits = 2), decreasing = TRUE)
+corrs = as.data.frame(corrs)
+corrs
+```
+dcor for mean variables and slope
+```{r}
+corrs = sort(round(apply(Set_mean[-c(1,11)],2, function(x) cor(x,Set_mean$slope)), digits = 2), decreasing = TRUE)
+corrs = as.data.frame(corrs)
+corrs
+```
+
+
+In contrast to the correlations between nest slopes from the mixed effects models, which were correlated with PHI (0.4) - the slopes here obtained from plot to plot SAC are more highly correlated with meanTD(0.34), and Num NVC(0.36), or for the standard devation set - with sd meanDBH and Num NVC.
+
+This makes sense because the slope, as you accumulate speces across plots should be greater if you move across NVC codes, or if there is a plot with a low tree density.
+
+
+
+
+
+
+
+

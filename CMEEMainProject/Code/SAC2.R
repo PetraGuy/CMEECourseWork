@@ -278,7 +278,7 @@ aveR2 = ggplot(ave_data_fits, aes(R2))+
 ######
 #ave_data_fits now has the slopes for each site. So I can now model these
 
-write.csv(ave_data_fits, "../Data/z_ave_fits")
+write.csv(ave_data_fits, "../Data/z_ave_fits.csv")
 saveRDS(path_max, "path_max.RDS")
 saveRDS(path_min,"path_min.RDS")
 

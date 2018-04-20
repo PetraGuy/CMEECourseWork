@@ -182,7 +182,7 @@ However, looking at an example plot of cumulative richness across nests, it is c
 
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 
-sitevector = c(78,83)
+sitevector = c(100,83)
 
 plot_list =list()
 plot_site_trans = function(sitevector){

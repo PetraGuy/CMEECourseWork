@@ -19,7 +19,7 @@ library(ggrepel)
 library(nlme)
 library(reshape)
 library(gridExtra)
-setwd("~/Documents/CMEECourseWork/CMEEMainProject/Code")
+
 ```
 
 These analysis will take the vegetation data (Groundcover.csv) and compute species richness by nest,plot and site. These values will be saved to csv files which can be added to the Nest and Plot level data sets.
@@ -375,7 +375,7 @@ ggplot(melted_cf)+
   geom_line(aes(x=log(area), y = fit3, group = plot), colour = "red")+
   geom_abline(intercept = 2.2497,slope = 0.2357, size = 2, colour = "blue")+
   ggtitle("Site 83, best wood, species area curve")+
-  ylim(low = -0.6, high = 4)+
+  ylim(low = -0.6, high = 5)+
          annotate("text",x = 2, y = 4, label  = "S = 9.9A^0.24")
 ```
 
