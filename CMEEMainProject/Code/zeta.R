@@ -1,3 +1,12 @@
+# on zeta:
+#the data must be in form of presence absence matrix.
+#put this matrix into Zeta.decline.ex and the zeta values are available.
+#use these to plot zeta vs zeta order and fit either exp regression of trunacated power law.
+#Use this model to predict values of zeta for more plots
+#Number of plots to fit to = total area wood/200m^2
+#Use Sn = SUM(nCr)*zeta from zeta = 1 - required number.
+#See Hui 2014 for this formula
+
 
 library(dplyr)
 library(zetadiv)
@@ -47,11 +56,15 @@ for (i in 1:103){
   
 }
 
+# presence absence df for each site now available in pres_abs_df[[sitenumber]]
 
 
 #############################
-#now run zeta on each - but remember to remove plot column
+#now run zeta on each - but remember to remove plot column or it explodes
+
 get_Sexp = function(z){
+  # this was to get the fit from zeta div
+  # and cacluate Sn - but i will do my own fit
   valsexp = z$zeta.exp
   intexp = exp(valsexp[[1]][[1]])
   slopeexp = valsexp[[1]][[2]]
@@ -71,6 +84,8 @@ get_Sexp = function(z){
 }
 
 get_Spl = function(z){
+  # this was to get the fit from zeta div
+  # and cacluate Sn - but i will do my own fit
   valspl = z$zeta.pl
   intpl = exp(valspl[[1]][[1]])
   slopepl = valspl[[1]][[2]]
@@ -91,6 +106,8 @@ get_Spl = function(z){
 
 
 get_species = function(sitenum){
+  # this runs zeta decline on each site and obtains Sn from 
+  # exp fit to zeta. Will redo and get the actual zeta values, see below
   sps = vector()
   df = pres_abs_dfs[[sitenum]]
   last.column = ncol(df)
@@ -108,12 +125,90 @@ get_species = function(sitenum){
 
 ######################
 
+# run this to get total species model using fits from zetadiv
+# but they were a bit odd, so redoing below
 total_species = data.frame()
 for (i in 1:103){
   species = get_species(i)
   total_species = as.data.frame(rbind(total_species,species))
   
 }
+
+########################
+
+get_zetas =  function(sitenum){
+  df =   df = pres_abs_dfs[[sitenum]]
+  last.column = ncol(df)
+  z_df = df[-last.column]
+  rows = nrow(z_df)
+  z_decline = Zeta.decline.ex(z_df, 1:rows)
+  zetas = z_decline$zeta.val
+  return(zetas)
+}
+
+get_all_zetas = function(){
+  #browser()
+  all_zetas = as.data.frame(matrix(nrow = 16))
+  rownames(all_zetas) = c(1:16)
+    for (i in 1:103){
+    zs = get_zetas(i)
+    short  = 16 - length(zs)
+    pad = rep(NA,short)
+    zs = c(zs,pad)
+    colname = paste("Site",i)
+    all_zetas[colname] = zs
+  }
+  return(all_zetas)
+}
+
+zetas_df = get_all_zetas()
+zetas_df = zetas_df[,-1] #had to create first column to make it work in for loop
+
+#zetas_df has the zeta values, now fit these
+
+#########################
+
+#For each site fit an exponential decay 
+#z = Ae^-bi 
+# fit1, ln(z) = lnA - bi
+
+
+
+get_fits = function(data){
+  #creates a list of linear models
+  #browser()
+  model = list()
+  for (i in 1:103){
+    y = data[,i]
+    y = y[!is.na(y)]
+    y = y[which(y>0)]
+    l = length(y)
+    orders = seq(1,l,1)
+    model[[i]] = lm(log(y)~orders)
+    
+  }
+  return(model)
+}
+
+get_coef =  function(model){
+  coefs_df = as.data.frame(matrix(nrow = 3))
+  for (i in 1:103){
+    int = model[[i]]$coefficients[[1]][[1]]
+    slope = model[[i]]$coefficients[[2]][[1]]
+    r2 = summary(model[[i]])$r.squared
+    col = c(int,slope,r2)
+    colname = paste("Site",i)
+    coefs_df[colname] = col
+  }
+  rownames(coefs_df) = c("int","slope","R2")
+  coefs_df = coefs_df[,-1]
+  return(coefs_df)
+}
+
+
+fits = get_fits(zetas_df)
+zetacoef = get_coef(fits)
+
 
 
 
