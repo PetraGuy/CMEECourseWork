@@ -57,47 +57,13 @@ for (i in 1:103){
   
 }
 
-saveRDS(pres_abs_dfs, "petras_presence_absence")
+saveRDS(pres_abs_dfs, "petras_presence_absence") ########presence absence
 
 # presence absence df for each site now available in pres_abs_df[[sitenumber]]
 
-
-#############################
-#collect coef from zetadiv and compare to mine
-#uses zeta decline function to get zeta coef
-get_zetas_coef =  function(){
-  #browser()
-  coef = data.frame(nrow = 2)
-  
-  for (i in 1:103){
-    df =   df = pres_abs_dfs[[i]]
-    last.column = ncol(df)
-    z_df = df[-last.column]
-    rows = nrow(z_df)
-    z_decline = Zeta.decline.ex(z_df, 1:rows)
-    int =  z_decline$zeta.exp[[1]][[1]]
-    slope = z_decline$zeta.exp[[1]][[2]]
-    col = c(int,slope)
-    coef = as.data.frame(cbind(coef,col))
-  }
-  return(coef)
-}
-
-model_coef = get_zetas_coef()
-
-######################
-# 
-# # run this to get total species model using fits from zetadiv
-# # but they were a bit odd, so redoing below
-# total_species = data.frame()
-# for (i in 1:103){
-#   species = get_species(i)
-#   total_species = as.data.frame(rbind(total_species,species))
-#   
-# }
-
 ########################
-#uses zeta decline function to get zeta values for a df
+#uses Zeta.decline.ex function to get zeta values from single pres_abs_dfs
+#returns zetas
 get_zetas =  function(sitenum){
   
   df =   df = pres_abs_dfs[[sitenum]]
@@ -109,7 +75,8 @@ get_zetas =  function(sitenum){
   return(zetas)
 }
 
-#run through multiple dfs and get df of all zetas
+#run through all dfs in pres_abs_df and get df of all zetas
+#returns df of all zetas
 get_all_zetas = function(){
   all_zetas = as.data.frame(matrix(nrow = 16))
   rownames(all_zetas) = c(1:16)
@@ -126,9 +93,7 @@ get_all_zetas = function(){
 
 zetas_df = get_all_zetas()
 zetas_df = zetas_df[,-1]
-saveRDS(zetas_df,"empirical_zetas")
-
-#had to create first column to make it work in for loop
+saveRDS(zetas_df,"empirical_zetas") ##############empirical zetas
 
 #zetas_df has the empirical zeta values, now fit these to get modeled zetas
 
@@ -141,6 +106,8 @@ saveRDS(zetas_df,"empirical_zetas")
 #this is log/order fit so z = Aexp(B*order)
 #logz = logA + B*order
 #A = expA, B = slope
+
+#takes each col of a df of zetas and returns exp decay model
 get_fits_exp = function(data){
  
   model = list()
@@ -160,6 +127,8 @@ get_fits_exp = function(data){
 # this is log/log fit so z = A(order)^B
 #logz = logA + Blog(order)
 # A = exp(int), B = slope
+
+#takes each col of a df of zetas and returns power model
 get_fits_power = function(data){
   
   model = list()
@@ -197,11 +166,50 @@ get_coef =  function(model){
 
 fits_exp = get_fits_exp(zetas_df)
 fits_power = get_fits_power(zetas_df)
-zeta_coef_exp = get_coef(fits_exp)
-zeta_coef_power = get_coef(fits_power)
 
-#########
-# How good are the exponential and power law fits
+zeta_coef_exp_pg = get_coef(fits_exp)
+zeta_coef_power_pg = get_coef(fits_power)
+
+###collect coef from zetadiv and compare to mine##
+#uses zeta decline function to get zeta coef for exp and power law
+get_zetas_coef =  function(){
+  #browser()
+  coef = data.frame(nrow = 4)
+  for (i in 1:103){
+    df =   df = pres_abs_dfs[[i]]
+    last.column = ncol(df)
+    z_df = df[-last.column]
+    rows = nrow(z_df)
+    z_decline = Zeta.decline.ex(z_df, 1:rows)
+    int_exp =  z_decline$zeta.exp[[1]][[1]]
+    slope_exp = z_decline$zeta.exp[[1]][[2]]
+    int_pl = z_decline$zeta.pl[[1]][[1]]
+    slope_pl =  z_decline$zeta.pl[[1]][[2]]
+    col = c(int_exp,slope_exp,int_pl,slope_pl)
+    coef = as.data.frame(cbind(coef,col))
+  }
+  rownames(coef)=c("exp int", "exp slope", "power int", "power slope")
+  coef = coef[-1,]
+  return(coef)
+}
+
+zeta_coef_zetadiv = get_zetas_coef()
+zeta_coef_zetadiv = zeta_coef_zetadiv[,-1]
+#put the zetadiv coefficients in the same format as my coef so they
+#can all go intos same fucntion to create modelled zetas.
+
+zeta_coef_exp_zetadiv = zeta_coef_zetadiv[1:2,]
+zeta_coef_power_zetadiv = zeta_coef_zetadiv[3:4,]
+
+zeta_coef_list = list()
+zeta_ceof_lis[[1]] = zeta_coef_exp_pg
+zeta_coef_list[[2]] = zeta_coef_exp_zetadiv
+zeta_coef_list[[3]] = zeta_coef_power_pg
+zeta_coef_list[[4]] = zeta_coef_power_zetadiv
+
+saveRDS(zeta_coef_list,"zeta_coefficients")##########zeta coefficients
+
+###check power vs exp fit and output histogram of R2
 
 R2_exp = as.data.frame(t(zeta_coef_exp["R2",]))
 R2_exp$coef = "exp"
@@ -210,22 +218,24 @@ R2_power$coef = "power"
 R2s = rbind(R2_exp, R2_power)
 ggplot(R2s, aes(R2, fill = coef)) + geom_density(alpha = 0.2)
 
+#### get the areas and work out how many orders of zeta are required at each site########
 
-###########
-# get the areas and work out how many orders of zeta are required at each site
 
 areas = CompleteSiteLevelvars%>%select(Site,Area_ha)
 areas$orders = round((areas$Area_ha*10000)/200, digits = 0)
 
 
-#########
-# calculate the modeled zetas for each site
 
-model_zetas = data.frame(nrow = 16)
-get_model_zetas = function(){
+##calculate the modeled zetas for each site
+#take df of coefficients from a model and return modelled zeta values
+#row 1 = int row 2 = slope, model = exp decay
+
+
+get_model_zetas_exp = function(coef_df){
+  model_zetas = data.frame(nrow = 16)
     for ( i in 1:103){
-     B = zeta_coef_exp[2,i]
-     A = exp(zeta_coef_exp[1,i])
+     B = coef_df[2,i]
+     A = exp(coef_df[1,i])
      z = vector()
      for( j in 1:16){
        z[j] = round(A*exp(j*B),8)
@@ -235,11 +245,37 @@ get_model_zetas = function(){
    model_zetas = model_zetas[,-1]
    return(model_zetas)
 }
-model_zetas = get_model_zetas()
-saveRDS(model_zetas, "modelled_zetas")
+
+get_model_zetas_pl = function(coef_df){
+  model_zetas = data.frame(nrow = 16)
+  for ( i in 1:103){
+    B = coef_df[2,i]
+    A = exp(coef_df[1,i])
+    z = vector()
+    for( j in 1:16){
+      z[j] = round(A*j^(B),8)
+    }
+    model_zetas = cbind(model_zetas,z)
+  }
+  model_zetas = model_zetas[,-1]
+  return(model_zetas)
+}
+model_zetas_exp_pg = get_model_zetas_exp(zeta_coef_exp_pg)
+model_zetas_exp_zetadiv = get_model_zetas_exp(zeta_coef_exp_zetadiv)
+
+model_zetas_pl_pg = get_model_zetas_pl(zeta_coef_power_pg)
+model_zetas_pl_zetadiv = get_model_zetas_pl(zeta_coef_power_zetadiv)
 
 
-##############################################################
+modeled_zetas_list = list()
+modeled_zetas_list[[1]] = model_zetas_exp_pg
+modeled_zetas_list[[2]] = model_zetas_exp_zetadiv
+modeled_zetas_list[[3]] = model_zetas_pl_pg
+modeled_zetas_list[[4]] = model_zetas_pl_zetadiv
+saveRDS(model_zetas_list, "modelled_zetas")#############modeled zetas
+
+
+######check empirical zetas########
 #If you use empirical zetas do you get back to richness when you do S16?
 
 get_rich_empirical = function(){
@@ -265,12 +301,15 @@ Rich_emp = get_rich_empirical()
 
 
 #####################
-get_rich_mod = function(){
+
+# run through all zetas in data and calculate richness
+
+get_rich_mod = function(data){
   #browser()
   nCr = vector()
   Rich_mod = vector()
   for (i in 1:103){ 
-    zs = model_zetas[,i]
+    zs = data[,i]
     l = length(zs)
     z = vector()
     sign = vector()
@@ -284,11 +323,14 @@ get_rich_mod = function(){
   }
   return(Rich_mod)
 }
-Rich_mod = get_rich_mod()
+rich_mod_exp_pg = get_rich_mod(model_zetas_exp_pg)
+rich_mod_pl_pg = get_rich_mod(model_zetas_pl_pg)
+rich_model_exp_zetadiv  = get_rich_mod(model_zetas_exp_zetadiv)
+rich_model_pl_zetadiv = get_rich_mod(model_zetas_pl_zetadiv)
 
 
-##########
-#look at some zetas
+###########look at some zetas
+
 
 x = c(1:16)
 y1 = zetas_df[,1]
@@ -300,11 +342,22 @@ ggplot(data, aes(x = x))+
   geom_point(aes(y = y1))+
   geom_point(aes(y = y2), colour = "red")
 
-############
-# get Sn for all sites - probably only need to go to 30 at most
 
-richnesses = get_zeta_modeled_richness()
-Richness$zeta_model = richnesses
+####look at modelled richness versus actual
+richness =  CompleteSiteLevelvars%>%select(Site, Richness)
+sorted_richness = richness[order(richness$Site),]
+
+
+richness_df = as.data.frame(cbind(sorted_richness,rich_mod_exp_pg,rich_mod_pl_pg,
+                                  rich_model_exp_zetadiv,rich_model_pl_zetadiv))
+
+
+saveRDS(richness_df, "modeled_richnesses")
+
+
+
+
+#############################
 
 
 # get_Spl = function(z){
@@ -344,6 +397,14 @@ Richness$zeta_model = richnesses
 #   sps[2] = Sn.pl
 #   return(sps)
 # }
-# 
+# # 
+# # run this to get total species model using fits from zetadiv
+# # but they were a bit odd, so redoing below
+# total_species = data.frame()
+# for (i in 1:103){
+#   species = get_species(i)
+#   total_species = as.data.frame(rbind(total_species,species))
+#   
+# }
 
 
