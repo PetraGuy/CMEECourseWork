@@ -1,0 +1,226 @@
+---
+title: "Analysng the effect of abiotic factors on species richness"
+author: "Petra Guy"
+date: "9 May 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# Richness modelling
+
+rm(list = ls())
+cat("\014")
+library(dplyr) # everything
+
+library(ggplot2)
+
+library(car) # for vif
+library(reshape) # melt
+
+# get the data
+site_data =  read.csv("../Data/CompleteSiteLevelVars.csv")
+site_data = site_data[,-1]
+```
+
+the following variables have been selected for the model based on the literature  - e.g.
+
+"Northing", Species richness decreases with increasing latitude [Gaston,1996]
+"PHI",[Boch used logging trails as indicator, Schmidt, Paillet show fores management increases richness, Hannay uses length of rides, Philips shows mean annual tree mortality - all habitat heterogeneity factors]
+"Buffer",  umm....
+"no_MSG",[Hannay uses soil types]
+"no_NVC", This is another indictor of heterogeneity. Although there is the ciruclar argument of NVC reflects richness because it describes a species assemby, here we use number of different NVC codes which therefore describes different habitats.
+"sd_pH","meanph", [- unimodal response - need ref, but therefore meanph^2 was used]
+"sd_SOM","meanSOM",[Boch,]
+sd_meandbh","meandbh",[]
+"sd_TD","meanTD" []
+"area_ratio",[Hanny, shape index]
+
+
+One site had no recorded site descriptors leading to PHI of NA - this has been mean imputed
+```{r}
+#mean impute the missing PHI
+meanPHI = round(mean(site_data$Pos_Hetero_Index, na.rm = TRUE),2)
+x = site_data$Pos_Hetero_Index
+x[is.na(x)] = meanPHI
+site_data$Pos_Hetero_Index = x
+```
+
+
+```{r}
+subset_all = site_data%>%select("Site","Richness","Area_ha",
+                                "Northing", "Pos_Hetero_Index","Buffer3",
+                                "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
+                                "sd_meandbh","sd_treedensity","area_ratio",
+                                "meandbh","meanph", "meanSOM","meanLBA",
+                                "meantreedensity")
+
+
+
+colnames(subset_all) = c("Site","Richness","Area",
+                         "Northing", "PHI","Buffer",
+                         "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
+                         "sd_meandbh","sd_TD","area_ratio",
+                         "meandbh","meanph", "meanSOM","meanLBA",
+                         "meanTD")
+```
+
+All woods had areas below 100 hectares,except one, this was removed in case this outlier had a spurious effect on the effect sizes.
+```{r}
+#remove the wood with the largest area
+largest_area = as.numeric(subset_all%>%filter(Area == max(Area))%>%select(Site))
+site_data_outlier = subset_all%>%filter(Site!=largest_area)
+site_data_outlier = site_data_outlier[,-3] # remove area column now
+
+```
+
+
+
+```{r}
+subset_sd = site_data_outlier%>%select("Site","Richness",
+                               "Northing", "PHI","Buffer",
+                               "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
+                               "sd_meandbh","sd_TD","area_ratio")
+
+
+
+subset_mean = site_data_outlier%>%select("Site","Richness",
+                              "Northing", "PHI",  "meandbh",
+                              "meanph", "Buffer", "meanSOM","meanLBA",
+                              "meanTD","area_ratio", "no_NVC", 
+                              "no_MSG")
+
+```
+
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+#look at correaltions between explanatory variables
+library(corrplot)
+vars = site_data_outlier[,-c(1,2)]
+
+mcor = round(cor(vars, method = "pearson", use = "na.or.complete"),2)
+corrplot(mcor, type = "upper", tl.pos = "td",
+         method = "number", tl.cex = 0.5, tl.col = 'black',tl.srt=45,
+         order = "hclust", diag = FALSE,
+         title = "pearson correlation",
+         mar=c(0,0,1,0))
+
+mcor = round(cor(vars, method = "spearman", use = "na.or.complete"),2)
+corrplot(mcor, type = "upper", tl.pos = "td",
+         method = "number", tl.cex = 0.5, tl.col = 'black',tl.srt=45,
+         order = "hclust", diag = FALSE,
+         title = "spearman correlation",
+         mar=c(0,0,1,0))
+
+
+```
+
+Spearman correaltions of mean and sd of tree density, live basal area, SOM and DBH are above 0.66, so these variables will be split into two groups. Although meanpH and sd_pH only show Spearman correlation of 0.46 it makes sense to include tese variablews as the mean describes a site level condition whereas the SD describes a site heterogenity.
+
+```{r}
+###Means correlations...
+
+vars = subset_mean[,-c(1,2)]
+
+mcor = round(cor(vars, method = "pearson", use = "na.or.complete"),2)
+corrplot(mcor, type = "upper", tl.pos = "td",
+         method = "number", tl.cex = 0.5, tl.col = 'black',tl.srt=45,
+         order = "hclust", diag = FALSE,
+         title = "pearson correlation",
+         mar=c(0,0,1,0))
+
+mcor = round(cor(vars, method = "spearman", use = "na.or.complete"),2)
+corrplot(mcor, type = "upper", tl.pos = "td",
+         method = "number", tl.cex = 0.5, tl.col = 'black',tl.srt=45,
+         order = "hclust", diag = FALSE,
+         title = "spearman correlation",
+         mar=c(0,0,1,0))
+```
+correlations all <0.5, except Pearson for northing and buffer = 0.51 and Spearman for meanTD and meanDBH = -.055, however correlations at this level are unlikely to effect the parameter estimates {Freckleton]
+
+
+```{r}
+##Models for means#############
+# we know richness vs ph usually unimodal around .5, therefore fit to meanpH^2
+data = subset_mean[,-1]
+richness = subset_mean[,2]
+data$meanph = (data$meanph)^2
+```
+
+The data was rescaled to 2SD [Gelman]
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+#rescale the data
+library(arm) #for standarize
+rescaled_mean_data = apply(data[,-1],2, rescale)
+rescaled_mean_data = as.data.frame(cbind(richness, rescaled_mean_data))
+```
+
+
+linear model was fitted to scaled data with only meanpH transposed to pH^2
+```{r}
+#create the model
+mod_mean = lm(richness~., data=rescaled_mean_data, na.action = "na.fail")
+```
+
+```{r}
+#have a look at the linear model
+par(mfrow =c(2,2))
+plot(mod_mean)
+```
+The residuals show now pattern and the QQ plot looks linear. There are 3 points which represnt the sites with the highest richness which fall slightly above the line. 
+
+```{r}
+# look at vifs
+vif(mod_mean)
+```
+The variance inflation factors are low, suggesting that correlaiton between covariates are not likely to increase the variance of the paramater estimates
+
+
+The models with delta <2 are selected as the top model set and averaged. 
+```{r}
+library(MuMIn) #dredge and avg
+ #get top models
+models = dredge(mod_mean)
+model_set = get.models(models, subset = delta<2)
+
+
+#do model averaging
+mean_avg_models = model.avg(model_set)
+
+#select output data
+summary = summary(mean_avg_models)
+coefs =  mean_avg_models$coefficients
+importance =  c(NA,(as.vector(mean_avg_models$importance[1:8])))
+
+coef_matrix = summary$coefmat.full
+coefs = coef_matrix[,1]
+adj_se = coef_matrix[,3]
+CI_lower =  coefs - 1.96*adj_se
+CI_upper = coefs + 1.96*adj_se
+
+output = round(as.data.frame(cbind(coefs,adj_se, CI_lower, CI_upper, importance)),2)
+
+# make plot of the variables and CI
+data = output[c(2:9),]
+data = data[,c(1,3,4)]
+data = t(data)
+data = as.data.frame(data)
+melted = melt(data)
+
+fun_mean <- function(x){
+  data = data.frame(y=mean(x),label=mean(x,na.rm=T))
+  data = round(data,2)
+  return(data)}
+
+
+melted$variable = as.factor(melted$variable) # ps, wont plot as separate plots if x continous
+ggplot(melted, (aes_string(x='variable', y='value', na.rm = TRUE)) )+
+  geom_boxplot(na.rm = TRUE, width = 0)+
+  stat_summary(fun.y = mean, geom="point",colour="darkred", size=3) +
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7)+
+  geom_abline(intercept = 0, slope = 0)+
+  labs(y = "effect size and 95%CI",x = "effect")+
+  ggtitle("model averaged results for delta <2")
+
+
+```

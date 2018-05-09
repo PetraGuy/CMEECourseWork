@@ -57,7 +57,7 @@ for (i in 1:103){
   
 }
 
-saveRDS(pres_abs_dfs, "petras_presence_absence") ########presence absence
+saveRDS(pres_abs_dfs, "petras_presence_absence.RDS") ########presence absence
 
 # presence absence df for each site now available in pres_abs_df[[sitenumber]]
 
@@ -93,7 +93,7 @@ get_all_zetas = function(){
 
 zetas_df = get_all_zetas()
 zetas_df = zetas_df[,-1]
-saveRDS(zetas_df,"empirical_zetas") ##############empirical zetas
+saveRDS(zetas_df,"empirical_zetas.RDS") ##############empirical zetas
 
 #zetas_df has the empirical zeta values, now fit these to get modeled zetas
 
@@ -203,11 +203,11 @@ zeta_coef_power_zetadiv = zeta_coef_zetadiv[3:4,]
 
 zeta_coef_list = list()
 zeta_ceof_lis[[1]] = zeta_coef_exp_pg
-zeta_coef_list[[2]] = zeta_coef_exp_zetadiv
+zeta_coef_list[[2]] = zeta_coef_exp_zetadiv 
 zeta_coef_list[[3]] = zeta_coef_power_pg
 zeta_coef_list[[4]] = zeta_coef_power_zetadiv
 
-saveRDS(zeta_coef_list,"zeta_coefficients")##########zeta coefficients
+saveRDS(zeta_coef_list,"zeta_coefficients.RDS")##########zeta coefficients
 
 ###check power vs exp fit and output histogram of R2
 
@@ -272,7 +272,7 @@ modeled_zetas_list[[1]] = model_zetas_exp_pg
 modeled_zetas_list[[2]] = model_zetas_exp_zetadiv
 modeled_zetas_list[[3]] = model_zetas_pl_pg
 modeled_zetas_list[[4]] = model_zetas_pl_zetadiv
-saveRDS(model_zetas_list, "modelled_zetas")#############modeled zetas
+saveRDS(model_zetas_list, "modelled_zetas.RDS")#############modeled zetas
 
 
 ######check empirical zetas########
@@ -352,7 +352,7 @@ richness_df = as.data.frame(cbind(sorted_richness,rich_mod_exp_pg,rich_mod_pl_pg
                                   rich_model_exp_zetadiv,rich_model_pl_zetadiv))
 
 
-saveRDS(richness_df, "modeled_richnesses")
+saveRDS(richness_df, "modeled_richnesses.RDS")
 
 
 
