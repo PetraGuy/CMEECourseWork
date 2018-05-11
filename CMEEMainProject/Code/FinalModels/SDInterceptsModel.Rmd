@@ -1,10 +1,10 @@
 ---
-title: "Analysng the effect of abiotic factors on z"
+title: "Analysing effect of abiotic factors on standard deviaiton of random intercepts"
 author: "Petra Guy"
-date: "10 May 2018"
+date: "11 May 2018"
 output: pdf_document
 ---
-
+In this analysis the standard deviation of the random intercepts from the log/log linear mixed effects model used to fit species area curves across nets are modelled against the abiotic variables. The data is split in the same way, and outliers from area and PHI are removed.
 
 ```{r setup, include=FALSE}
 
@@ -26,9 +26,9 @@ library(car) # for vif
 library(reshape) # melt
 
 # get the data
-site_data =  read.csv("../Data/CompleteSiteLevelVars.csv")
-nestZs = readRDS("nest_mixed_model_fits.RDS")
-Zs = nestZs%>%select(Site,slope)
+site_data =  read.csv("../../Data/CompleteSiteLevelVars.csv")
+nestZs = readRDS("../nest_mixed_model_fits.RDS")
+SDs = nestZs%>%select(Site,sd_intercept)
 
 
 #mean impute the missing PHI
@@ -37,13 +37,13 @@ x = site_data$Pos_Hetero_Index
 x[is.na(x)] = meanPHI
 site_data$Pos_Hetero_Index = x
 
-site_data_zs = inner_join(site_data,Zs)
+site_data_SDs = inner_join(site_data,SDs)
 ```
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # slect only required variables
-subset_all = site_data_zs%>%select("Site","slope","Area_ha",
+subset_all = site_data_SDs%>%select("Site","sd_intercept","Area_ha",
                                 "Northing", "Pos_Hetero_Index","Buffer3",
                                 "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
                                 "sd_meandbh","sd_treedensity","area_ratio",
@@ -52,7 +52,7 @@ subset_all = site_data_zs%>%select("Site","slope","Area_ha",
 
 
 
-colnames(subset_all) = c("Site","nestZ","Area",
+colnames(subset_all) = c("Site","SDs","Area",
                          "Northing", "PHI","Buffer",
                          "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
                          "sd_meandbh","sd_TD","area_ratio",
@@ -79,14 +79,14 @@ site_data_outlier3 = site_data_outlier2%>%filter(Site!=largest_PHI)
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-subset_sd = site_data_outlier3%>%select("Site","nestZ",
+subset_sd = site_data_outlier3%>%select("Site","SDs",
                                "Northing", "PHI","Buffer",
                                "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
                                "sd_meandbh","sd_TD","area_ratio")
 
 
 
-subset_mean = site_data_outlier3%>%select("Site","nestZ",
+subset_mean = site_data_outlier3%>%select("Site","SDs",
                               "Northing", "PHI",  "meandbh",
                               "meanph", "Buffer", "meanSOM","meanLBA",
                               "meanTD","area_ratio", "no_NVC", 
@@ -101,19 +101,19 @@ subset_mean = site_data_outlier3%>%select("Site","nestZ",
 
 # we know richness vs ph usually unimodal around .5, therefore fit to meanpH^2
 data = subset_mean[,-1]
-nestZ = subset_mean[,2]
+SDs = subset_mean[,2]
 data$meanph = (data$meanph)^2
 
 #rescale the data
 library(arm) #for standarize
 rescaled_mean_data = apply(data[,-1],2, rescale)
-rescaled_mean_data = as.data.frame(cbind(nestZ, rescaled_mean_data))
+rescaled_mean_data = as.data.frame(cbind(SDs, rescaled_mean_data))
 ```
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 #create the model
-mod_mean = lm(nestZ~., data=rescaled_mean_data, na.action = "na.fail")
+mod_mean = lm(SDs~., data=rescaled_mean_data, na.action = "na.fail")
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
@@ -126,18 +126,18 @@ The two site with the highest values of PHI had high leverage in this model and 
 
 # we know richness vs ph usually unimodal around .5, therefore fit to meanpH^2
 data = subset_sd[,-1]
-nestZ = subset_mean[,2]
+SDs = subset_mean[,2]
 
 #rescale the data
 library(arm) #for standarize
 rescaled_sd_data = apply(data[,-1],2, rescale)
-rescaled_sd_data = as.data.frame(cbind(nestZ, rescaled_sd_data))
+rescaled_sd_data = as.data.frame(cbind(SDs, rescaled_sd_data))
 ```
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 #create the model
-mod_sd = lm(nestZ~., data=rescaled_sd_data, na.action = "na.fail")
+mod_sd = lm(SDs~., data=rescaled_sd_data, na.action = "na.fail")
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
@@ -161,7 +161,7 @@ vif(mod_sd)
 The variance inflation factors in the sd dataset are also low
 
 
-The first ten models from the mean dataset, which had a delta <2 were selected from the MuMin dredge funtion as the top model set. 
+The first twelve models from the mean dataset, which had a delta <2 were selected from the MuMin dredge funtion as the top model set. 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 library(MuMIn) #dredge and avg
@@ -176,7 +176,7 @@ mean_avg_models = model.avg(model_set, subset)
 #select output data
 summary = summary(mean_avg_models)
 coefs =  mean_avg_models$coefficients
-importance =  c(NA,(as.vector(mean_avg_models$importance[1:9])))
+importance =  c(NA,(as.vector(mean_avg_models$importance[1:6])))
 
 coef_matrix = summary$coefmat.full
 coefs = coef_matrix[,1]
@@ -189,7 +189,7 @@ output = round(as.data.frame(cbind(coefs,adj_se, CI_lower, CI_upper, importance)
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # make plot of the variables and CI
-data = output[c(2:10),]
+data = output[c(2:7),]
 data = data[,c(1,3,4)]
 data = t(data)
 data = as.data.frame(data)
@@ -211,14 +211,14 @@ ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
   stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
   geom_abline(intercept = 0, slope = 0)+
   labs(y = "Effect size and 95%CI",x = "effect")+
-  labs(title = "Model averaged results for delta <2, Nest Zs, Mean dataset",
+  labs(title = "Model averaged results for delta <2, SD of intercepts, Mean dataset",
        subtitle = "numbers in red are variable importance")
   
 
 
 ```
 
-The graph shows the averaged effect sizes of the model with delta < 2. PHI and soil organic matter can be seen to effect the value of z. 
+The graph shows the averaged effect sizes of the model with delta < 2. We cannot say that of the variables in the model might have any effect on the standard deviation of the random intercepts
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 library(MuMIn) #dredge and avg
@@ -268,26 +268,26 @@ ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
   stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
   geom_abline(intercept = 0, slope = 0)+
   labs(y = "Effect size and 95%CI",x = "effect")+
-  labs(title = "Model averaged results for delta <2, Nest Zs, SD dataset",
+  labs(title = "Model averaged results for delta <2, SD of random interepts, SD dataset",
        subtitle = "numbers in red are variable importance")
   
 
 
 ```
-
+The Northing is the only variable which may effect the SD of random intercepts
 
 ##Using the model for prediction
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 #extract model averaged parameter estimates
 
-predicted_Z = predict(mean_avg_models, full = TRUE)
-empirical_Z =  site_data_outlier3$nestZ
-fit = lm(empirical_Z ~ predicted_Z)
+predicted_SD = predict(mean_avg_models, full = TRUE)
+empirical_SD =  site_data_outlier3$SDs
+fit = lm(empirical_SD ~ predicted_SD)
 R2 = round(summary(fit)$r.squared,2)
 subtitle = paste("R2 = ",R2)
-data = as.data.frame(cbind(predicted_Z, empirical_Z))
+data = as.data.frame(cbind(predicted_SD, empirical_SD))
 
-ggplot(data, aes(x = predicted_Z, y = empirical_Z))+
+ggplot(data, aes(x = predicted_SD, y = empirical_SD))+
   geom_point()+
   geom_abline(intercept = 0, slope = 1)+
   labs(title = "Observed versus predicted data, mean dataset",
@@ -298,14 +298,14 @@ ggplot(data, aes(x = predicted_Z, y = empirical_Z))+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 #extract model averaged parameter estimates
 
-predicted_Z = predict(sd_avg_models, full = TRUE)
-empirical_Z =  site_data_outlier3$nestZ
-fit = lm(empirical_Z ~ predicted_Z)
+predicted_SD = predict(sd_avg_models, full = TRUE)
+empirical_SD =  site_data_outlier3$SDs
+fit = lm(empirical_SD ~ predicted_SD)
 R2 = round(summary(fit)$r.squared,2)
 subtitle = paste("R2 = ",R2)
-data = as.data.frame(cbind(predicted_Z, empirical_Z))
+data = as.data.frame(cbind(predicted_SD, empirical_SD))
 
-ggplot(data, aes(x = predicted_Z, y = empirical_Z))+
+ggplot(data, aes(x = predicted_SD, y = empirical_SD))+
   geom_point()+
   geom_abline(intercept = 0, slope = 1)+
   labs(title = "Observed versus predicted data, sd dataset",

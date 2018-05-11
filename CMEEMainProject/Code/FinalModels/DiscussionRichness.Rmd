@@ -1,0 +1,95 @@
+---
+title: "RichnessDiscussion"
+author: "Petra Guy"
+date: "11 May 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(gridExtra)
+```
+
+```{r}
+rm(list = ls())
+cat("\014")
+plotdata = read.csv("../../Data/AllPlotsVarsRichness.csv")
+sitedata = read.csv("../../Data/CompleteSiteLevelVars.csv")
+```
+
+The mean data set shows that Buffer, number of NVC codes and PHI positively affect the richness and mean SOM has a negaive effect. The negative effect of SOM is to be expected for two reasons. High SOM could lead to lower pH and therefore lower richness.
+
+#Soil Organic Matter
+Higher soil organi matter is a feature of lower pH soils, which generally have lower species richness. The graphs below demonstrate this. Plots with a pH of around 6 are the most rich and site richness peaks at a site mean pH of around 5.5 and the meanpH can be seen to reduce as the meanSOM increases, however, this relationship is not strong in this dataset.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+data = plotdata%>%filter(!is.na(pHYr2))
+
+g1 = ggplot(data = data , aes(x = as.factor(round(pHYr2,0)), y = plot_richness))+
+  geom_boxplot()+
+  labs(x = "pH", y = "plot richnesses")+
+  ggtitle( "Plot richness with pH")
+  
+g2 = ggplot(data = sitedata, aes(x = meanSOM, y = meanph))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  ggtitle("meanpH across site with meanSOM")
+
+g3 = ggplot(data = sitedata, aes(x = meanph, y = Richness))+
+  geom_point()+
+  geom_smooth(method = loess)+
+  ggtitle("Site richness with meanpH")
+
+g4 = ggplot(data = sitedata, aes(x = meanSOM, y = Richness))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  ggtitle("Site richness with meanSOM")
+
+grid.arrange(g1,g2,g3,g4, nrow = 2)
+```
+
+Higher soil organic matter could be indicative of higher tree density or higher dbh because the large number of trees are producing more litter. If so, those variables would be positively correlated with meanSOM. In the graphs below, that does not appear to be the case.
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+g1 = ggplot(data = sitedata, aes(x = meanSOM, y = meandbh))+
+  geom_point()+
+  geom_smooth(method = lm)
+
+g2 = ggplot(data = sitedata, aes(x = meanSOM, y = meantreedensity))+
+  geom_point()+
+  geom_smooth(method = lm)
+
+g3 = ggplot(data = sitedata, aes(x = meanSOM, y = meanLBA))+
+  geom_point()+
+  geom_smooth(method = lm)
+
+
+
+ 
+grid.arrange(g1,g2,g3,ncol=2)
+
+```
+
+
+Considering the NVC codes and the SOM might be helpful. The boxplots show the range in SOM across all plots with that NVC code. As you would expect the habitats with the highest SOM are the wet heaths (M15, M16), and moist woodlands of Betula pubescens (W4) and Salex cinerea (W1). The three former categories characteristically being species poor. But these woodlands do not represent the majority of the woods in the survey.
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+
+
+ ggplot(data = plotdata , aes(x = ShortNVC, y = SOMYr2))+
+  geom_boxplot()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+```{r}
+fNVC = as.data.frame(table(plotdata$ShortNVC))
+fNVC = fNVC[order(fNVC$Freq),]
+colnames(fNVC) = c("ShortNVC","frequency")
+
+meanSOMbyNVC = plotdata%>%group_by(ShortNVC)%>%summarise(meanSOM = mean(SOMYr2, na.rm=TRUE))
+meanRichnessbyNVC =plotdata%>%group_by(ShortNVC)%>%summarise(meanRichness = mean(plot_richness, na.rm=TRUE))
+
+data = inner_join(fNVC,meanSOMbyNVC)
+data = inner_join(data,meanRichnessbyNVC)
+```
+
+The link between soil organic matter and pH seems the only plausible explanation from this data - but previous work also showed that sites with increased SOM had increased nitrogen deposition which has been shown to decrease plant species richness.

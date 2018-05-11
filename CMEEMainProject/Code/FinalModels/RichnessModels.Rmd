@@ -25,7 +25,7 @@ library(car) # for vif
 library(reshape) # melt
 
 # get the data
-site_data =  read.csv("../Data/CompleteSiteLevelVars.csv")
+site_data =  read.csv("../../Data/CompleteSiteLevelVars.csv")
 site_data = site_data[,-1]
 ```
 
@@ -302,7 +302,7 @@ ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
 
 ```
 
-The graph shows the averaged effect sizes of the model with delta < 2. The effect which have a CI which does not include zero and therefore may influence richness [Gruber] are mean soil organic matter, number of NVC codes, and Positive Heterogeneity Index. Because the data is standardized, the effects sizes can be directly compared as a unit of one represents two standard deviations of change in response. Therefore the number of NVC codes can be seen to have the greatest effect, with SOM and PHI having approximately equal but opposite effects.
+The graph shows the averaged effect sizes of the model with delta < 2. The effects which have a CI which does not include zero and therefore may influence richness [Gruber] are buffer, mean soil organic matter, number of NVC codes, and Positive Heterogeneity Index. Because the data is standardized, the effects sizes can be directly compared. Therefore the number of NVC codes can be seen to have the greatest effect, with SOM and PHI having approximately equal but opposite effects.
 
 The first seven models from the SD dataset, which had a delta <1.99 were selected from the MuMin dredge function as the top model set. (PS a delta less than 2 was also checked,  this resulted in the effect of sd_LBA with importance of 0.08 and had CI which included zero). 
 
@@ -401,6 +401,7 @@ ggplot(data, aes(x = predicted_richness, y = empirical_richness))+
 
   
 ```
+
 
 
 

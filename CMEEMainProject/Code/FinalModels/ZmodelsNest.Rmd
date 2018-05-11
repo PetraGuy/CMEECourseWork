@@ -4,7 +4,7 @@ author: "Petra Guy"
 date: "10 May 2018"
 output: pdf_document
 ---
-
+Species area curves were generated at nest level, that is, 4m^2 to 200m2. A log/log linear mixed effects model was used to fit species area curves across the  nests with plot as the random variable. the slopes of these linear fits are modelled against the abiotic variables. The data is split in the same way, and outliers from area and PHI are removed.
 
 ```{r setup, include=FALSE}
 
@@ -26,8 +26,8 @@ library(car) # for vif
 library(reshape) # melt
 
 # get the data
-site_data =  read.csv("../Data/CompleteSiteLevelVars.csv")
-nestZs = readRDS("nest_mixed_model_fits.RDS")
+site_data =  read.csv("../../Data/CompleteSiteLevelVars.csv")
+nestZs = readRDS("../nest_mixed_model_fits.RDS")
 Zs = nestZs%>%select(Site,slope)
 
 
@@ -151,17 +151,15 @@ plot(mod_sd, main = "SD dataset")
 # look at vifs
 vif(mod_mean)
 ```
-The variance inflation factors in the mean dataset are low, suggesting that correlations between covariates are low and not likely to increase the variance of the paramater estimates.
+
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # look at vifs
 vif(mod_sd)
 ```
 
-The variance inflation factors in the sd dataset are also low
 
-
-The first ten models from the mean dataset, which had a delta <2 were selected from the MuMin dredge funtion as the top model set. 
+The models with a delta <2 were selected from the MuMin dredge funtion as the top model set. 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 library(MuMIn) #dredge and avg

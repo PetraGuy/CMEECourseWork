@@ -1,14 +1,15 @@
 ---
-title: "Analysng the effect of abiotic factors on z"
+title: "Analysng the effect of abiotic factors on Plot z"
 author: "Petra Guy"
 date: "10 May 2018"
 output: pdf_document
 ---
 
+Species area curves were calculated at plot level, that is, the cumulative species count from an area of 200m^2 to 3200m2. The minimu and maximum curves were calculated and their average taken. A linear log/log fit was calucalted and the slope of this fit was extracted. That slope is fited here against the abiotic variables. 
 
 ```{r setup, include=FALSE}
 
-## NB - aseveral libraries mask each other here - arm masks dplyr and corrplot, therefore open libraries #as required.
+## NB - several libraries mask each other here - arm masks dplyr and corrplot, therefore open libraries #as required.
 knitr::opts_chunk$set(
 	echo = FALSE,
 	message = FALSE,
@@ -26,9 +27,9 @@ library(car) # for vif
 library(reshape) # melt
 
 # get the data
-site_data =  read.csv("../Data/CompleteSiteLevelVars.csv")
-nestZs = readRDS("nest_mixed_model_fits.RDS")
-Zs = nestZs%>%select(Site,slope)
+site_data =  read.csv("../../Data/CompleteSiteLevelVars.csv")
+PlotZdata = read.csv("../../Data/z_ave_fits.csv")
+Zs = PlotZdata%>%select(Site, slope)
 
 
 #mean impute the missing PHI
@@ -121,7 +122,7 @@ mod_mean = lm(nestZ~., data=rescaled_mean_data, na.action = "na.fail")
 par(mfrow =c(2,2))
 plot(mod_mean, main = "Mean dataset")
 ```
-The two site with the highest values of PHI had high leverage in this model and were therefore removed from the data in order to give normally distributed residuals, the plots above were created after these values were removed.
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width = '50%'}
 
 # we know richness vs ph usually unimodal around .5, therefore fit to meanpH^2
@@ -151,7 +152,7 @@ plot(mod_sd, main = "SD dataset")
 # look at vifs
 vif(mod_mean)
 ```
-The variance inflation factors in the mean dataset are low, suggesting that correlations between covariates are low and not likely to increase the variance of the paramater estimates.
+
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # look at vifs
@@ -160,8 +161,7 @@ vif(mod_sd)
 
 The variance inflation factors in the sd dataset are also low
 
-
-The first ten models from the mean dataset, which had a delta <2 were selected from the MuMin dredge funtion as the top model set. 
+The models which had a delta <2 were selected from the MuMin dredge funtion as the top model set. 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 library(MuMIn) #dredge and avg
@@ -176,64 +176,7 @@ mean_avg_models = model.avg(model_set, subset)
 #select output data
 summary = summary(mean_avg_models)
 coefs =  mean_avg_models$coefficients
-importance =  c(NA,(as.vector(mean_avg_models$importance[1:9])))
-
-coef_matrix = summary$coefmat.full
-coefs = coef_matrix[,1]
-adj_se = coef_matrix[,3]
-CI_lower =  coefs - 1.96*adj_se
-CI_upper = coefs + 1.96*adj_se
-
-output = round(as.data.frame(cbind(coefs,adj_se, CI_lower, CI_upper, importance)),2)
-```
-
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-# make plot of the variables and CI
-data = output[c(2:10),]
-data = data[,c(1,3,4)]
-data = t(data)
-data = as.data.frame(data)
-melted = melt(data)
-
-fun_mean <- function(x){
-  data = data.frame(y=mean(x),label=mean(x,na.rm=T))
-  data = round(data,2)
-  return(data)}
-
-#(aes_string(x = 'variable', y='value', na.rm = TRUE)
-
-melted$variable = as.factor(melted$variable)# ps, wont plot as separate plots if x continous
-
-ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
-  geom_boxplot(na.rm = TRUE, width = 0)+
-  stat_summary(fun.y = mean, geom="point",colour="darkred", size=3) +
-  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7)+
-  stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
-  geom_abline(intercept = 0, slope = 0)+
-  labs(y = "Effect size and 95%CI",x = "effect")+
-  labs(title = "Model averaged results for delta <2, Nest Zs, Mean dataset",
-       subtitle = "numbers in red are variable importance")
-  
-
-
-```
-
-The graph shows the averaged effect sizes of the model with delta < 2. PHI and soil organic matter can be seen to effect the value of z. 
-
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-library(MuMIn) #dredge and avg
- #get top models
-models = dredge(mod_sd)
-model_set = get.models(models, subset = delta<2)
-
-
-#do model averaging, subset means zero method
-sd_avg_models = model.avg(model_set, subset)
-
-#select output data
-summary = summary(sd_avg_models)
-coefs =  sd_avg_models$coefficients
-importance =  c(NA,(as.vector(sd_avg_models$importance[1:8])))
+importance =  c(NA,(as.vector(mean_avg_models$importance[1:8])))
 
 coef_matrix = summary$coefmat.full
 coefs = coef_matrix[,1]
@@ -268,14 +211,71 @@ ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
   stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
   geom_abline(intercept = 0, slope = 0)+
   labs(y = "Effect size and 95%CI",x = "effect")+
-  labs(title = "Model averaged results for delta <2, Nest Zs, SD dataset",
+  labs(title = "Model averaged results for delta <2, Plot Zs, Mean dataset",
        subtitle = "numbers in red are variable importance")
   
 
 
 ```
 
+The graph shows the averaged effect sizes of the model with delta < 2. Number of NVC codes, mean tree density and mean soil organic matter effect the plot level Z
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+library(MuMIn) #dredge and avg
+ #get top models
+models = dredge(mod_sd)
+model_set = get.models(models, subset = delta<2)
+
+
+#do model averaging, subset means zero method
+sd_avg_models = model.avg(model_set, subset)
+
+#select output data
+summary = summary(sd_avg_models)
+coefs =  sd_avg_models$coefficients
+importance =  c(NA,(as.vector(sd_avg_models$importance[1:5])))
+
+coef_matrix = summary$coefmat.full
+coefs = coef_matrix[,1]
+adj_se = coef_matrix[,3]
+CI_lower =  coefs - 1.96*adj_se
+CI_upper = coefs + 1.96*adj_se
+
+output = round(as.data.frame(cbind(coefs,adj_se, CI_lower, CI_upper, importance)),2)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# make plot of the variables and CI
+data = output[c(2:6),]
+data = data[,c(1,3,4)]
+data = t(data)
+data = as.data.frame(data)
+melted = melt(data)
+
+fun_mean <- function(x){
+  data = data.frame(y=mean(x),label=mean(x,na.rm=T))
+  data = round(data,2)
+  return(data)}
+
+#(aes_string(x = 'variable', y='value', na.rm = TRUE)
+
+melted$variable = as.factor(melted$variable)# ps, wont plot as separate plots if x continous
+
+ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
+  geom_boxplot(na.rm = TRUE, width = 0)+
+  stat_summary(fun.y = mean, geom="point",colour="darkred", size=3) +
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7)+
+  stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
+  geom_abline(intercept = 0, slope = 0)+
+  labs(y = "Effect size and 95%CI",x = "effect")+
+  labs(title = "Model averaged results for delta <2, Plot Zs, SD dataset",
+       subtitle = "numbers in red are variable importance")
+  
+
+
+```
+
+In the sd dataset model the standard deviaiton of mean dbh has an effect.
 ##Using the model for prediction
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 #extract model averaged parameter estimates
