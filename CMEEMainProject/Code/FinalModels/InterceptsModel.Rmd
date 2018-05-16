@@ -1,10 +1,10 @@
 ---
-title: "Analysing effect of abiotic factors on standard deviaiton of random intercepts"
+title: "Analysing effect of abiotic factors on intercept of mixed effect model"
 author: "Petra Guy"
 date: "11 May 2018"
 output: pdf_document
 ---
-In this analysis the standard deviation of the random intercepts from the log/log linear mixed effects model used to fit species area curves across nets are modelled against the abiotic variables. The data is split in the same way, and outliers from area and PHI are removed.
+Her the intercept from the mixed model is anaysed. The data is split in the same way, and outliers from area and PHI are removed.
 
 ```{r setup, include=FALSE}
 
@@ -21,14 +21,14 @@ cat("\014")
 library(dplyr) # everything
 
 library(ggplot2)
-
+library(gridExtra)
 library(car) # for vif
 library(reshape) # melt
 
 # get the data
 site_data =  read.csv("../../Data/CompleteSiteLevelVars.csv")
 nestZs = readRDS("../nest_mixed_model_fits.RDS")
-SDs = nestZs%>%select(Site,sd_intercept)
+ints = nestZs%>%select(Site,intercept)
 
 
 #mean impute the missing PHI
@@ -37,14 +37,70 @@ x = site_data$Pos_Hetero_Index
 x[is.na(x)] = meanPHI
 site_data$Pos_Hetero_Index = x
 
-site_data_SDs = inner_join(site_data,SDs)
+site_data_ints = inner_join(site_data,ints)
 
 ```
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+correl = round(cor(nestZs$intercept, nestZs$slope, method = "spearman"),1)
+g1 = ggplot(nestZs, aes(x = intercept, y = slope))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  labs(title =paste("spearman ", correl))+
+  ylab("slope of log log fit")+
+xlab("intercept of log log fit")
+
+g2 = ggplot(site_data_ints, aes(x = intercept, y = Richness ))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  xlab("intercept of log fit")
+ 
+
+
+
+data = nestZs%>%select(Site,slope,intercept)
+data$cz = data$slope*data$intercept
+richness = site_data_ints%>%select(Site, Richness)
+
+slopeint = inner_join(richness,data)
+
+barfill <- "#4271AE"
+barlines <- "#1F3552"
+
+g3 = ggplot(slopeint, aes(x = slope, y = Richness ))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  xlab("z")
+
+grid.arrange(g1,g2,g3, ncol=3)
+```
+
+Having a quick look at the behaviour of the intercepts and slopes, as richness increases, slope and intercept increase, but the first graph shows that as the slope increases the intercept decreases. I have no idea what this means, if anything.
+
+```{r}
+barfill <- "#4271AE"
+barlines <- "#1F3552"
+ hist = ggplot(slopeint, aes(x = slopeint$cz))+
+  geom_histogram(binwidth = 0.05, colour = barlines, fill = barfill)+
+   xlab(NULL)+
+ theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+
+plot = ggplot(slopeint, aes(x = cz, y = Richness))+
+        geom_point()+
+        geom_smooth( method = lm)+
+        ylab("Richness")
+
+
+grid.arrange(hist,plot, nrow = 2, heights=c(2,5))
+```
+
+Since the gradient is a function of c and z, I thought it might be nice to look at richness with cz. But I have no idea what this means either.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # slect only required variables
-subset_all = site_data_SDs%>%select("Site","sd_intercept","Area_ha",
+subset_all = site_data_ints%>%select("Site","intercept","Area_ha",
                                 "Northing", "Pos_Hetero_Index","Buffer3",
                                 "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
                                 "sd_meandbh","sd_treedensity","area_ratio",
@@ -53,7 +109,7 @@ subset_all = site_data_SDs%>%select("Site","sd_intercept","Area_ha",
 
 
 
-colnames(subset_all) = c("Site","SDs","Area",
+colnames(subset_all) = c("Site","ints","Area",
                          "Northing", "PHI","Buffer",
                          "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
                          "sd_meandbh","sd_TD","area_ratio",
@@ -80,14 +136,14 @@ site_data_outlier3 = site_data_outlier2%>%filter(Site!=largest_PHI)
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-subset_sd = site_data_outlier3%>%select("Site","SDs",
+subset_sd = site_data_outlier3%>%select("Site","ints",
                                "Northing", "PHI","Buffer",
                                "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
                                "sd_meandbh","sd_TD","area_ratio")
 
 
 
-subset_mean = site_data_outlier3%>%select("Site","SDs",
+subset_mean = site_data_outlier3%>%select("Site","ints",
                               "Northing", "PHI",  "meandbh",
                               "meanph", "Buffer", "meanSOM","meanLBA",
                               "meanTD","area_ratio", "no_NVC", 
@@ -127,18 +183,18 @@ The two site with the highest values of PHI had high leverage in this model and 
 
 # we know richness vs ph usually unimodal around .5, therefore fit to meanpH^2
 data = subset_sd[,-1]
-SDs = subset_mean[,2]
+ints = subset_mean[,2]
 
 #rescale the data
 library(arm) #for standarize
 rescaled_sd_data = apply(data[,-1],2, rescale)
-rescaled_sd_data = as.data.frame(cbind(SDs, rescaled_sd_data))
+rescaled_sd_data = as.data.frame(cbind(ints, rescaled_sd_data))
 ```
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 #create the model
-mod_sd = lm(SDs~., data=rescaled_sd_data, na.action = "na.fail")
+mod_sd = lm(ints~., data=rescaled_sd_data, na.action = "na.fail")
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
@@ -177,64 +233,7 @@ mean_avg_models = model.avg(model_set, subset)
 #select output data
 summary = summary(mean_avg_models)
 coefs =  mean_avg_models$coefficients
-importance =  c(NA,(as.vector(mean_avg_models$importance[1:6])))
-
-coef_matrix = summary$coefmat.full
-coefs = coef_matrix[,1]
-adj_se = coef_matrix[,3]
-CI_lower =  coefs - 1.96*adj_se
-CI_upper = coefs + 1.96*adj_se
-
-output = round(as.data.frame(cbind(coefs,adj_se, CI_lower, CI_upper, importance)),2)
-```
-
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-# make plot of the variables and CI
-data = output[c(2:7),]
-data = data[,c(1,3,4)]
-data = t(data)
-data = as.data.frame(data)
-melted = melt(data)
-
-fun_mean <- function(x){
-  data = data.frame(y=mean(x),label=mean(x,na.rm=T))
-  data = round(data,2)
-  return(data)}
-
-#(aes_string(x = 'variable', y='value', na.rm = TRUE)
-
-melted$variable = as.factor(melted$variable)# ps, wont plot as separate plots if x continous
-
-ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
-  geom_boxplot(na.rm = TRUE, width = 0)+
-  stat_summary(fun.y = mean, geom="point",colour="darkred", size=3) +
-  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7)+
-  stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
-  geom_abline(intercept = 0, slope = 0)+
-  labs(y = "Effect size and 95%CI",x = "effect")+
-  labs(title = "Model averaged results for delta <2, SD of intercepts, Mean dataset",
-       subtitle = "numbers in red are variable importance")
-  
-
-
-```
-
-The graph shows the averaged effect sizes of the model with delta < 2. We cannot say that of the variables in the model might have any effect on the standard deviation of the random intercepts
-
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-library(MuMIn) #dredge and avg
- #get top models
-models = dredge(mod_sd)
-model_set = get.models(models, subset = delta<2)
-
-
-#do model averaging, subset means zero method
-sd_avg_models = model.avg(model_set, subset)
-
-#select output data
-summary = summary(sd_avg_models)
-coefs =  sd_avg_models$coefficients
-importance =  c(NA,(as.vector(sd_avg_models$importance[1:8])))
+importance =  c(NA,(as.vector(mean_avg_models$importance[1:8])))
 
 coef_matrix = summary$coefmat.full
 coefs = coef_matrix[,1]
@@ -269,26 +268,83 @@ ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
   stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
   geom_abline(intercept = 0, slope = 0)+
   labs(y = "Effect size and 95%CI",x = "effect")+
-  labs(title = "Model averaged results for delta <2, SD of random interepts, SD dataset",
+  labs(title = "Model averaged results for delta <2, intercepts, Mean dataset",
        subtitle = "numbers in red are variable importance")
   
 
 
 ```
-The Northing is the only variable which may effect the SD of random intercepts
+
+The graph shows the averaged effect sizes of the model with delta < 2.The buffer and meanpH may effect the intercep of the log/log fit
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+library(MuMIn) #dredge and avg
+ #get top models
+models = dredge(mod_sd)
+model_set = get.models(models, subset = delta<2)
+
+
+#do model averaging, subset means zero method
+sd_avg_models = model.avg(model_set, subset)
+
+#select output data
+summary = summary(sd_avg_models)
+coefs =  sd_avg_models$coefficients
+importance =  c(NA,(as.vector(sd_avg_models$importance[1:6])))
+
+coef_matrix = summary$coefmat.full
+coefs = coef_matrix[,1]
+adj_se = coef_matrix[,3]
+CI_lower =  coefs - 1.96*adj_se
+CI_upper = coefs + 1.96*adj_se
+
+output = round(as.data.frame(cbind(coefs,adj_se, CI_lower, CI_upper, importance)),2)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# make plot of the variables and CI
+data = output[c(2:7),]
+data = data[,c(1,3,4)]
+data = t(data)
+data = as.data.frame(data)
+melted = melt(data)
+
+fun_mean <- function(x){
+  data = data.frame(y=mean(x),label=mean(x,na.rm=T))
+  data = round(data,2)
+  return(data)}
+
+#(aes_string(x = 'variable', y='value', na.rm = TRUE)
+
+melted$variable = as.factor(melted$variable)# ps, wont plot as separate plots if x continous
+
+ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
+  geom_boxplot(na.rm = TRUE, width = 0)+
+  stat_summary(fun.y = mean, geom="point",colour="darkred", size=3) +
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7)+
+  stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
+  geom_abline(intercept = 0, slope = 0)+
+  labs(y = "Effect size and 95%CI",x = "effect")+
+  labs(title = "Model averaged results for delta <2,interepts, SD dataset",
+       subtitle = "numbers in red are variable importance")
+  
+
+
+```
+The Northing is the only variable which may effect the intercepts of the log/log fit
 
 ##Using the model for prediction
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 #extract model averaged parameter estimates
 
-predicted_SD = predict(mean_avg_models, full = TRUE)
-empirical_SD =  site_data_outlier3$SDs
-fit = lm(empirical_SD ~ predicted_SD)
+predicted_int = predict(mean_avg_models, full = TRUE)
+empirical_int =  site_data_outlier3$ints
+fit = lm(empirical_int ~ predicted_int)
 R2 = round(summary(fit)$r.squared,2)
 subtitle = paste("R2 = ",R2)
-data = as.data.frame(cbind(predicted_SD, empirical_SD))
+data = as.data.frame(cbind(predicted_int, empirical_int))
 
-ggplot(data, aes(x = predicted_SD, y = empirical_SD))+
+ggplot(data, aes(x = predicted_int, y = empirical_int))+
   geom_point()+
   geom_abline(intercept = 0, slope = 1)+
   labs(title = "Observed versus predicted data, mean dataset",
@@ -299,14 +355,14 @@ ggplot(data, aes(x = predicted_SD, y = empirical_SD))+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 #extract model averaged parameter estimates
 
-predicted_SD = predict(sd_avg_models, full = TRUE)
-empirical_SD =  site_data_outlier3$SDs
-fit = lm(empirical_SD ~ predicted_SD)
+predicted_int = predict(sd_avg_models, full = TRUE)
+empirical_int =  site_data_outlier3$ints
+fit = lm(empirical_int ~ predicted_int)
 R2 = round(summary(fit)$r.squared,2)
 subtitle = paste("R2 = ",R2)
-data = as.data.frame(cbind(predicted_SD, empirical_SD))
+data = as.data.frame(cbind(predicted_int, empirical_int))
 
-ggplot(data, aes(x = predicted_SD, y = empirical_SD))+
+ggplot(data, aes(x = predicted_int, y = empirical_int))+
   geom_point()+
   geom_abline(intercept = 0, slope = 1)+
   labs(title = "Observed versus predicted data, sd dataset",

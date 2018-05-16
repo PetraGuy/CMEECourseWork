@@ -1,4 +1,4 @@
-#SAC - second version. Here I will add values to end of shortes average.
+#SAC - second version. Here I will add values to end of shortest average.
 #otherwise there are only as many value as the shorted cf vector.
 #Plus will store plot numbers
 
