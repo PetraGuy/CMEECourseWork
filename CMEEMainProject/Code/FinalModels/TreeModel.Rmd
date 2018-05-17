@@ -37,6 +37,7 @@ colnames(subset_all) = c("Site","Richness","Area",
                          "meanTD")
 ```
 
+Outlier in area was removed
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 #remove the wood with the largest area
@@ -65,7 +66,8 @@ subset_mean = subset_mean[,-1] # remove site column
 
 ```
 
-
+Train, test and validation sets in ratio 0.7, 0.15.0.15 were created.
+Simple rpart regression tree no pruning, no tuning.
 ```{r}
 #make 3 datasets, test, train and validate
 
@@ -92,6 +94,9 @@ print(rich_model)
 rpart.plot(x = rich_model, yesno = 2, type = 0, extra = 0)
 ```
 
+Mean LBA is first split of the data, the further splits all depend on meanpH.
+Plot shows that of meanLBA > 0.74 richness expected to be 101. Lowest richness occurs for meanLBA < 0.74 (bit weird?) meanpH> 4.5 (OK) and buffer < 13 (weird)
+
 ```{r}
 library(Metrics)
 pred = predict(object = rich_model,
@@ -101,8 +106,10 @@ rmse(actual = rich_test$Richness,
             predicted = pred)
 
 ```
-
-
+RMSE error is 22 - quite high, since richest wood is only 150, i.e. 13%.
+#Tuning
+in rpart cp, minplit and maxdepth are tuned.
+cp can be tuned on its own first.
 ```{r}
 plotcp(rich_model)
 ```
@@ -121,8 +128,10 @@ pred = predict(object = model_opt1,
 rmse(actual = rich_test$Richness,
             predicted = pred)
 ```
-
-```{r}
+Doesn't improove RMSE though
+Now tune minsplit and max depth with a hyper parameter tuning grid using minsplit c(2,4,6,8,10) and max depth c(1:11)  
+ 
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 #create a hyperparameter tuning grid
 #first look at split parameter
 minsplit = seq(2,10,2)
@@ -162,7 +171,9 @@ pred = predict(object = best_model,
 rmse(actual = rich_test$Richness,
      predicted = pred)
 ```
+Slight improvement to rmse
 
+#Bagged trees
 
 ```{r}
 #bagged trees
@@ -181,6 +192,7 @@ rmse(actual = rich_test$Richness,
      predicted = pred)
 
 ```
+Bagged tree gives little bit more improvement  
 
 ```{r}
 # redo this with K fold cross validation for model performance metricss
@@ -207,6 +219,7 @@ rmse(actual = rich_test$Richness,
 
 ```
 
+5 fold cross validation doesnt improve on bagging. 
 ```{r}
 library(randomForest)
 # redo train and test because dont need validation
@@ -225,7 +238,8 @@ rmse(actual = rich_test$Richness,
 
 
 ```
- 
+#Random forest
+Tuning first
 ```{r}
 #tuning
 set.seed(1)
@@ -235,7 +249,7 @@ res = tuneRF(x =subset(forest_train, select = -Richness),
 print(res)
 
 ```
-
+Looks like mtry needs to be small, but set up tuning grid using mtry between 2 and total number of variables (11), nodesize c(2,4,6,8,10), sampsize 0.7 and 0.8
 ```{r}
 #tuning
 mtry = seq(2,11,1)
@@ -261,6 +275,7 @@ for (i in 1:nrow(hyper_grid)){
  opt_i = which.min(oob_err)
 print(hyper_grid[opt_i,])
 ```
+Values giving smallest OOB show above.
 
 ```{r}
 forest = randomForest(formula = Richness~., data = forest_train,importance = TRUE,
@@ -274,7 +289,7 @@ rmse(actual = rich_test$Richness,
      predicted = pred)
 
 ```
-
+RMSE of random forest using tuned values - not much better. Removing noMSG and area ration because had -ve MSE - i.e. not important
 ```{r}
 #remove number of noMSG and area_ratio coz -ve MSE
 subset_mean = site_data_outlier%>%select("Richness",
@@ -312,6 +327,7 @@ for (i in 1:nrow(hyper_grid)){
  opt_i = which.min(oob_err)
 print(hyper_grid[opt_i,])
 ```
+New maximized values
 ```{r}
 forest = randomForest(formula = Richness~., data = forest_train,importance = TRUE,
                       mtry = 1,
@@ -325,19 +341,24 @@ rmse(actual = forest_test$Richness,
      predicted = pred)
 
 ```
+RMSE worse!
 ```{r}
 importance(forest)
 ```
 
+
 ```{r}
 varImpPlot(forest)
 ```
+,eanPH, noNVC and buffer most important variables, mena LBA not important
 
 ```{r}
 resid = pred - forest_test$Richness
 plot(resid,pred)
 
 ```
+
+#Boosted tree
 
 ```{r}
 #boosted tree
@@ -355,11 +376,16 @@ boosted_model = gbm(Richness~.,
 summary(boosted_model)
 ```
 
+meanpH bufferand NVC important
 ```{r}
 pred = predict(boosted_model, forest_test, n.trees = 10000)
 rmse(actual = forest_test$Richness,
      predicted = pred)
 ```
+
+RMSE same-ish
+
+#Tuning
 
 ```{r}
 #tuning
