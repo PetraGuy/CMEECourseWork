@@ -314,3 +314,21 @@ ggplot(data, aes(x = predicted_SD, y = empirical_SD))+
 
   
 ```
+
+
+
+```{r}
+
+ggplot(data = site_data_SDs, aes(x = sd_intercept, y = Richness))+
+  geom_point()+
+  geom_smooth(method = lm)
+```
+
+
+
+
+
+
+```{r}
+
+```

@@ -23,11 +23,13 @@
 
 rm(list = ls())
 cat("\014")
+library(glmm)
 library(dplyr)
 library(ggplot2)
 library(nlme)
 library(gridExtra)
 library(reshape)
+library(MuMIn)
 #plot level SAC
 
 
@@ -282,3 +284,36 @@ write.csv(ave_data_fits, "../Data/z_ave_fits.csv")
 saveRDS(path_max, "path_max.RDS")
 saveRDS(path_min,"path_min.RDS")
 
+#########glmm of the average fits###
+
+
+model = lme(log(ave_cf)~log(areas),random = ~1|Site, data = ave_data, na.action = na.omit)
+fit = predict(model)
+ave_data$fit = exp(fit)
+
+
+model_glmm = lmer(log(ave_cf)~log(areas)+(1|Site), data = ave_data, na.action = na.omit)
+
+fit_glmm = predict(model)
+ave_data$fit_glmm = exp(fit_glmm)
+
+model_glmm2 = glmer(log(ave_cf)~log(areas)+(1|Site), data = ave_data, family = "inverse",na.action = na.omit)
+fit_glmm = predict(model)
+ave_data$fit_glmm = exp(fit_glmm)
+
+model_glmm3 = glmer(ave_cf~log(areas)+(1|Site), data = ave_data, 
+                    family = gaussian(link ="log"),na.action = na.omit)
+
+model_glmm4 = glmer(log(ave_cf)~log(areas)+(1|Site), data = ave_data, 
+                    family = gaussian,na.action = na.omit)
+
+fit_glmm = predict(model)
+ave_data$fit_glmm = exp(fit_glmm)
+
+
+#model plot for best wood
+ggplot(ave_data)+
+  geom_point(aes(x=log(areas),y=log(ave_cf),na.rm =TRUE), colour = "black") +
+  geom_line(aes(x=log(areas), y = log(fit), group = Site), colour = "red")
+
+  

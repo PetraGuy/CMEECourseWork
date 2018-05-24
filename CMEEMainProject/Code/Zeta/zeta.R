@@ -13,14 +13,14 @@ library(zetadiv)
 rm(list = ls())
 cat("\014")
 
-ground_flora = read.csv("../Data/GroundCover.csv")
+ground_flora = read.csv("../../Data/GroundCover.csv")
 ground_flora = ground_flora%>%filter(Yr_2 == 2)
-veg_codes = read.csv("../Data/vegetation_codes.csv")
+veg_codes = read.csv("../../Data/vegetation_codes.csv")
 colnames(ground_flora) = c("SITE", "PLOT","NEST","Cover","BRC_number","Year")
 colnames(veg_codes) = c("Species", "BRC_number")
 flora = ground_flora%>% inner_join(veg_codes)
-Richness = read.csv("../data/SiteRichness.csv")
-CompleteSiteLevelvars = read.csv("../Data/CompleteSiteLevelVars.csv")
+Richness = read.csv("../../Data/SiteRichness.csv")
+CompleteSiteLevelvars = read.csv("../../Data/CompleteSiteLevelVars.csv")
 
 #######################
 #First need to put each site into a site by species presence absence data frame
@@ -202,7 +202,7 @@ zeta_coef_exp_zetadiv = zeta_coef_zetadiv[1:2,]
 zeta_coef_power_zetadiv = zeta_coef_zetadiv[3:4,]
 
 zeta_coef_list = list()
-zeta_ceof_lis[[1]] = zeta_coef_exp_pg
+zeta_coef_list[[1]] = zeta_coef_exp_pg
 zeta_coef_list[[2]] = zeta_coef_exp_zetadiv 
 zeta_coef_list[[3]] = zeta_coef_power_pg
 zeta_coef_list[[4]] = zeta_coef_power_zetadiv
@@ -272,7 +272,7 @@ modeled_zetas_list[[1]] = model_zetas_exp_pg
 modeled_zetas_list[[2]] = model_zetas_exp_zetadiv
 modeled_zetas_list[[3]] = model_zetas_pl_pg
 modeled_zetas_list[[4]] = model_zetas_pl_zetadiv
-saveRDS(model_zetas_list, "modelled_zetas.RDS")#############modeled zetas
+saveRDS(modeled_zetas_list, "modelled_zetas.RDS")#############modeled zetas
 
 
 ######check empirical zetas########
