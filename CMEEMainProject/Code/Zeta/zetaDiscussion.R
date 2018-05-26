@@ -1,5 +1,6 @@
 
-
+rm(list = ls())
+cat("\014")
 
 emp_zetas = readRDS("empirical_zetas.RDS")
 modelled_coefs = readRDS("zeta_coefficients.RDS")
@@ -14,6 +15,8 @@ flora = ground_flora%>% inner_join(veg_codes)
 Richness = read.csv("../../data/SiteRichness.csv")
 CompleteSiteLevelvars = read.csv("../../Data/CompleteSiteLevelVars.csv")
 
+
+library(ggplot2)
 
 #####look at area under curve for first 3 zeta values###
 
@@ -48,7 +51,7 @@ ggplot(data = data3, aes(x = A, y = no_NVC))+
   geom_point()+
   geom_smooth(method = lm)
 
-
+#Nothing to see here
 #Look at initial gradient of zeta curve
 
 g = vector()
@@ -82,6 +85,10 @@ ggplot(data = data6, aes(x = g, y = no_NVC))+
   geom_smooth(method = lm)
 
 ###
+#make a coefficicient r. Because z1 = ave alpha div and z2 = ave beta div
+#z1-z2 tell you about homog of site. If homg z1-z2 large (basically gradient
+#of zeta decay because x2-x1=1) so you coul dlook at z1-z2 - but is
+#not comparable between sites coz depends on z1. (So z1-z2)/z1 removes that
 
 r = vector()
 for( i in 1:103){
@@ -176,10 +183,11 @@ zeta_coef_new = get_coef(fits_exp)
 
 
 ###
+#Site 1
 
 x = c(1:16)
 y = emp_zetas[,1]
-m1 = nls(y~c*(exp(x^(a)))*exp(b*x), start = list(a = -2, b = -0.17, c = 10))
+m1 = nls(y~c*(exp(x^(a)))*exp(b*x), start = list(a = -2, b = -0.1, c = 10))
 p1 = predict(m1,x)
 cor(p1,y)
 
@@ -190,7 +198,7 @@ ggplot(data = data1, aes(x = x, y = y) )+
   geom_point(size = 4)+
   geom_point(data = data2, aes(x = x,y = p1), colour = "red")
 
-
+# Site 2
 x = c(1:16)
 y2 = emp_zetas[,2]
 m2 = nls(y2~c*(exp(x^(a)))*exp(b*x), start = list(a = -0.2, b = -0.1, c = 3))
@@ -202,4 +210,150 @@ data4 = as.data.frame(cbind(x,p2))
 ggplot(data = data3, aes(x = x, y = y2) )+
   geom_point(size = 4)+
   geom_point(data = data4, aes(x = x,y = p2), colour = "red")
-              
+
+# Site 5
+
+x = c(1:16)
+y5 = emp_zetas[,5]
+m5 = nls(y5~c*(exp(x^(a)))*exp(b*x), start = list(a = -2, b = -0.1, c = 5))
+p5 = predict(m5,x)
+cor(p5,y5)
+
+data3 = as.data.frame(cbind(x,y5))
+data4 = as.data.frame(cbind(x,p5))
+ggplot(data = data3, aes(x = x, y = y5) )+
+  geom_point(size = 4)+
+  geom_point(data = data4, aes(x = x,y = p5), colour = "red")
+
+###Lets try them all!!
+
+sites_to_remove = c(5,8,24,44,62,64,67,94)
+subset_emp_zeta = emp_zetas[,-sites_to_remove]
+
+m = list()
+cor = vector()
+pred = data.frame()
+sites = c(1:4,6,7,9:23,25:43,45:61,63,65,66,68:93,95:103)
+for (i in sites){
+  #browser
+  colname = paste("Site",i)
+  y = subset_emp_zeta[,colname]
+  nas = sum(is.na(y))
+  l = 16 - nas
+  y = y[c(1:l)]
+  x = seq(from = 1, to = l, by = 1)
+  m[[i]] = nls(y~c*(exp(x^(a)))*exp(b*x), start = list(a = -2, b = -0.1, c = 10))
+  p = predict(m[[i]],x)
+  pred = as.data.frame(rbind(pred,p))
+  cor[i] = cor(p,y, method = "kendall")
+
+  data1 = as.data.frame(cbind(x,y))
+  data2 = as.data.frame(cbind(x,p))
+  ggplot(data = data1, aes(x = x, y = y) )+
+  geom_point(size = 4)+
+  geom_point(data = data2, aes(x = x,y = p), colour = "red")
+}
+
+#look at pred zeta1 - emp zeta1
+pred_zeta1 = pred[,1]
+emp_zeta1 = subset_emp_zeta[1,]
+diff_newmod = as.data.frame(t(pred_zeta1-emp_zeta1))
+
+# now do boxplot again of diffs
+
+data = as.data.frame(cbind(diff_exp, diff_pwr))
+ggplot(stack(data), aes(x = ind, y = values))+
+  geom_boxplot(width = 0.3, fill = "grey")+
+  geom_boxplot(data = diff_newmod, aes(x = "", y = diff_newmod),width = 0.3, fill = "black")+
+  ylab("Difference in empirical and modelled values")+
+  xlab("Model type")+
+  ggtitle("The empircal - modelled value for zeta_1" )
+
+#####
+
+#Look at R2??
+exp_R2 = vector()
+pwr_R2 = vector()
+for (i in 1:103) {
+  exp_R2[i] = modelled_coefs[[1]][5,i]
+  pwr_R2[i] = modelled_coefs[[3]][5,i]
+}
+  
+# get R2 for newmod
+
+mean_y = apply(predt,2,mean)
+
+ESS = function(vector,mu){
+  ess = sum((vector - mu)^2)
+  return(ess)
+}
+
+TSS = function(vector,mu){
+  tss = sum((vector-mu)^2)
+  return(tss)
+}
+
+newmod_r2 = vector()
+for(i in 1:95){
+  #browser()
+  estsumsq = ESS(predt[,i],mean_y[i])
+  totsumsq = TSS(predt[,i],mean_y[i])
+  R2 = estsumsq/totsumsq
+  newmod_r2[i] = R2
+}
+
+###boxplots of R2
+
+data1 = as.data.frame(cbind(exp_R2,pwr_R2))
+
+data3 = as.data.frame(newmod_r2)
+
+ggplot(data = stack(data1), aes(x = ind, y = values))+
+  geom_boxplot(width = 0.3, fill = "grey")+
+  geom_boxplot(data = data3, aes(x = "",y = newmod_r2),width = 0.3, fill = "grey")
+
+#######
+
+#what about model coefficients
+
+newmod_coefs = lapply(m, coef)
+a = vector()
+b = vector()
+c = vector()
+
+for (i in 1:103){
+  if (!is.element(i,sites_to_remove)) {
+  a[i] = newmod_coefs[[i]][[1]]
+  b[i] = newmod_coefs[[i]][[2]]
+  c[i] = newmod_coefs[[i]][[3]]
+  }
+  else{
+    a[i] = NA
+    b[i] = NA
+    c[i] = NA
+  }
+}
+  
+## Now look at range in coefficients
+
+data = as.data.frame(cbind(a,b,c)) 
+ggplot(data = stack(data), aes(x = ind, y = values), na.rm = TRUE)+
+  geom_boxplot(width = 0.3, fill = "grey")
+
+c_noNA = na.omit(c) 
+zeta1 = t(subset_emp_zeta[1,])
+data = as.data.frame(cbind(zeta1,c_noNA))
+colnames(data) = c("zeta1","c")
+
+ggplot(data=data, aes(x = c, y = zeta1))+
+  geom_point()
+  
+
+data = as.data.frame(cbind(na.omit(b), na.omit(a))) 
+colnames(data) = c("b","a") 
+ggplot(data=data, aes(x = a, y = b))+
+  geom_point()
+
+
+
+  
