@@ -148,7 +148,7 @@ get_fits_power = function(data){
 get_coef =  function(model){
   coefs_df = as.data.frame(matrix(nrow = 5))
   for (i in 1:103){
-    coefs  = summary(model[[i]])$coefficients
+    coefs  = summary(model[[i]])$coefficientsA
     int = coefs[[1]]
     slope = coefs[[2]]
     se_int = coefs[[3]]
@@ -293,12 +293,17 @@ get_rich_empirical = function(){
       z[j] = zs[j]
     }
     S = nCr*sign*z
-    Rich_emp[i] = sum(S)
+    Rich_emp[i] = sum(S) 
   }
   return(Rich_emp)
 }
 Rich_emp = get_rich_empirical()
-
+#have a look, get actual richnesses, in the right order
+actual_richness = CompleteSiteLevelvars%>%select(Site,Richness)
+actual_richness = actual_richness[order(actual_richness$Site),]
+x = actual_richness$Richness
+y = Rich_emp
+plot(x,y)
 
 #####################
 

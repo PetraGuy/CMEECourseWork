@@ -1,0 +1,224 @@
+---
+title: "Extrapolating Richness"
+author: "Petra Guy"
+date: "29 May 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(dplyr)
+library(ggplot2)
+rm(list = ls())
+cat("\014")
+
+emp_zetas = readRDS("empirical_zetas.RDS")
+modelled_coefs = readRDS("zeta_coefficients.RDS")
+modelled_zetas = readRDS("modelled_zetas.RDS")
+new_mod_zetas = readRDS("new_model_zetas")
+
+ground_flora = read.csv("../../Data/GroundCover.csv")
+ground_flora = ground_flora%>%filter(Yr_2 == 2)
+veg_codes = read.csv("../../Data/vegetation_codes.csv")
+colnames(ground_flora) = c("SITE", "PLOT","NEST","Cover","BRC_number","Year")
+colnames(veg_codes) = c("Species", "BRC_number")
+flora = ground_flora%>% inner_join(veg_codes)
+Richness = read.csv("../../data/SiteRichness.csv")
+Richness = Richness[,-1]
+
+CompleteSiteLevelvars = read.csv("../../Data/CompleteSiteLevelVars.csv")
+
+sites = c(1:4,6,7,9:23,25:43,45:61,63,65,66,68:93,95:103)
+sites_to_remove = c(5,8,24,44,62,64,67,94)
+```
+
+
+```{r}
+get_rich_mod = function(data){
+  #browser()
+  nCr = vector()
+  Rich_mod = vector()
+  for (i in 1:95){ 
+    zs = data[,i]
+    l = length(zs)
+    z = vector()
+    sign = vector()
+    for (j in 1:l){
+      nCr[j] = choose(l,j)
+      sign[j] = (-1)^(j+1)
+      z[j] = zs[j]
+    }
+    S = nCr*sign*z
+    Rich_mod[i] = sum(S)
+  }
+  return(Rich_mod)
+}
+#check:
+emp_zetas_subset = emp_zetas[-(sites_to_remove),]
+Richness_check = get_rich_mod(emp_zetas_subset)
+mod_rich = get_rich_mod(new_mod_zetas)
+```
+
+
+```{r}
+
+a = readRDS("a.RDS")
+b =  readRDS("b.RDS")
+c = readRDS("c.RDS")
+new_mod_zetas = readRDS("new_model_zetas")
+new_mod_coefs = readRDS("new_mod_coefs")
+
+areas = CompleteSiteLevelvars%>%select(Site,Area_ha,Richness)
+rownames(areas) = areas$Site
+areas_sorted = areas[order(areas$Site),]
+subset_woods = areas_sorted[-(sites_to_remove),]
+
+subset_woods$orders = (subset_woods$Area_ha)*5 # areas in ha, so areax10000/200 = areax5
+
+
+#first just calc richness to order = 16
+#get the databases in the right order
+
+subset_woods$mod_rich = mod_rich
+rownames(subset_woods) = c(1:95)
+outliers = c(44,55,70,72,90,91)
+subset_woods_cut = subset_woods[-(outliers),]
+plot(subset_woods_cut$Richness,subset_woods_cut$mod_rich)
+```
+
+
+```{r}
+#can we see why sites 48,59,77,79,98,99 go so wrong?
+colnames(new_mod_zetas) = sites
+# Might be the NAs
+cor(subset_woods_cut$Richness, subset_woods_cut$mod_rich)
+
+
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#look at errors in actual richness and predicted richnes for order = 16
+
+#calcuale the min zeta vector, need to know if there NAs
+# and only do for the ones we know will work
+#so removing sites_to_remove and outliers
+#sites to remove did not converge for nls and outliers gave weird results in richness model
+total_to_remove = c(sites_to_remove,outliers)
+emp_zetas_subset = emp_zetas[,-total_to_remove]
+k = ncol(emp_zetas_subset)
+subset_sites = sites[-outliers]
+
+
+# get the coefficients for this site, site i
+get_coefs = function(i){
+  coefficients = vector()
+  coeffs = list()
+  coefficients[1] = new_mod_coefs[[i]][[1]] #a
+  coefficients[2] = new_mod_coefs[[i]][[4]] #se a
+  coefficients[3] = new_mod_coefs[[i]][[2]] #b
+  coefficients[4] = new_mod_coefs[[i]][[5]] #se b
+  coefficients[5] = new_mod_coefs[[i]][[3]] #c
+  coefficients[6] = new_mod_coefs[[i]][[6]] #se c
+  
+  amin = coefficients[1]+coefficients[2]
+  a = coefficients[1]
+  amax = coefficients[1]-coefficients[2]
+  
+  bmin = coefficients[3]+coefficients[4]
+  b = coefficients[3]
+  bmax = coefficients[3]-coefficients[4]
+  
+  cmin = coefficients[5]-coefficients[6]
+  c = coefficients[5]
+  cmax = coefficients[5]+coefficients[6]
+  as = c(amin,a,amax)
+  bs = c(bmin,b,bmax)
+  cs = c(cmin,c,cmax)
+  coeffs[[1]] = as
+  coeffs[[2]] = bs
+  coeffs[[3]] = cs
+  return(coeffs) #coeffs[[1]] is amin,a and amax for site 1
+}
+
+
+get_a_zeta = function(i,a,b,c){
+  zeta = c*exp(i^a)*exp(i*b)
+  return(zeta)
+}
+
+get_site_zetas = function(a,b,c){
+  zetas = vector()
+  for (j in 1:16){
+    zetas[j] = get_a_zeta(j,a,b,c)
+  }
+  return(zetas)
+}  
+
+
+
+get_rich_mod = function(data){
+  nCr = vector()
+  Rich_mod = vector()
+  for (i in 1:89){ 
+    zs = data[,i]
+    l = length(zs)
+    z = vector()
+    sign = vector()
+    for (j in 1:l){
+      nCr[j] = choose(l,j)
+      sign[j] = (-1)^(j+1)
+      z[j] = zs[j]
+    }
+    S = nCr*sign*z
+    Rich_mod[i] = sum(S)
+  }
+  return(Rich_mod)
+}
+  
+get_zeta_df = function(){
+  #browser()
+  zetas = list()
+  zeta_min_df = data.frame(nrow = 16)
+  zeta_max_df = data.frame(nrow = 16)
+for (i in subset_sites){
+  coef = get_coefs(i)
+  zetamins = get_site_zetas(coef[[1]][[1]],coef[[2]][[1]],coef[[3]][[1]])
+  zetamax = get_site_zetas(coef[[1]][[3]],coef[[2]][[3]],coef[[3]][[3]])
+  zeta_min_df = cbind(zeta_min_df,zetamins)
+  zeta_max_df = cbind(zeta_max_df,zetamax)
+}
+  zetas[[1]] = zeta_min_df[,-1]
+  zetas[[2]] = zeta_max_df[,-1]
+  return(zetas)
+}
+
+zeta_minmax = get_zeta_df()
+
+rich_mins = get_rich_mod(zeta_minmax[[1]])
+rich_mod = subset_woods_cut$mod_rich
+rich_max = get_rich_mod(zeta_minmax[[2]])
+rich_emp = subset_woods_cut$Richness
+rich_err = rich_max - rich_mins
+rich_percent_err = as.data.frame((rich_err/rich_emp)*100)
+
+ggplot()+
+  geom_boxplot(data = rich_percent_err, aes(x = "", y = rich_percent_err),width = 0.3, fill = "grey")+
+  labs (y = "percentage error in modelled richness")+
+  labs(x = "")+
+  ggtitle( "(max modelled richness - min modelled richness)/observed richness")+
+  annotate("text",x = 0.9, y = 65, label = "three quarters of the errors in the modelled richness are below 25% ")
+
+  
+
+``` 
+  
+  
+
+
+
+
+
+
+

@@ -354,6 +354,23 @@ colnames(data) = c("b","a")
 ggplot(data=data, aes(x = a, y = b))+
   geom_point()
 
+###############
+##Colin meant to say try zeta = Aexp(-x^b), so lets try that.
+
+
+x = c(1:16)
+y = emp_zetas[,1]
+m1 = nls(y~a*exp((b*x)^c), start = list(a = 9, b = -0.89,c = 1))
+p1 = predict(m1,x)
+cor(p1,y)
+
+data1 = as.data.frame(cbind(x,y))
+data2 = as.data.frame(cbind(x,p))
+
+ggplot(data = data1, aes(x = x, y = y) )+
+  geom_point(size = 4)+
+  geom_point(data = data2, aes(x = x,y = p1), colour = "red")
+
 
 
   
