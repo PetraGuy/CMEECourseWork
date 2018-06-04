@@ -110,7 +110,7 @@ forest = randomForest(formula = Richness~., data = train,importance = TRUE,
                       sampsize = 61)   
 
 pred= predict(object = forest, newdata = test)
-
+   
 rmse(actual = test$Richness,
      predicted = pred)
 

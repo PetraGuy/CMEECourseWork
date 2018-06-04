@@ -117,14 +117,17 @@ for (i in sites){
   x = seq(from = 1, to = l, by = 1)
   m[[i]] = nls(y~c*(exp(x^(a)))*exp(b*x), start = list(a = -2, b = -0.1, c = 10))
   p = predict(m[[i]],x)
-  pred = as.data.frame(rbind(pred,p))
   cor[i] = cor(p,y, method = "kendall")
+  pad = rep(NA,nas)
+  p = c(p,pad)
+  pred = as.data.frame(rbind(pred,p))
   mod_coefs[[i]] = coef(summary(m[[i]]))
-  data1 = as.data.frame(cbind(x,y))
-  data2 = as.data.frame(cbind(x,p))
-  ggplot(data = data1, aes(x = x, y = y) )+
-  geom_point(size = 4)+
-  geom_point(data = data2, aes(x = x,y = p), colour = "red")
+  
+  #data1 = as.data.frame(cbind(x,y))
+  #data2 = as.data.frame(cbind(x,p))
+  #ggplot(data = data1, aes(x = x, y = y) )+
+  #geom_point(size = 4)+
+  #geom_point(data = data2, aes(x = x,y = p), colour = "red")
 }
 new_mod_zetas = t(pred)
 rownames(new_mod_zetas) = c(1:16)
