@@ -20,6 +20,8 @@ library(gbm)#bgm
 library(caret)
 library(Metrics) #rmse
 library(randomForest)
+library(gridExtra)
+
 site_data =  read.csv("../../Data/CompleteSiteLevelVars.csv")
 site_data = site_data[,-1]
 #mean impute the missing PHI
@@ -105,9 +107,9 @@ print(hyper_grid[opt_i,])
 
 ```{r}
 forest = randomForest(formula = Richness~., data = train,importance = TRUE,
-                      mtry = 2,
-                      nodesize = 8,
-                      sampsize = 61)   
+                      mtry = 6,
+                      nodesize = 2,
+                      sampsize = 53)   
 
 pred= predict(object = forest, newdata = test)
    
@@ -143,11 +145,116 @@ train <- subset_mean[assignment == 1, ]    # subset the grade data frame to trai
 test <- subset_mean[assignment == 2, ]  # subset the grade data frame to validation indices only
 ```
 
+```{r}
+
+mtry = seq(2,11,1)
+nodesize = seq(2,10,2)
+sampsize = nrow(train)*c(0.7,0.8)
+
+hyper_grid = expand.grid(mtry = mtry, nodesize = nodesize, sampsize = sampsize)
+
+oob_err = c()
+
+for (i in 1:nrow(hyper_grid)){
+ # browser()
+  model = randomForest(formula = Richness~.,
+                              data = train,
+                              mtry = hyper_grid$mtry[i],
+                              nodesize = hyper_grid$nodesize[i] ,
+                              sampsize = hyper_grid$sampsize[i] )
+  
+  oob_err[i] = model$mse[length(model$mse)]
+  
+ }
+
+ opt_i = which.min(oob_err)
+print(hyper_grid[opt_i,])
+```
+
 
 ```{r}
 forest = randomForest(formula = Richness~., data = train,importance = TRUE,
                       mtry = 8,
+                      nodesize = 2,
+                      sampsize = 53)   
+
+pred= predict(object = forest, newdata = test)
+
+rmse(actual = test$Richness,
+     predicted = pred)
+
+```
+
+```{r}
+varImpPlot(forest)
+
+```
+
+```{r}
+varimp = data.frame(nrow = 8 )
+for (i in 1:100){
+forest = randomForest(formula = Richness~., data = train,importance = TRUE,
+                      mtry = 4,
                       nodesize = 8,
+                      sampsize = 61)  
+vi = varImp(forest)
+varimp = cbind(varimp,vi)
+}
+
+means = rowMeans(varimp)
+ordered_means = as.data.frame(round(sort(means, decreasing = TRUE),1))
+colnames(ordered_means) = "Average %IncMSE"
+ordered_means
+
+
+```
+
+```{r}
+# make train and test sets
+
+subset_sd = subset_all%>%select("Richness",
+                               "Northing", "PHI","Buffer",
+                               "no_NVC","sd_pH","sd_LBA",
+                               "sd_meandbh","sd_TD")
+#removed sd_SOM and no_MSG cos -ve %IncMSE
+set.seed(1)
+assignment <- sample(1:2, size = nrow(subset_sd), prob = c(0.75,0.25), replace = TRUE)
+
+# Create a train, validation and tests from the original data frame 
+train <- subset_sd[assignment == 1, ]    # subset the grade data frame to training indices only
+test <- subset_sd[assignment == 2, ]  # subset the grade data frame to validation indices only
+```
+
+```{r}
+
+mtry = seq(2,11,1)
+nodesize = seq(2,10,2)
+sampsize = nrow(train)*c(0.7,0.8)
+
+hyper_grid = expand.grid(mtry = mtry, nodesize = nodesize, sampsize = sampsize)
+
+oob_err = c()
+
+for (i in 1:nrow(hyper_grid)){
+ # browser()
+  model = randomForest(formula = Richness~.,
+                              data = train,
+                              mtry = hyper_grid$mtry[i],
+                              nodesize = hyper_grid$nodesize[i] ,
+                              sampsize = hyper_grid$sampsize[i] )
+  
+  oob_err[i] = model$mse[length(model$mse)]
+  
+ }
+
+ opt_i = which.min(oob_err)
+print(hyper_grid[opt_i,])
+```
+
+```{r}
+forest = randomForest(formula = Richness~., data = train,importance = TRUE,
+                      mtry = 3,
+                      nodesize = 6,
                       sampsize = 61)   
 
 pred= predict(object = forest, newdata = test)
@@ -162,11 +269,78 @@ varImpPlot(forest)
 
 ```
 
+```{r}
+varimp_o = data.frame(nrow = 8 )
+for (i in 1:100){
+forest = randomForest(formula = Richness~., data = train,importance = TRUE,
+                      mtry = 4,
+                      nodesize = 8,
+                      sampsize = 61)  
+vi = varImp(forest)
+o = order(vi, decreasing = TRUE)
+varimp_o = as.data.frame(cbind(varimp_o,o))
+}
+varimp_o = varimp_o[,-1]
+
+  Northings = unlist(varimp_o[1,])
+  Northings_table = table(Northings)
+    data = as.data.frame(Northings_table)
+    g1 = ggplot(data = data, aes(x = Northings, y=Freq))+
+    geom_bar(stat = "identity", width = 0.25)
+  PHI = unlist(varimp_o[2,])
+  PHI_table = table(PHI)
+    data = as.data.frame(PHI_table)
+    g2 = ggplot(data = data, aes(x = PHI, y=Freq))+
+    geom_bar(stat = "identity")
+
+  Buffer = unlist(varimp_o[3,])  
+  Buffer_table = table(Buffer)
+    data = as.data.frame(Buffer_table)
+    g3 = ggplot(data = data, aes(x = Buffer, y=Freq))+
+    geom_bar(stat = "identity")
+    
+  no_NVC = unlist(varimp_o[4,])
+  no_NVC_table = table(no_NVC)
+    data = as.data.frame(no_NVC_table)
+    g4 = ggplot(data = data, aes(x = no_NVC, y=Freq))+
+    geom_bar(stat = "identity")
+    
+  sd_pH = unlist(varimp_o[5,])
+  sd_pH_table = table(sd_pH)
+    data = as.data.frame(sd_pH_table)
+    g5 = ggplot(data = data, aes(x = sd_pH, y=Freq))+
+    geom_bar(stat = "identity")
+    
+  sd_LBA = unlist(varimp_o[6,])
+  sd_LBA_table = table(sd_LBA)
+    data = as.data.frame(sd_LBA_table)
+    g6 = ggplot(data = data, aes(x = sd_LBA, y=Freq))+
+    geom_bar(stat = "identity")
+    
+  sd_meanDBH = unlist(varimp_o[7,])
+  sd_meanDBH_table = table(sd_meanDBH)
+    data = as.data.frame(sd_meanDBH_table)
+    g7 = ggplot(data = data, aes(x = sd_meanDBH, y=Freq))+
+    geom_bar(stat = "identity")
+    
+  sd_TD = unlist(varimp_o[8,])
+  sd_TD_table = table(sd_TD)
+    data = as.data.frame(sd_TD_table)
+    g8 = ggplot(data = data, aes(x = sd_TD, y=Freq))+
+    geom_bar(stat = "identity")
 
 
+  
+means = rowMeans(varimp)
+ordered_means = as.data.frame(round(sort(means, decreasing = TRUE),1))
+colnames(ordered_means) = "Average %IncMSE"
+varnames = c("Northing" ,"PHI","Buffer", "no_NVC",
+            "sd_pH" , "sd_LBA", "sd_meandbh","sd_TD") 
 
 
-
+grid.arrange(g1,g2,g3,g4,g5,g6,g7,g8,ncol =2)
+               
+```
 
 
 
