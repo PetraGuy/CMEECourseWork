@@ -43,14 +43,14 @@ colnames(subset_all) = c("Site","Richness","Area",
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 subset_sd = subset_all%>%select("Richness",
-                               "Northing", "PHI","Buffer",
+                               "PHI","Buffer",
                                "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
                                "sd_meandbh","sd_TD","area_ratio")
 
 
 
 subset_mean = subset_all%>%select("Richness",
-                              "Northing", "PHI",  "meandbh",
+                              "PHI",  "meandbh",
                               "meanph", "Buffer", "meanSOM","meanLBA",
                               "meanTD","area_ratio", "no_NVC", 
                               "no_MSG")
@@ -121,6 +121,7 @@ opt_i = which.min(oob_err)
 print(hyper_grid[opt_i,])
 
 ```
+
 ```{r}
 #OK, lets try that then
   
@@ -209,7 +210,14 @@ rmse(actual = test$Richness,
 ```
 
 ```{r}
-summary(model,n.trees=10000)
+s = summary(model,n.trees=10000)
 
+x = as.character(s$var)
+y = s$rel.inf
+data = as.data.frame(cbind(x,y))
+data$y = as.numeric(levels(data$y))[data$y]
+data$x <- factor(data$x, levels = data$x[order(data$y)])
+ggplot(data =data , aes(x = x, y = y)) +  geom_bar(stat = "identity")+
+  ylab("relative influence")+
+  xlab("")
 ```
-

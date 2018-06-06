@@ -22,6 +22,7 @@ library(Metrics) #rmse
 library(randomForest)
 library(gridExtra)
 
+
 site_data =  read.csv("../../Data/CompleteSiteLevelVars.csv")
 site_data = site_data[,-1]
 #mean impute the missing PHI
@@ -191,29 +192,85 @@ varImpPlot(forest)
 ```
 
 ```{r}
-varimp = data.frame(nrow = 8 )
+varimp_o = data.frame(nrow = 8 )
 for (i in 1:100){
 forest = randomForest(formula = Richness~., data = train,importance = TRUE,
                       mtry = 4,
                       nodesize = 8,
                       sampsize = 61)  
 vi = varImp(forest)
-varimp = cbind(varimp,vi)
+o = order(vi, decreasing = TRUE)
+varimp_o = as.data.frame(cbind(varimp_o,o))
 }
+varimp_o = varimp_o[,-1]
 
+  First = unlist(varimp_o[1,])
+  First_table = table(First)
+    data = as.data.frame(First_table)
+    g1 = ggplot(data = data, aes(x = First, y=Freq))+
+    geom_bar(stat = "identity", width = 0.25)
+    
+  Second = unlist(varimp_o[2,])
+  Second_table = table(Second)
+    data = as.data.frame(Second_table)
+    g2 = ggplot(data = data, aes(x = Second, y=Freq))+
+    geom_bar(stat = "identity",width = 0.25)
+
+  Third = unlist(varimp_o[3,])  
+  Third_table = table(Third)
+    data = as.data.frame(Third_table)
+    g3 = ggplot(data = data, aes(x = Third, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
+    
+  Fourth = unlist(varimp_o[4,])
+  Fourth_table = table(Fourth)
+    data = as.data.frame(Fourth_table)
+    g4 = ggplot(data = data, aes(x = Fourth, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
+    
+  Fifth = unlist(varimp_o[5,])
+  Fifth_table = table(Fifth)
+    data = as.data.frame(Fifth_table)
+    g5 = ggplot(data = data, aes(x = Fifth, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
+    
+ Sixth = unlist(varimp_o[6,])
+  Sixth_table = table(Sixth)
+    data = as.data.frame(Sixth_table)
+    g6 = ggplot(data = data, aes(x = Sixth, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
+    
+  Seventh = unlist(varimp_o[7,])
+  Seventh_table = table(Seventh)
+    data = as.data.frame(Seventh_table)
+    g7 = ggplot(data = data, aes(x = Seventh, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
+    
+  Eighth = unlist(varimp_o[8,])
+  Eighth_table = table(Eighth)
+    data = as.data.frame(Eighth_table)
+    g8 = ggplot(data = data, aes(x = Eighth, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
+
+
+  
 means = rowMeans(varimp)
 ordered_means = as.data.frame(round(sort(means, decreasing = TRUE),1))
 colnames(ordered_means) = "Average %IncMSE"
-ordered_means
+varnames = c("Northing" ,"PHI","Buffer", "no_NVC",
+            "sd_pH" , "sd_LBA", "sd_meandbh","sd_TD") 
 
 
+grid.arrange(g1,g2,g3,g4,g5,g6,g7,g8,ncol =2)
+               
 ```
+
 
 ```{r}
 # make train and test sets
 
 subset_sd = subset_all%>%select("Richness",
-                               "Northing", "PHI","Buffer",
+                                "PHI","Buffer",
                                "no_NVC","sd_pH","sd_LBA",
                                "sd_meandbh","sd_TD")
 #removed sd_SOM and no_MSG cos -ve %IncMSE
@@ -253,9 +310,9 @@ print(hyper_grid[opt_i,])
 
 ```{r}
 forest = randomForest(formula = Richness~., data = train,importance = TRUE,
-                      mtry = 3,
+                      mtry = 2,
                       nodesize = 6,
-                      sampsize = 61)   
+                      sampsize = 53)   
 
 pred= predict(object = forest, newdata = test)
 
@@ -270,7 +327,7 @@ varImpPlot(forest)
 ```
 
 ```{r}
-varimp_o = data.frame(nrow = 8 )
+varimp_o = data.frame(nrow = 7 )
 for (i in 1:100){
 forest = randomForest(formula = Richness~., data = train,importance = TRUE,
                       mtry = 4,
@@ -282,55 +339,49 @@ varimp_o = as.data.frame(cbind(varimp_o,o))
 }
 varimp_o = varimp_o[,-1]
 
-  Northings = unlist(varimp_o[1,])
-  Northings_table = table(Northings)
-    data = as.data.frame(Northings_table)
-    g1 = ggplot(data = data, aes(x = Northings, y=Freq))+
+  First = unlist(varimp_o[1,])
+  First_table = table(First)
+    data = as.data.frame(First_table)
+    g1 = ggplot(data = data, aes(x = First, y=Freq))+
     geom_bar(stat = "identity", width = 0.25)
-  PHI = unlist(varimp_o[2,])
-  PHI_table = table(PHI)
-    data = as.data.frame(PHI_table)
-    g2 = ggplot(data = data, aes(x = PHI, y=Freq))+
-    geom_bar(stat = "identity")
+    
+  Second = unlist(varimp_o[2,])
+  Second_table = table(Second)
+    data = as.data.frame(Second_table)
+    g2 = ggplot(data = data, aes(x = Second, y=Freq))+
+    geom_bar(stat = "identity",width = 0.25)
 
-  Buffer = unlist(varimp_o[3,])  
-  Buffer_table = table(Buffer)
-    data = as.data.frame(Buffer_table)
-    g3 = ggplot(data = data, aes(x = Buffer, y=Freq))+
-    geom_bar(stat = "identity")
+  Third = unlist(varimp_o[3,])  
+  Third_table = table(Third)
+    data = as.data.frame(Third_table)
+    g3 = ggplot(data = data, aes(x = Third, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
     
-  no_NVC = unlist(varimp_o[4,])
-  no_NVC_table = table(no_NVC)
-    data = as.data.frame(no_NVC_table)
-    g4 = ggplot(data = data, aes(x = no_NVC, y=Freq))+
-    geom_bar(stat = "identity")
+  Fourth = unlist(varimp_o[4,])
+  Fourth_table = table(Fourth)
+    data = as.data.frame(Fourth_table)
+    g4 = ggplot(data = data, aes(x = Fourth, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
     
-  sd_pH = unlist(varimp_o[5,])
-  sd_pH_table = table(sd_pH)
-    data = as.data.frame(sd_pH_table)
-    g5 = ggplot(data = data, aes(x = sd_pH, y=Freq))+
-    geom_bar(stat = "identity")
+  Fifth = unlist(varimp_o[5,])
+  Fifth_table = table(Fifth)
+    data = as.data.frame(Fifth_table)
+    g5 = ggplot(data = data, aes(x = Fifth, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
     
-  sd_LBA = unlist(varimp_o[6,])
-  sd_LBA_table = table(sd_LBA)
-    data = as.data.frame(sd_LBA_table)
-    g6 = ggplot(data = data, aes(x = sd_LBA, y=Freq))+
-    geom_bar(stat = "identity")
+ Sixth = unlist(varimp_o[6,])
+  Sixth_table = table(Sixth)
+    data = as.data.frame(Sixth_table)
+    g6 = ggplot(data = data, aes(x = Sixth, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
     
-  sd_meanDBH = unlist(varimp_o[7,])
-  sd_meanDBH_table = table(sd_meanDBH)
-    data = as.data.frame(sd_meanDBH_table)
-    g7 = ggplot(data = data, aes(x = sd_meanDBH, y=Freq))+
-    geom_bar(stat = "identity")
+  Seventh = unlist(varimp_o[7,])
+  Seventh_table = table(Seventh)
+    data = as.data.frame(Seventh_table)
+    g7 = ggplot(data = data, aes(x = Seventh, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
     
-  sd_TD = unlist(varimp_o[8,])
-  sd_TD_table = table(sd_TD)
-    data = as.data.frame(sd_TD_table)
-    g8 = ggplot(data = data, aes(x = sd_TD, y=Freq))+
-    geom_bar(stat = "identity")
 
-
-  
 means = rowMeans(varimp)
 ordered_means = as.data.frame(round(sort(means, decreasing = TRUE),1))
 colnames(ordered_means) = "Average %IncMSE"
@@ -338,7 +389,7 @@ varnames = c("Northing" ,"PHI","Buffer", "no_NVC",
             "sd_pH" , "sd_LBA", "sd_meandbh","sd_TD") 
 
 
-grid.arrange(g1,g2,g3,g4,g5,g6,g7,g8,ncol =2)
+grid.arrange(g1,g2,g3,g4,g5,g6,g7,ncol =2)
                
 ```
 
