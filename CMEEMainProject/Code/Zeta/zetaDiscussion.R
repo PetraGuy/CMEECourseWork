@@ -95,6 +95,7 @@ for( i in 1:103){
   z = emp_zetas[,i]
   r[i] = (z[1]-z[2])/z[1]
 }
+saveRDS(r, "zeta_r")
 
 data7 = as.data.frame(cbind(Richness,r))
 data7 = data7[,-1]

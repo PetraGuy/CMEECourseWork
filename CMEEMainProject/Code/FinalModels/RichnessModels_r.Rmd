@@ -30,35 +30,15 @@ site_data =  read.csv("../../Data/CompleteSiteLevelVars.csv")
 site_data = site_data[,-1]
 ```
 
-##Overview: 
-The modelling structure, based on Burnham et al, has been to select the variables from the data set that have been shown in the literature to have an effect on species richness and then transformed only if there is a predetermined reason for doing so. In our case richness is known to have a unimodal response to pH and therefore this variable was transformed by taking the square. Correlations between covariates are considered which resulted in the data being split into two subsets. The data is then standardized, [Gelman] and fitted to a linear model. The variance inflation factors of the model parameters are considered, and the fit of the linear model is discussed using residual vs fitted values and QQ plots. The top model set was selected using a delta < 2 and these models were averaged. The parameter estimates with 95% confidence intervals were calculated from the adjusted standard errors and are plotted with variable importance. Finally a predicted richness is calculated and the r2 value of this when fitted to the empirical richness is shown.
+This is identical to richnessModels - but I am now adding in the zeta ratio zeta1-zeta2/zeta1
 
+```{r}
+Site = c(1:103)
+zeta_r = as.data.frame(cbind(Site,zeta_r))
+site_data = inner_join(site_data,zeta_r)
 
-##Variables slected.
+```
 
-Northing, Species richness decreases with increasing latitude [Gaston,1996]  
-
-Positive Heterogeneity Index, "PHI". This is the sum of counts of site features which indicate habitat heterogeneity, but specifically where that heterogeneity has been used in the literature and shown to correlate positively with plant species richness. [Boch used logging trails as indicator, Schmidt, Paillet show forest management increases richness, Hannay uses length of rides, Philips shows mean annual tree mortality increases richness]  
-
-Buffer,  This could impact richness bu increasing habitat connectivity leading to a species pool for the site.... need refs...  
-
-Number of major soil groups, no_MSG,[Hannay uses soil types]  
-
-number of NVC codes, no_NVC, This is another indicator of heterogeneity. Although there is the circular argument that NVC reflects richness because it describes a species assembly, here we use number of different NVC codes. this variable is therefore an expression of the heterogenity of the site.  
-
-Soil pH, sd_pH,meanph, [ Shen, unimodal response - need ref, but therefore meanph^2 was used]   
-
-Soil organic matter, sd_SOM,meanSOM,[Boch,]. Note Boch also discuss effect of beech tree soil litter and presence of beech. 
-
-Diameter at breast height, sd_meandbh,meandbh,[]  
-
-Tree density, sd_TD,meanTD [Shen]  
-
-the perimeter divided by the area, area_ratio,[Hanny, shape index]
-
-##Notes on data handling.  
-
-One site had no recorded site descriptors leading to PHI of NA - this has been mean imputed
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 #mean impute the missing PHI
 meanPHI = round(mean(site_data$Pos_Hetero_Index, na.rm = TRUE),2)
@@ -75,7 +55,7 @@ subset_all = site_data%>%select("Site","Richness","Area_ha",
                                 "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
                                 "sd_meandbh","sd_treedensity","area_ratio",
                                 "meandbh","meanph", "meanSOM","meanLBA",
-                                "meantreedensity")
+                                "meantreedensity","zeta_r")
 
 
 
@@ -84,7 +64,7 @@ colnames(subset_all) = c("Site","Richness","Area",
                          "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
                          "sd_meandbh","sd_TD","area_ratio",
                          "meandbh","meanph", "meanSOM","meanLBA",
-                         "meanTD")
+                         "meanTD","zeta_r")
 ```
 
 All woods had areas below 100 hectares,except one, which had an area of 311 ha.This was removed
@@ -102,7 +82,7 @@ site_data_outlier = site_data_outlier[,-3] # remove area column now
 subset_sd = site_data_outlier%>%select("Site","Richness",
                                "Northing", "PHI","Buffer",
                                "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
-                               "sd_meandbh","sd_TD","area_ratio")
+                               "sd_meandbh","sd_TD","area_ratio","zeta_r")
 
 
 
@@ -110,7 +90,7 @@ subset_mean = site_data_outlier%>%select("Site","Richness",
                               "Northing", "PHI",  "meandbh",
                               "meanph", "Buffer", "meanSOM","meanLBA",
                               "meanTD","area_ratio", "no_NVC", 
-                              "no_MSG")
+                              "no_MSG","zeta_r")
 
 ```
 
@@ -264,9 +244,9 @@ model_set = get.models(models, subset = delta<2)
 mean_avg_models = model.avg(model_set, subset)
 
 #select output data
-summary = summary(mean_avg_models)
+ summary = summary(mean_avg_models)
 coefs =  mean_avg_models$coefficients
-importance =  c(NA,(as.vector(mean_avg_models$importance[1:8])))
+importance =  c(NA,(as.vector(mean_avg_models$importance[2:11])))
 
 coef_matrix = summary$coefmat.full
 coefs = coef_matrix[,1]
@@ -279,7 +259,7 @@ output = round(as.data.frame(cbind(coefs,adj_se, CI_lower, CI_upper, importance)
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # make plot of the variables and CI
-data = output[c(2:9),]
+data = output[c(2:11),]
 data = data[,c(1,3,4)]
 data = t(data)
 data = as.data.frame(data)
@@ -324,7 +304,7 @@ sd_avg_models = model.avg(model_set, subset)
 #select output data
 summary = summary(sd_avg_models)
 coefs =  sd_avg_models$coefficients
-importance =  c(NA,(as.vector(sd_avg_models$importance[1:8])))
+importance =  c(NA,(as.vector(sd_avg_models$importance[1:9])))
 
 coef_matrix = summary$coefmat.full
 coefs = coef_matrix[,1]
@@ -357,7 +337,7 @@ ggplot(data, aes(x = predicted_richness, y = empirical_richness))+
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # make plot of the variables and CI
-data = output[c(2:9),]
+data = output[c(2:10),]
 data = data[,c(1,3,4)]
 data = t(data)
 data = as.data.frame(data)
@@ -403,24 +383,4 @@ ggplot(data, aes(x = predicted_richness, y = empirical_richness))+
   geom_abline(intercept = 0, slope = 1)+
   labs(title = "Observed versus predicted data, SD dataset",
        subtitle = subtitle)
-
-  
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

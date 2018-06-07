@@ -20,10 +20,10 @@ colnames(ellenbergs) = c("BRC","Taxon name","Light","Moisture","pH","Nitrogen","
 
 
 #png("../Data/site88.png")
-species20 =  species_per_plot%>%filter(Site==20)
-species20 = unique(species20$Species)
+species74 =  species_per_plot%>%filter(Site==74)
+species74 = unique(species74$Species)
 write.csv(species20, "../Data/site20.csv")
-grid.table(unique(species20$Species))
+grid.table(unique(species76$Species))
 
 dev.off()
 

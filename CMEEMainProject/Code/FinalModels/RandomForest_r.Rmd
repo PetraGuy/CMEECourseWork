@@ -25,18 +25,25 @@ library(gridExtra)
 
 site_data =  read.csv("../../Data/CompleteSiteLevelVars.csv")
 site_data = site_data[,-1]
+
+zeta_r = readRDS("../Zeta/zeta_r")
+Site = c(1:103)
+zeta_r = as.data.frame(cbind(Site,zeta_r))
+site_data = inner_join(zeta_r,site_data)
+
 #mean impute the missing PHI
 meanPHI = round(mean(site_data$Pos_Hetero_Index, na.rm = TRUE),2)
 x = site_data$Pos_Hetero_Index
 x[is.na(x)] = meanPHI
 site_data$Pos_Hetero_Index = x
-zeta_r = readRDS("../Zeta/zeta_r")
+
+
 subset_all = site_data%>%select("Site","Richness","Area_ha",
                                 "Northing", "Pos_Hetero_Index","Buffer3",
                                 "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
                                 "sd_meandbh","sd_treedensity","area_ratio",
                                 "meandbh","meanph", "meanSOM","meanLBA",
-                                "meantreedensity")
+                                "meantreedensity","zeta_r")
 
 
 
@@ -45,23 +52,23 @@ colnames(subset_all) = c("Site","Richness","Area",
                          "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
                          "sd_meandbh","sd_TD","area_ratio",
                          "meandbh","meanph", "meanSOM","meanLBA",
-                         "meanTD")
+                         "meanTD","zeta_r")
 ```
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 subset_sd = subset_all%>%select("Richness",
-                               "Northing", "PHI","Buffer",
+                                "PHI","Buffer",
                                "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
-                               "sd_meandbh","sd_TD","area_ratio")
+                               "sd_meandbh","sd_TD","area_ratio","zeta_r")
 
 
 
 subset_mean = subset_all%>%select("Richness",
-                              "Northing", "PHI",  "meandbh",
+                               "PHI",  "meandbh",
                               "meanph", "Buffer", "meanSOM","meanLBA",
                               "meanTD","area_ratio", "no_NVC", 
-                              "no_MSG")
+                              "no_MSG","zeta_r")
 
 ```
 
@@ -108,9 +115,9 @@ print(hyper_grid[opt_i,])
 
 ```{r}
 forest = randomForest(formula = Richness~., data = train,importance = TRUE,
-                      mtry = 6,
-                      nodesize = 2,
-                      sampsize = 53)   
+                      mtry = 4,
+                      nodesize = 10,
+                      sampsize = 61)   
 
 pred= predict(object = forest, newdata = test)
    
@@ -125,12 +132,12 @@ varImpPlot(forest)
 ```
 
 ```{r}
-#removing noMSG and area ratio as these keep coming up as negative MSE
-#removing northing as we have decided that northing and buffer are the same
+#removing noMSG
 subset_mean = subset_all%>%select("Richness",
-                             "PHI",  "meandbh",
-                              "meanph", "Buffer" ,"meanSOM","meanLBA",
-                              "meanTD", "no_NVC")
+                               "PHI",  "meandbh",
+                              "meanph", "Buffer", "meanSOM","meanLBA",
+                              "meanTD","area_ratio", "no_NVC", 
+                              "zeta_r")
                               
 
 ```
@@ -143,7 +150,7 @@ assignment <- sample(1:2, size = nrow(subset_mean), prob = c(0.75,0.25), replace
 
 # Create a train, validation and tests from the original data frame 
 train <- subset_mean[assignment == 1, ]    # subset the grade data frame to training indices only
-test <- subset_mean[assignment == 2, ]  # subset the grade data frame to validation indices only
+test <- subset_mean[assignment == 2, ]  # subset the grade data frame tBo validation indices only
 ```
 
 ```{r}
@@ -175,9 +182,9 @@ print(hyper_grid[opt_i,])
 
 ```{r}
 forest = randomForest(formula = Richness~., data = train,importance = TRUE,
-                      mtry = 8,
-                      nodesize = 2,
-                      sampsize = 53)   
+                      mtry = 2,
+                      nodesize = 8,
+                      sampsize = 61)   
 
 pred= predict(object = forest, newdata = test)
 
@@ -253,12 +260,7 @@ varimp_o = varimp_o[,-1]
     geom_bar(stat = "identity",width=0.25)
 
 
-  
-means = rowMeans(varimp)
-ordered_means = as.data.frame(round(sort(means, decreasing = TRUE),1))
-colnames(ordered_means) = "Average %IncMSE"
-varnames = c("Northing" ,"PHI","Buffer", "no_NVC",
-            "sd_pH" , "sd_LBA", "sd_meandbh","sd_TD") 
+
 
 
 grid.arrange(g1,g2,g3,g4,g5,g6,g7,g8,ncol =2)
@@ -269,10 +271,10 @@ grid.arrange(g1,g2,g3,g4,g5,g6,g7,g8,ncol =2)
 ```{r}
 # make train and test sets
 
-subset_sd = subset_all%>%select("Richness",
-                                "PHI","Buffer",
-                               "no_NVC","sd_pH","sd_LBA",
-                               "sd_meandbh","sd_TD")
+subset_sd = subset_all%>%select ("Richness",
+                               "Northing", "PHI","Buffer",
+                                "no_NVC","sd_pH",
+                               "sd_meandbh","sd_TD","zeta_r")
 #removed sd_SOM and no_MSG cos -ve %IncMSE
 set.seed(1)
 assignment <- sample(1:2, size = nrow(subset_sd), prob = c(0.75,0.25), replace = TRUE)
@@ -310,9 +312,9 @@ print(hyper_grid[opt_i,])
 
 ```{r}
 forest = randomForest(formula = Richness~., data = train,importance = TRUE,
-                      mtry = 2,
-                      nodesize = 6,
-                      sampsize = 53)   
+                      mtry = 6,
+                      nodesize = 8,
+                      sampsize = 61)   
 
 pred= predict(object = forest, newdata = test)
 
@@ -382,23 +384,8 @@ varimp_o = varimp_o[,-1]
     geom_bar(stat = "identity",width=0.25)
     
 
-means = rowMeans(varimp)
-ordered_means = as.data.frame(round(sort(means, decreasing = TRUE),1))
-colnames(ordered_means) = "Average %IncMSE"
-varnames = c("Northing" ,"PHI","Buffer", "no_NVC",
-            "sd_pH" , "sd_LBA", "sd_meandbh","sd_TD") 
 
 
 grid.arrange(g1,g2,g3,g4,g5,g6,g7,ncol =2)
-               
+        
 ```
-
-
-
-
-
-
-
-
-
-

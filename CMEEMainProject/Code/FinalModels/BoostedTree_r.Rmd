@@ -17,6 +17,12 @@ library(caret)
 library(Metrics) #rmse
 site_data =  read.csv("../../Data/CompleteSiteLevelVars.csv")
 site_data = site_data[,-1]
+
+zeta_r = readRDS("../Zeta/zeta_r")
+Site = c(1:103)
+zeta_r = as.data.frame(cbind(Site,zeta_r))
+site_data = inner_join(zeta_r,site_data)
+
 #mean impute the missing PHI
 meanPHI = round(mean(site_data$Pos_Hetero_Index, na.rm = TRUE),2)
 x = site_data$Pos_Hetero_Index
@@ -28,7 +34,7 @@ subset_all = site_data%>%select("Site","Richness","Area_ha",
                                 "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
                                 "sd_meandbh","sd_treedensity","area_ratio",
                                 "meandbh","meanph", "meanSOM","meanLBA",
-                                "meantreedensity")
+                                "meantreedensity","zeta_r")
 
 
 
@@ -37,7 +43,7 @@ colnames(subset_all) = c("Site","Richness","Area",
                          "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
                          "sd_meandbh","sd_TD","area_ratio",
                          "meandbh","meanph", "meanSOM","meanLBA",
-                         "meanTD")
+                         "meanTD","zeta_r")
 ```
 
 
@@ -45,15 +51,15 @@ colnames(subset_all) = c("Site","Richness","Area",
 subset_sd = subset_all%>%select("Richness",
                                "PHI","Buffer",
                                "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
-                               "sd_meandbh","sd_TD","area_ratio")
+                               "sd_meandbh","sd_TD","area_ratio","zeta_r")
 
 
 
-subset_mean = subset_all%>%select("Richness",
-                              "PHI",  "meandbh",
-                              "meanph", "Buffer", "meanSOM","meanLBA",
+subset_mean = subset_all%>%select("Richness","meanph",
+                              "PHI",  "meandbh","meanSOM",
+                               "Buffer", "meanLBA",
                               "meanTD","area_ratio", "no_NVC", 
-                              "no_MSG")
+                              "no_MSG","zeta_r")
 
 
 ```
@@ -197,7 +203,7 @@ Same hyper parameters on train set as when no train set used
 model = gbm(formula = Richness~.,
               data = test,
               n.minobsinnode = 3,
-              bag.fraction = 0.7 ,
+              bag.fraction = 0.8 ,
               interaction.depth =6,
                n.trees = 10000,
                distribution = "gaussian",
@@ -220,7 +226,8 @@ data$y = as.numeric(levels(data$y))[data$y]
 data$x <- factor(data$x, levels = data$x[order(data$y)])
 ggplot(data =data , aes(x = x, y = y)) +  geom_bar(stat = "identity")+
   ylab("relative influence")+
-  xlab("")
+  xlab("")+
+  theme(axis.text.x=element_text(angle = 45, hjust = 1))
 ```
 
 ```{r}
@@ -293,7 +300,7 @@ data$y = as.numeric(levels(data$y))[data$y]
 data$x <- factor(data$x, levels = data$x[order(data$y)])
 ggplot(data =data , aes(x = x, y = y)) +  geom_bar(stat = "identity")+
   ylab("relative influence")+
-  xlab("")
+  xlab("")+
+  theme(axis.text.x=element_text(angle = 45, hjust = 1))
 
-```
-
+``` 

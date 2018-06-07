@@ -53,7 +53,32 @@ g4 = ggplot(data = sitedata, aes(x = meanSOM, y = Richness))+
   ggtitle("Site richness with meanSOM")+
 ylab("site richness")
 
+g5 = ggplot(data = sitedata, aes(x = meanSOM, y = Northing))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  ggtitle("Northing with meanSOM")+
+ylab("Northing")
+
+g6 = ggplot(data = sitedata, aes(x = meanSOM, y = meantreedensity))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  ggtitle("meanTD with meanSOM")+
+ylab("mean_TD")
+
+g7 = ggplot(data = sitedata, aes(x = meanSOM, y = mean_L))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  ggtitle("Ellenberg L with meanSOM")+
+ylab("mean_L")
+
+g8 = ggplot(data = sitedata, aes(x = meanSOM, y = Buffer1))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  ggtitle("Buffer with meanSOM")+
+ylab("Buffer")
+
 grid.arrange(g1,g2,g3,g4, nrow = 2)
+grid.arrange(g5,g6,g7,g8, nrow = 2)
 ```
 
 Higher soil organic matter could be indicative of higher dbh because the more mature trees are producing more litterIn turn, larger trees would mean more mature woodland with lower species richness [ref?] If so, those variables would be positively correlated with meanSOM. In the graphs below, that does not appear to be the case.
