@@ -271,7 +271,7 @@ g7 = ggplot(data, aes(x= meanTD, y = Northing))+
   geom_point()+
  geom_smooth(method = lm)
 
-data = as.data.frame(cbind(sitevars$BufferI, sitevars$Northing))
+data = as.data.frame(cbind(sitevars$Buffer3, sitevars$Northing))
 colnames(data) =cbind("Buffer","Northing")
 g8 = ggplot(data, aes(x= Buffer, y = Northing))+
   geom_point()+
@@ -286,7 +286,13 @@ g8 = ggplot(data, aes(x= Buffer, y = Northing))+
  g11 = ggplot(sitevars, aes(x = mean_L, y = Richness ))+ geom_smooth(method = lm)
 
 
-grid.arrange(g7,g8,g9,g10, nrow = 2)
+ g12 = ggplot(data = sitevars, aes(x = mean_L, y = Richness))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  ggtitle("Richness with mean_L")+
+ylab("Richness")
+ 
+grid.arrange(g7,g8,g9,g10,g12 , nrow = 2)
 #grid.arrange(g1,g2,g3,g4,g5,g6,g7, nrow =2)
 ```
 
@@ -590,3 +596,13 @@ ggplot(allplotvars %>% group_by(ShortNVC) %>%
   stat_summary(fun.y=mean, colour="darkred", geom="point") +
   scale_fill_gradient(low=hcl(15,100,75), high=hcl(195,100,75))
 ```
+
+```{r}
+ggplot(data = sitedata, aes(x = cut(meanSOM, breaks = 10), y = Richness))+
+  geom_boxplot(varwidth = TRUE)+
+  xlab("mean soil organic matter")+ggtitle("Site richness with grouped meanSOM content")
+
+
+```
+
+

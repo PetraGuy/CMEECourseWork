@@ -29,7 +29,10 @@ library(reshape) # melt
 site_data =  read.csv("../../Data/CompleteSiteLevelVars.csv")
 nestZs = readRDS("../nest_mixed_model_fits.RDS")
 SDs = nestZs%>%select(Site,sd_intercept)
-
+zeta_r = readRDS("../Zeta/zeta_r")
+Site = c(1:103)
+zeta_r = as.data.frame(cbind(Site,zeta_r))
+site_data = inner_join(site_data,zeta_r)
 
 #mean impute the missing PHI
 meanPHI = round(mean(site_data$Pos_Hetero_Index, na.rm = TRUE),2)
@@ -49,7 +52,7 @@ subset_all = site_data_SDs%>%select("Site","sd_intercept","Area_ha",
                                 "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
                                 "sd_meandbh","sd_treedensity","area_ratio",
                                 "meandbh","meanph", "meanSOM","meanLBA",
-                                "meantreedensity")
+                                "meantreedensity","zeta_r")
 
 
 
@@ -58,7 +61,7 @@ colnames(subset_all) = c("Site","SDs","Area",
                          "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
                          "sd_meandbh","sd_TD","area_ratio",
                          "meandbh","meanph", "meanSOM","meanLBA",
-                         "meanTD")
+                         "meanTD","zeta_r")
 ```
 
 
@@ -83,7 +86,7 @@ site_data_outlier3 = site_data_outlier2%>%filter(Site!=largest_PHI)
 subset_sd = site_data_outlier3%>%select("Site","SDs",
                                "Northing", "PHI","Buffer",
                                "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
-                               "sd_meandbh","sd_TD","area_ratio")
+                               "sd_meandbh","sd_TD","area_ratio","zeta_r")
 
 
 
@@ -91,7 +94,7 @@ subset_mean = site_data_outlier3%>%select("Site","SDs",
                               "Northing", "PHI",  "meandbh",
                               "meanph", "Buffer", "meanSOM","meanLBA",
                               "meanTD","area_ratio", "no_NVC", 
-                              "no_MSG")
+                              "no_MSG","zeta_r")
 
 ```
 
@@ -168,7 +171,7 @@ The first twelve models from the mean dataset, which had a delta <2 were selecte
 library(MuMIn) #dredge and avg
  #get top models
 models = dredge(mod_mean)
-model_set = get.models(models, subset = delta<2)
+model_set = get.models(models, subset = delta<0.7)
 
 
 #do model averaging, subset means zero method
@@ -177,7 +180,7 @@ mean_avg_models = model.avg(model_set, subset)
 #select output data
 summary = summary(mean_avg_models)
 coefs =  mean_avg_models$coefficients
-importance =  c(NA,(as.vector(mean_avg_models$importance[1:6])))
+importance =  c(NA,(as.vector(mean_avg_models$importance)))
 
 coef_matrix = summary$coefmat.full
 coefs = coef_matrix[,1]
@@ -190,7 +193,8 @@ output = round(as.data.frame(cbind(coefs,adj_se, CI_lower, CI_upper, importance)
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # make plot of the variables and CI
-data = output[c(2:7),]
+n = nrow(output)
+data = output[c(2:n),]
 data = data[,c(1,3,4)]
 data = t(data)
 data = as.data.frame(data)
@@ -212,7 +216,7 @@ ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
   stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
   geom_abline(intercept = 0, slope = 0)+
   labs(y = "Effect size and 95%CI",x = "effect")+
-  labs(title = "Model averaged results for delta <2, SD of intercepts, Mean dataset",
+  labs(title = "Model averaged results for delta <0.7, SD of intercepts, Mean dataset",
        subtitle = "numbers in red are variable importance")
   
 
@@ -225,7 +229,7 @@ The graph shows the averaged effect sizes of the model with delta < 2. We cannot
 library(MuMIn) #dredge and avg
  #get top models
 models = dredge(mod_sd)
-model_set = get.models(models, subset = delta<2)
+model_set = get.models(models, subset = delta<0.7)
 
 
 #do model averaging, subset means zero method
@@ -234,7 +238,7 @@ sd_avg_models = model.avg(model_set, subset)
 #select output data
 summary = summary(sd_avg_models)
 coefs =  sd_avg_models$coefficients
-importance =  c(NA,(as.vector(sd_avg_models$importance[1:8])))
+importance =  c(NA,(as.vector(sd_avg_models$importance)))
 
 coef_matrix = summary$coefmat.full
 coefs = coef_matrix[,1]
@@ -247,7 +251,8 @@ output = round(as.data.frame(cbind(coefs,adj_se, CI_lower, CI_upper, importance)
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # make plot of the variables and CI
-data = output[c(2:9),]
+n = nrow(output)
+data = output[c(2:n),]
 data = data[,c(1,3,4)]
 data = t(data)
 data = as.data.frame(data)
@@ -269,7 +274,7 @@ ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
   stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
   geom_abline(intercept = 0, slope = 0)+
   labs(y = "Effect size and 95%CI",x = "effect")+
-  labs(title = "Model averaged results for delta <2, SD of random interepts, SD dataset",
+  labs(title = "Model averaged results for delta <0.7, SD of random intercepts, SD dataset",
        subtitle = "numbers in red are variable importance")
   
 
@@ -285,7 +290,9 @@ predicted_SD = predict(mean_avg_models, full = TRUE)
 empirical_SD =  site_data_outlier3$SDs
 fit = lm(empirical_SD ~ predicted_SD)
 R2 = round(summary(fit)$r.squared,2)
-subtitle = paste("R2 = ",R2)
+f = summary(fit)$fstatistic
+p = round(pf(f[1],f[2],f[3], lower.tail = F),4)
+subtitle = paste("R2 = ",R2, "p = ",p)
 data = as.data.frame(cbind(predicted_SD, empirical_SD))
 
 ggplot(data, aes(x = predicted_SD, y = empirical_SD))+
@@ -303,7 +310,9 @@ predicted_SD = predict(sd_avg_models, full = TRUE)
 empirical_SD =  site_data_outlier3$SDs
 fit = lm(empirical_SD ~ predicted_SD)
 R2 = round(summary(fit)$r.squared,2)
-subtitle = paste("R2 = ",R2)
+f = summary(fit)$fstatistic
+p = round(pf(f[1],f[2],f[3], lower.tail = F),4)
+subtitle = paste("R2 = ",R2, "p = ",p)
 data = as.data.frame(cbind(predicted_SD, empirical_SD))
 
 ggplot(data, aes(x = predicted_SD, y = empirical_SD))+

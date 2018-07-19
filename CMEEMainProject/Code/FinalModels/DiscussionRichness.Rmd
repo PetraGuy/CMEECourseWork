@@ -47,16 +47,24 @@ g3 = ggplot(data = sitedata, aes(x = meanph, y = Richness))+
   ggtitle("Site richness with meanpH")+
   ylab("site richness")
 
-g4 = ggplot(data = sitedata, aes(x = meanSOM, y = Richness))+
-  geom_point()+
-  geom_smooth(method = lm)+
-  ggtitle("Site richness with meanSOM")+
-ylab("site richness")
+#g4 = ggplot(data = sitedata, aes(x = meanSOM, y = Richness))+
+#  geom_point()+
+ # geom_smooth(method = lm)+
+ # ggtitle("Site richness with meanSOM")+
+#ylab("site richness")
 
-g5 = ggplot(data = sitedata, aes(x = meanSOM, y = Northing))+
+
+g4 = ggplot(data = sitedata, aes(x = cut(meanSOM, breaks = 10), y = Richness))+
+  geom_boxplot(varwidth = TRUE)+
+  xlab("mean soil organic matter")+ggtitle("Site richness with grouped meanSOM content")+
+  theme(axis.text.x = element_blank())
+
+
+
+g5 = ggplot(data = sitedata, aes(x = Pos_Hetero_Index, y = Northing))+
   geom_point()+
   geom_smooth(method = lm)+
-  ggtitle("Northing with meanSOM")+
+  ggtitle("Northing with PHI")+
 ylab("Northing")
 
 g6 = ggplot(data = sitedata, aes(x = meanSOM, y = meantreedensity))+
@@ -71,14 +79,22 @@ g7 = ggplot(data = sitedata, aes(x = meanSOM, y = mean_L))+
   ggtitle("Ellenberg L with meanSOM")+
 ylab("mean_L")
 
-g8 = ggplot(data = sitedata, aes(x = meanSOM, y = Buffer1))+
+g8 = ggplot(data = sitedata, aes(x = mean_N, y = Buffer3))+
   geom_point()+
   geom_smooth(method = lm)+
-  ggtitle("Buffer with meanSOM")+
+  ggtitle("Buffer with Mean Ellenberg N")+
 ylab("Buffer")
 
+g9 = ggplot(data = sitedata, aes(x = Northing, y =Richness))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  ylab("Richness")+
+  xlab("Northing")
+
+
+grid.arrange(g1,g3)
 grid.arrange(g1,g2,g3,g4, nrow = 2)
-grid.arrange(g5,g6,g7,g8, nrow = 2)
+grid.arrange(g8,g9, ncol = 2)
 ```
 
 Higher soil organic matter could be indicative of higher dbh because the more mature trees are producing more litterIn turn, larger trees would mean more mature woodland with lower species richness [ref?] If so, those variables would be positively correlated with meanSOM. In the graphs below, that does not appear to be the case.
@@ -115,8 +131,23 @@ tm1 <- treemap(
   type="value",
   title.legend = "SOM content",
   title = "Frequency of the different NVC codes and their mean SOM content",
-  palette = "RdYlBu"
+  palette = "Blues"
   )
+
+meanRichness = plotdata%>%group_by(ShortNVC)%>%summarise(meanRichness = round(mean(plot_richness, na.rm = TRUE),1))
+NVC_Richness = inner_join(fNVC,meanRichness) 
+
+tm2 <- treemap(
+  NVC_Richness,
+  index=c("ShortNVC"),
+  vSize="frequency",
+  vColor="meanRichness",
+  palette = "Greens",
+  type="value",
+  title.legend = "Average Plot Richness",
+  title = "Frequency of the different NVC codes and their mean plot richness"
+)
+
 
 ```
 
@@ -135,7 +166,7 @@ tm2 <- treemap(
   title = "Frequency of the different NVC codes and their mean plot richness"
 )
 
-
+tm2
 ```
 
 
@@ -190,5 +221,135 @@ ggplot(data = sitedata, aes(x = Buffer3, y = Northing))+
   xlab("Buffer size")
 ```
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE,out.width="50%"}
+ggplot(data = sitedata, aes(x = Buffer3, y = Northing))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  ggtitle("Relationship between Northing and buffer size")+
+  xlab("Buffer size")
+```
 
+```{r}
+
+
+
+g1 = ggplot(data = sitedata , aes(x = mean_L, y = Richness))+
+  geom_point()+
+  labs(x = "Ellenberg_L", y = "Site Richnesses")+
+  ggtitle( "Site richness with Ellenberg L")+
+  geom_smooth(method = lm)
+
+g2 = ggplot(data = sitedata , aes(x = mean_W, y = Richness))+
+  geom_point()+
+  labs(x = "Ellenberg_W", y = "Site Richnesses")+
+  ggtitle( "Site richness with Ellenberg W")+
+  geom_smooth(method = lm)
+
+g3 = ggplot(data = sitedata , aes(x = mean_N, y = Richness))+
+  geom_point()+
+  labs(x = "Ellenberg_N", y = "Site Richnesses")+
+  ggtitle( "Site richness with Ellenberg N")+
+  geom_smooth(method = lm)
+
+g4 = ggplot(data = sitedata , aes(x = mean_R, y = Richness))+
+  geom_point()+
+  labs(x = "Ellenberg_R", y = "Site Richnesses")+
+  ggtitle( "Site richness with Ellenberg R")+
+  geom_smooth(method = lm)
+
+g5 = ggplot(data = sitedata , aes(x = meantreedensity, y = Northing))+
+  geom_point()+
+  labs(x = "meanTD", y = "Northing")+
+geom_smooth(method = lm)
+
+g6 = ggplot(data = sitedata , aes(x = mean_L, y = Northing))+
+  geom_point()+
+  labs(x = "mean_L", y = "Northing")+
+  geom_smooth(method = lm)
+
+g7 = ggplot(data = sitedata , aes(x = meantreedensity, y = mean_L))+
+  geom_point()+
+  labs(x = "meanTD", y = "mean_L")+
+  geom_smooth(method = lm)
+
+
+grid.arrange(g5,g6,g7,g1, ncol = 2)
+
+```
+
+
+```{r}
+
+g1 = ggplot(data = sitedata , aes(x = meanph, y = Northing))+
+  geom_point()+
+  labs(x = "mean pH", y = "Northing")+
+  ggtitle( "orthing withmean pH")+
+  geom_smooth(method = lm)
+```
+
+
+```{r}
+
+g1 = ggplot(data = sitedata , aes(x = mean_N, y = Buffer3))+
+  geom_point()+
+  labs(x = "mean_N", y = "Buffer")+
+    geom_smooth(method = lm)
+
+g2 =ggplot(data = sitedata , aes(x = meanSOM, y = Buffer3))+
+  geom_point()+
+  labs(x = "meanSOM", y = "Buffer")+
+    geom_smooth(method = lm)
+
+g3 = ggplot(data = sitedata , aes(x = meanSOM, y = mean_N))+
+  geom_point()+
+  labs(x = "meanSOM", y = "mean_N")+
+    geom_smooth(method = lm)
+
+g10 = ggplot(data = sitedata , aes(x = meanSOM, y = mean_R))+
+  geom_point()+
+  labs(x = "meanSOM", y = "mean_R")+
+    geom_smooth(method = lm)
+#g4 = ggplot(data = sitedata , aes(x = meantreedensity, y = meanSOM))+
+ # geom_point()+
+ # labs(x = "meanTD", y = "meanSOM")+
+ #   geom_smooth(method = lm)
+
+g4 = ggplot(data = sitedata , aes(x = mean_N, y = Richness))+
+  geom_point()+
+  labs(x = "mean Ellenberg N", y = "Richness")+
+    geom_smooth(method = lm)
+  
+
+
+g6 = ggplot(data = sitedata , aes(x = mean_N, y = mean_R))+
+  geom_point()+
+  labs(x = "mean  N", y = "mean Ellenberg R")+
+    geom_smooth(method = lm)
+
+g7 = ggplot(data = sitedata , aes(x = mean_R, y = Richness))+
+  geom_point()+
+  labs(x = "mean  R", y = "Richness")+
+    geom_smooth(method = lm)
+
+g8 = ggplot(data = sitedata , aes(x = mean_N, y = Richness))+
+  geom_point()+
+  labs(x = "mean_N", y = "Richness")+
+    geom_smooth(method = lm)
+
+g9 = ggplot(data = sitedata , aes(x = mean_R, y = Buffer3))+
+  geom_point()+
+  labs(x = "mean_R", y = "Buffer")+
+    geom_smooth(method = lm)
+
+
+grid.arrange(g1,g9, ncol = 1)
+```
+
+
+```{r}
+ggplot(data = sitedata , aes(x = mean_R, y = mean_N))+
+  geom_point()+
+  labs(x = "mean_R", y = "mean_N")+
+    geom_smooth(method = lm)
+```
 

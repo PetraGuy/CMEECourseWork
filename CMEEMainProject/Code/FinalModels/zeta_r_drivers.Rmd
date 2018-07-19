@@ -1,11 +1,10 @@
 ---
-title: "Analysng the effect of abiotic factors on Plot z"
+title: "Zeta_r Drivers"
 author: "Petra Guy"
-date: "10 May 2018"
 output: pdf_document
 ---
 
-Species area curves were calculated at plot level, that is, the cumulative species count from an area of 200m^2 to 3200m2. The minimu and maximum curves were calculated and their average taken. A linear log/log fit was calucalted and the slope of this fit was extracted. That slope is fited here against the abiotic variables. 
+Modeling the response of zeta_r to the abiotica/heterogeneity varaibles
 
 ```{r setup, include=FALSE}
 
@@ -44,18 +43,10 @@ site_data$Pos_Hetero_Index = x
 site_data_zs = inner_join(site_data,Zs)
 ```
 
-```{r}
-#add in the new random path z's
-
-rand_zs = read.csv("../../Data/rand_zs.csv")
-colnames(rand_zs) = c("Site","zr")
-site_data_zs_zr=inner_join(site_data_zs,rand_zs)
-```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # slect only required variables
-#change to either slope or zr if you want minmax method or random method...."zr"
-subset_all = site_data_zs_zr%>%select("Site","slope","Area_ha",
+subset_all = site_data_zs%>%select("Site","slope","Area_ha",
                                 "Northing", "Pos_Hetero_Index","Buffer3",
                                 "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
                                 "sd_meandbh","sd_treedensity","area_ratio",
@@ -64,7 +55,7 @@ subset_all = site_data_zs_zr%>%select("Site","slope","Area_ha",
 
 
 
-colnames(subset_all) = c("Site","z","Area",
+colnames(subset_all) = c("Site","nestZ","Area",
                          "Northing", "PHI","Buffer",
                          "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
                          "sd_meandbh","sd_TD","area_ratio",
@@ -91,18 +82,18 @@ site_data_outlier3 = site_data_outlier2%>%filter(Site!=largest_PHI)
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-subset_sd = site_data_outlier3%>%select("Site","z",
+subset_sd = site_data_outlier3%>%select("Site","zeta_r",
                                "Northing", "PHI","Buffer",
                                "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
-                               "sd_meandbh","sd_TD","area_ratio","zeta_r")
+                               "sd_meandbh","sd_TD","area_ratio")
 
 
 
-subset_mean = site_data_outlier3%>%select("Site","z",
+subset_mean = site_data_outlier3%>%select("Site","zeta_r",
                               "Northing", "PHI",  "meandbh",
                               "meanph", "Buffer", "meanSOM","meanLBA",
                               "meanTD","area_ratio", "no_NVC", 
-                              "no_MSG","zeta_r")
+                              "no_MSG")
 
 ```
 
@@ -113,19 +104,19 @@ subset_mean = site_data_outlier3%>%select("Site","z",
 
 # we know richness vs ph usually unimodal around .5, therefore fit to meanpH^2
 data = subset_mean[,-1]
-z = subset_mean[,2]
-data$meanph = (data$meanph)^2
+zeta_r = subset_mean[,2]
+#data$meanph = (data$meanph)^2
 
 #rescale the data
 library(arm) #for standarize
 rescaled_mean_data = apply(data[,-1],2, rescale)
-rescaled_mean_data = as.data.frame(cbind(z, rescaled_mean_data))
+rescaled_mean_data = as.data.frame(cbind(zeta_r, rescaled_mean_data))
 ```
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 #create the model
-mod_mean = lm(z~., data=rescaled_mean_data, na.action = "na.fail")
+mod_mean = lm(zeta_r~., data=rescaled_mean_data, na.action = "na.fail")
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
@@ -138,18 +129,18 @@ plot(mod_mean, main = "Mean dataset")
 
 # we know richness vs ph usually unimodal around .5, therefore fit to meanpH^2
 data = subset_sd[,-1]
-z = subset_mean[,2]
+zeta_r = subset_mean[,2]
 
 #rescale the data
 library(arm) #for standarize
 rescaled_sd_data = apply(data[,-1],2, rescale)
-rescaled_sd_data = as.data.frame(cbind(z, rescaled_sd_data))
+rescaled_sd_data = as.data.frame(cbind(zeta_r, rescaled_sd_data))
 ```
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 #create the model
-mod_sd = lm(z~., data=rescaled_sd_data, na.action = "na.fail")
+mod_sd = lm(zeta_r~., data=rescaled_sd_data, na.action = "na.fail")
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
@@ -178,7 +169,7 @@ The models which had a delta <2 were selected from the MuMin dredge funtion as t
 library(MuMIn) #dredge and avg
  #get top models
 models = dredge(mod_mean)
-model_set = get.models(models, subset = delta<1.5)
+model_set = get.models(models, subset = delta<2)
 
 
 #do model averaging, subset means zero method
@@ -223,7 +214,7 @@ ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
   stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
   geom_abline(intercept = 0, slope = 0)+
   labs(y = "Effect size and 95%CI",x = "effect")+
-  labs(title = "Model averaged results for delta <1.5, Plot Zs, Mean dataset",
+  labs(title = "Model averaged results for delta <2, zeta_r, Mean dataset",
        subtitle = "numbers in red are variable importance")
   
 
@@ -281,7 +272,7 @@ ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
   stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
   geom_abline(intercept = 0, slope = 0)+
   labs(y = "Effect size and 95%CI",x = "effect")+
-  labs(title = "Model averaged results for delta <1.5, Plot Zs, SD dataset",
+  labs(title = "Model averaged results for delta <2, zeta_rs, SD dataset",
        subtitle = "numbers in red are variable importance")
   
 
@@ -294,7 +285,7 @@ In the sd dataset model the standard deviaiton of mean dbh has an effect.
 #extract model averaged parameter estimates
 
 predicted_Z = predict(mean_avg_models, full = TRUE)
-empirical_Z =  site_data_outlier3$z
+empirical_Z =  site_data_outlier3$zeta_r
 fit = lm(empirical_Z ~ predicted_Z)
 R2 = round(summary(fit)$r.squared,2)
 subtitle = paste("R2 = ",R2)
@@ -312,7 +303,7 @@ ggplot(data, aes(x = predicted_Z, y = empirical_Z))+
 #extract model averaged parameter estimates
 
 predicted_Z = predict(sd_avg_models, full = TRUE)
-empirical_Z =  site_data_outlier3$randomz
+empirical_Z =  site_data_outlier3$zeta_r
 fit = lm(empirical_Z ~ predicted_Z)
 R2 = round(summary(fit)$r.squared,2)
 subtitle = paste("R2 = ",R2)
@@ -326,20 +317,3 @@ ggplot(data, aes(x = predicted_Z, y = empirical_Z))+
 
   
 ```
-
-
-```{r}
-#llok and z and rand z together
-
-df = as.data.frame(cbind(site_data_zs_zr$zr,site_data_zs_zr$slope))%>%gather(key,value)
-
-ggplot(df,aes(value, fill=key))+
-  geom_density(show.legend = TRUE,alpha = 0.5)
-  #theme_minimal()+
-  #scale_fill_manual(values = c(x="red",y="blue"))
-```
-
-                         
-                         
-                         
-                         

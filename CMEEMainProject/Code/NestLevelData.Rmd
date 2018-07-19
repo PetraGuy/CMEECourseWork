@@ -269,10 +269,21 @@ colnames(range_df) = c("nest_range", "plot_range")
 
 #ggplot(range_df, aes(plot_range))+geom_histogram(binwidth = 1, col = "black", fill = "grey")
 melted =  melt(range_df)
-ggplot(melted, aes(value, fill = variable) )+ 
-  geom_histogram(position = "identity", alpha = 0.2)+
-  ggtitle("Change in richness due to area and plot")
 
+g1 = ggplot(melted, aes(value, fill = variable) )+ 
+  geom_histogram(position = "identity", alpha = 0.2)+
+  xlab("")
+  
+
+
+
+g2 = ggplot(melted) + geom_boxplot(aes_string(x = "variable", y = "value"))+
+  xlab("")+
+  yl ab("Change in richness")
+  
+
+grid.arrange(g1,g2, ncol = 2, top = "Change in richness due to nest or plot")
+```
   
 ```
 
@@ -291,5 +302,7 @@ The boxplots again show how the range of richness is as large for plot as it is 
 This change in richness across the plots of the woods is due to the heterogeneity of the woodland, and it is the physical and environmental drivers of this heterogenity induced increase in species richness that we want to investigate.
 
 
-
+```{r}
+t.test(range_df$nest_range,range_df$plot_range)
+```
 

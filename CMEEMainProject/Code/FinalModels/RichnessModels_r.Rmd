@@ -80,18 +80,19 @@ site_data_outlier = site_data_outlier[,-3] # remove area column now
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 subset_sd = site_data_outlier%>%select("Site","Richness",
-                               "Northing", "PHI","Buffer",
+                                "PHI","Buffer","Northing",
                                "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
                                "sd_meandbh","sd_TD","area_ratio","zeta_r")
 
+#,
 
 
 subset_mean = site_data_outlier%>%select("Site","Richness",
-                              "Northing", "PHI",  "meandbh",
-                              "meanph", "Buffer", "meanSOM","meanLBA",
+                               "PHI", "Northing", "meandbh","Buffer",
+                              "meanph",  "meanSOM","meanLBA",
                               "meanTD","area_ratio", "no_NVC", 
                               "no_MSG","zeta_r")
-
+#,
 ```
 
 
@@ -170,8 +171,8 @@ Correlations all <0.51
 ##Models for means#############
 # we know richness vs ph usually unimodal around .5, therefore fit to meanpH^2
 data = subset_mean[,-1]
-richness = subset_mean[,2]
-data$meanph = (data$meanph)^2
+richness = subset_mean[,2] # removed because going to scale in next chunk
+data$meanph2 = (data$meanph)^2 #just leave as meanpH because doesnt come out either way??
 ```
 
 
@@ -246,7 +247,7 @@ mean_avg_models = model.avg(model_set, subset)
 #select output data
  summary = summary(mean_avg_models)
 coefs =  mean_avg_models$coefficients
-importance =  c(NA,(as.vector(mean_avg_models$importance[2:11])))
+importance =  c(NA,(as.vector(mean_avg_models$importance)))
 
 coef_matrix = summary$coefmat.full
 coefs = coef_matrix[,1]
@@ -259,7 +260,8 @@ output = round(as.data.frame(cbind(coefs,adj_se, CI_lower, CI_upper, importance)
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # make plot of the variables and CI
-data = output[c(2:11),]
+n = nrow(output)
+data = output[c(2:n),]
 data = data[,c(1,3,4)]
 data = t(data)
 data = as.data.frame(data)
@@ -304,7 +306,7 @@ sd_avg_models = model.avg(model_set, subset)
 #select output data
 summary = summary(sd_avg_models)
 coefs =  sd_avg_models$coefficients
-importance =  c(NA,(as.vector(sd_avg_models$importance[1:9])))
+importance =  c(NA,(as.vector(sd_avg_models$importance)))
 
 coef_matrix = summary$coefmat.full
 coefs = coef_matrix[,1]
@@ -315,29 +317,10 @@ CI_upper = coefs + 1.96*adj_se
 output = round(as.data.frame(cbind(coefs,adj_se, CI_lower, CI_upper, importance)),2)
 ```
 
-##Using the model for prediction
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-#extract model averaged parameter estimates
-
-predicted_richness = predict(mean_avg_models, full = TRUE)
-empirical_richness =  site_data_outlier$Richness
-fit = lm(empirical_richness ~ predicted_richness)
-R2 = round(summary(fit)$r.squared,2)
-subtitle = paste("R2 = ",R2)
-data = as.data.frame(cbind(predicted_richness, empirical_richness))
-
-ggplot(data, aes(x = predicted_richness, y = empirical_richness))+
-  geom_point()+
-  geom_abline(intercept = 0, slope = 1)+
-  labs(title = "Observed versus predicted data, mean dataset",
-       subtitle = subtitle)
-
-  
-```
-
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # make plot of the variables and CI
-data = output[c(2:10),]
+n = nrow(output)
+data = output[c(2:n),]
 data = data[,c(1,3,4)]
 data = t(data)
 data = as.data.frame(data)
@@ -359,11 +342,38 @@ ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
   stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
   geom_abline(intercept = 0, slope = 0)+
   labs(y = "Parameter estimate and 95%CI",x = "Parameter")+ 
-  labs(title = "Model averaged results for delta <1.99 for SD data subset",
+  labs(title = "Model averaged results for delta <2, mean dataset",
        subtitle = "Numbers in red are importance")
 
 
 ```
+
+
+##Using the model for prediction
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#extract model averaged parameter estimates
+
+predicted_richness = predict(mean_avg_models, full = TRUE)
+empirical_richness =  site_data_outlier$Richness
+fit = lm(empirical_richness ~ predicted_richness)
+R2 = round(summary(fit)$r.squared,2)
+f = summary(fit)$fstatistic
+p = round(pf(f[1],f[2],f[3], lower.tail = F),4)
+rmse = round(rmse(actual = empirical_richness, predicted =  predicted_richness),2)
+subtitle = paste("R2 = ",R2, "p = ",p, "rmse = ", rmse)
+data = as.data.frame(cbind(predicted_richness, empirical_richness))
+
+
+ggplot(data, aes(x = predicted_richness, y = empirical_richness))+
+  geom_point()+
+  geom_abline(intercept = 0, slope = 1)+
+  labs(title = "Observed versus predicted data, mean dataset",
+       subtitle = subtitle)
+    
+  
+```
+
+
 
 The graph shows the averaged effect sizes of the model with delta < 1.99. The effect which have a CI which does not include zero are again number of NVC codes, and Positive Heterogeneity Index. in addition Northing and standard deviation of tree density have an effect on richness in this model.
 
@@ -375,7 +385,10 @@ predicted_richness = predict(sd_avg_models, full = TRUE)
 empirical_richness =  site_data_outlier$Richness
 fit = lm(empirical_richness ~ predicted_richness)
 R2 = round(summary(fit)$r.squared,2)
-subtitle = paste("R2 = ",R2)
+f = summary(fit)$fstatistic
+p = round(pf(f[1],f[2],f[3], lower.tail = F),4)
+rmse = round(rmse(actual = empirical_richness, predicted =  predicted_richness),2)
+subtitle = paste("R2 = ",R2, "p = ",p, "rmse = ", rmse)
 data = as.data.frame(cbind(predicted_richness, empirical_richness))
 
 ggplot(data, aes(x = predicted_richness, y = empirical_richness))+
@@ -384,3 +397,41 @@ ggplot(data, aes(x = predicted_richness, y = empirical_richness))+
   labs(title = "Observed versus predicted data, SD dataset",
        subtitle = subtitle)
 ```
+
+
+
+```{r}
+g1 = ggplot(data = site_data, aes(x = Northing, y = zeta_r))+
+  geom_point()+
+  geom_smooth(method = lm)
+g1
+```
+
+
+```{r}
+library(ggmap)
+SOM = site_data%>%select(Site, meanSOM)
+woods = read.csv("../../Data/EastingNorthing.csv")
+colnames(woods) = c("Site", "Easting", "Northing", "GridRef", "Lat", "Long")
+woods_SOM = inner_join(woods, SOM)
+
+map<- get_map(location = c(lon = -1.5, lat = 54),
+                         color = "color",
+                         source = "google",
+                         maptype = "satellite",
+                         zoom = 6) 
+#png("../Data/Talk/Map.png") 
+ggmap(map, extent ='device')+
+    geom_point(aes(x = Long, y = Lat, colour = meanSOM),data = woods_SOM, size = 2, alpha=1)+
+    scale_color_gradient(low = "yellow", high="blue")
+  #geom_point(aes(x = Long, y = Lat, colour = meanSOM),data = min_max, size = 4, alpha=1)+
+  #scale_color_gradient(low = "yellow", high="red")
+  #geom_text_repel(data = good_bad, aes(x = Long, y = Lat,label = d), 
+            #size = 3, colour = "white")
+
+##################################
+```
+
+
+
+

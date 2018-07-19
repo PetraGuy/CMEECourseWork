@@ -1,4 +1,6 @@
 
+
+#this was to get the standard deviation of the random intercepts in the nest fits
 setwd("~/Documents/CMEECourseWork/CMEEMainProject/Code")
 rm(list = ls())
 cat("\014")

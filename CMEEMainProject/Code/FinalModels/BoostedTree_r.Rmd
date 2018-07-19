@@ -49,20 +49,22 @@ colnames(subset_all) = c("Site","Richness","Area",
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 subset_sd = subset_all%>%select("Richness",
-                               "PHI","Buffer",
-                               "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
-                               "sd_meandbh","sd_TD","area_ratio","zeta_r")
+                         "Northing", "PHI","Buffer",
+                         "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
+                         "sd_meandbh","sd_TD","area_ratio",
+                         "zeta_r")
 
 
 
-subset_mean = subset_all%>%select("Richness","meanph",
-                              "PHI",  "meandbh","meanSOM",
-                               "Buffer", "meanLBA",
-                              "meanTD","area_ratio", "no_NVC", 
-                              "no_MSG","zeta_r")
+subset_mean = subset_all%>%select("Richness",
+                         "Northing", "PHI","Buffer",
+                         "no_MSG", "no_NVC","area_ratio",
+                         "meandbh","meanph", "meanSOM","meanLBA",
+                         "meanTD","zeta_r")
 
 
 ```
+
 
 
 ```{r}
@@ -85,15 +87,19 @@ print( model$train.error[length(model$train.error)])
 
 
 ```
+```{r}
+ntree_opt_oob = gbm.perf(model, method = "cv",oobag.curve = TRUE)
+```
+
 
 ```{r}
-pred <- predict(model,subset_mean,10000)
+pred <- predict(model,subset_mean,3000)
 rmse(actual = subset_mean$Richness,
      predicted = pred)
 ```
 
 ```{r}
-summary(model,n.trees=10000)
+summary(model,n.trees=3000)
 ```
 
 
@@ -157,10 +163,10 @@ summary(model,n.trees=10000)
 ```
 
 ```{r}
-#now need a train and test set
+#now need a train and test set  MEANS START HERE
 
-set.seed(5)
-assignment <- sample(1:2, size = nrow(subset_mean), prob = c(0.75,0.25), replace = TRUE)
+#set.seed(5)
+assignment <- sample(1:2, size = nrow(subset_mean), prob = c(0.7,0.3), replace = TRUE)
 
 train <- subset_mean[assignment == 1, ]   
 test <- subset_mean[assignment == 2, ]  
@@ -199,21 +205,27 @@ print(hyper_grid[opt_i,])
 Same hyper parameters on train set as when no train set used
 
 ```{r}
-#run model on test set
+#run model on train set
 model = gbm(formula = Richness~.,
-              data = test,
-              n.minobsinnode = 3,
+              data = train,
+              n.minobsinnode = 2,
               bag.fraction = 0.8 ,
-              interaction.depth =6,
+              interaction.depth = 6,
                n.trees = 10000,
                distribution = "gaussian",
                cv.folds =5)
-print( model$train.error[length(model$train.error)])  
+#print( model$train.error[length(model$train.error)])  
+ntree_opt_oob = gbm.perf(model, method = "cv",oobag.curve = TRUE)
+
+pred_test <- predict(model,test,ntree_opt_oob)
+pred_train = predict(model,train,ntree_opt_oob) 
+
+rmse_test = rmse(actual = test$Richness,   predicted = pred_test)
+rmse_train = rmse(actual = train$Richness, predicted = pred_train)
 
 
-pred <- predict(model,test,10000)
-rmse(actual = test$Richness,
-     predicted = pred)
+rmse_test
+rmse_train
 ```
 
 ```{r}
@@ -224,6 +236,7 @@ y = s$rel.inf
 data = as.data.frame(cbind(x,y))
 data$y = as.numeric(levels(data$y))[data$y]
 data$x <- factor(data$x, levels = data$x[order(data$y)])
+
 ggplot(data =data , aes(x = x, y = y)) +  geom_bar(stat = "identity")+
   ylab("relative influence")+
   xlab("")+
@@ -231,6 +244,7 @@ ggplot(data =data , aes(x = x, y = y)) +  geom_bar(stat = "identity")+
 ```
 
 ```{r}
+#sd set
 #now need a train and test set
 
 set.seed(5)
@@ -277,17 +291,21 @@ Gives nodes = 2, bag = 0.8, depth = 6
 model = gbm(formula = Richness~.,
               data = test,
               n.minobsinnode = 3 ,
-              bag.fraction = 0.8 ,
-              interaction.depth =6,
+              bag.fraction = 0.85 ,
+              interaction.depth =5,
                n.trees = 10000,
                distribution = "gaussian",
                cv.folds =5)
-print( model$train.error[length(model$train.error)])  
+#print( model$train.error[length(model$train.error)])  
 
 
-pred <- predict(model,test,10000)
-rmse(actual = test$Richness,
-     predicted = pred)
+pred_test <- predict(model,test,10000)
+pred_train = predict(model,train,10000) 
+rmse_test = rmse(actual = test$Richness,   predicted = pred_test)
+rmse_train = rmse(actual = train$Richness, predicted = pred_train)
+
+rmse_test
+rmse_train
 ```
 
 ```{r}
@@ -304,3 +322,25 @@ ggplot(data =data , aes(x = x, y = y)) +  geom_bar(stat = "identity")+
   theme(axis.text.x=element_text(angle = 45, hjust = 1))
 
 ``` 
+
+```{r}
+
+predicted_richness = pred
+empirical_richness =  test$Richness
+
+fit = lm(empirical_richness ~ pred)
+R2 = round(summary(fit)$r.squared,2)
+f = summary(fit)$fstatistic
+p = round(pf(f[1],f[2],f[3], lower.tail = F),4)
+rmse = round(rmse(actual = empirical_richness, predicted =  predicted_richness),2)
+subtitle = paste("R2 = ",R2, "p = ",p, "rmse = ", rmse)
+data = as.data.frame(cbind(predicted_richness, empirical_richness))
+
+ggplot(data, aes(x = predicted_richness, y = empirical_richness))+
+  geom_point()+
+  geom_abline(intercept = 0, slope = 1)+
+  labs(title = "Observed versus predicted data, SD dataset",
+       subtitle = subtitle)
+
+```
+

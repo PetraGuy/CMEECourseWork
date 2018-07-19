@@ -30,7 +30,7 @@ meanPHI = round(mean(site_data$Pos_Hetero_Index, na.rm = TRUE),2)
 x = site_data$Pos_Hetero_Index
 x[is.na(x)] = meanPHI
 site_data$Pos_Hetero_Index = x
-zeta_r = readRDS("../Zeta/zeta_r")
+
 subset_all = site_data%>%select("Site","Richness","Area_ha",
                                 "Northing", "Pos_Hetero_Index","Buffer3",
                                 "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
@@ -108,8 +108,8 @@ print(hyper_grid[opt_i,])
 
 ```{r}
 forest = randomForest(formula = Richness~., data = train,importance = TRUE,
-                      mtry = 6,
-                      nodesize = 2,
+                      mtry = 9,
+                      nodesize = 7,
                       sampsize = 53)   
 
 pred= predict(object = forest, newdata = test)
@@ -128,11 +128,11 @@ varImpPlot(forest)
 #removing noMSG and area ratio as these keep coming up as negative MSE
 #removing northing as we have decided that northing and buffer are the same
 subset_mean = subset_all%>%select("Richness",
-                             "PHI",  "meandbh",
-                              "meanph", "Buffer" ,"meanSOM","meanLBA",
-                              "meanTD", "no_NVC")
+                             "PHI","Northing","meandbh",
+                              "meanph", "Buffer" ,"meanSOM",
+                               "no_NVC","meanLBA","meanTD")
                               
-
+#
 ```
 
 ```{r}
@@ -148,9 +148,9 @@ test <- subset_mean[assignment == 2, ]  # subset the grade data frame to validat
 
 ```{r}
 
-mtry = seq(2,11,1)
-nodesize = seq(2,10,2)
-sampsize = nrow(train)*c(0.7,0.8)
+mtry = seq(2,7,1)
+nodesize = seq(2,9,1)
+sampsize = nrow(train)*c(0.6,0.65,0.7,0.75,0.8)
 
 hyper_grid = expand.grid(mtry = mtry, nodesize = nodesize, sampsize = sampsize)
 
@@ -175,15 +175,20 @@ print(hyper_grid[opt_i,])
 
 ```{r}
 forest = randomForest(formula = Richness~., data = train,importance = TRUE,
-                      mtry = 8,
-                      nodesize = 2,
+                      mtry = 2,
+                      nodesize = 9,
                       sampsize = 53)   
 
-pred= predict(object = forest, newdata = test)
+predtst= predict(object = forest, newdata = test)
 
-rmse(actual = test$Richness,
-     predicted = pred)
+rmse_test = rmse(actual = test$Richness,
+     predicted = predtst)
 
+predtr = predict(object = forest, newdata = train)
+rmse_train = rmse(actual = train$Richness, predicted = predtr)
+
+rmse_train
+rmse_test
 ```
 
 ```{r}
@@ -252,16 +257,21 @@ varimp_o = varimp_o[,-1]
     g8 = ggplot(data = data, aes(x = Eighth, y=Freq))+
     geom_bar(stat = "identity",width=0.25)
 
+    Ninth = unlist(varimp_o[9,])
+  Ninth_table = table(Ninth)
+    data = as.data.frame(Ninth_table)
+    g9 = ggplot(data = data, aes(x = Ninth, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
 
   
-means = rowMeans(varimp)
+means = rowMeans(varimp_o)
 ordered_means = as.data.frame(round(sort(means, decreasing = TRUE),1))
 colnames(ordered_means) = "Average %IncMSE"
 varnames = c("Northing" ,"PHI","Buffer", "no_NVC",
             "sd_pH" , "sd_LBA", "sd_meandbh","sd_TD") 
 
 
-grid.arrange(g1,g2,g3,g4,g5,g6,g7,g8,ncol =2)
+grid.arrange(g1,g2,g3,g4,g5,g6,g7,g8,g9, ncol =3)
                
 ```
 
@@ -270,7 +280,7 @@ grid.arrange(g1,g2,g3,g4,g5,g6,g7,g8,ncol =2)
 # make train and test sets
 
 subset_sd = subset_all%>%select("Richness",
-                                "PHI","Buffer",
+                                "PHI","Buffer","Northing",
                                "no_NVC","sd_pH","sd_LBA",
                                "sd_meandbh","sd_TD")
 #removed sd_SOM and no_MSG cos -ve %IncMSE
@@ -284,9 +294,9 @@ test <- subset_sd[assignment == 2, ]  # subset the grade data frame to validatio
 
 ```{r}
 
-mtry = seq(2,11,1)
-nodesize = seq(2,10,2)
-sampsize = nrow(train)*c(0.7,0.8)
+mtry = seq(2,8,1)
+nodesize = seq(2,10,1)
+sampsize = nrow(train)*c(0.6,0.65,0.7,0.75,0.8)
 
 hyper_grid = expand.grid(mtry = mtry, nodesize = nodesize, sampsize = sampsize)
 
@@ -310,14 +320,20 @@ print(hyper_grid[opt_i,])
 
 ```{r}
 forest = randomForest(formula = Richness~., data = train,importance = TRUE,
-                      mtry = 2,
-                      nodesize = 6,
-                      sampsize = 53)   
+                      mtry = 5,
+                      nodesize = 8,
+                      sampsize = 45)   
 
-pred= predict(object = forest, newdata = test)
+predtst= predict(object = forest, newdata = test)
 
-rmse(actual = test$Richness,
-     predicted = pred)
+rmse_test = rmse(actual = test$Richness,
+     predicted = predtst)
+
+predtr = predict(object = forest, newdata = train)
+rmse_train = rmse(actual = train$Richness, predicted = predtr)
+
+rmse_train
+rmse_test
 
 ```
 
@@ -381,20 +397,34 @@ varimp_o = varimp_o[,-1]
     g7 = ggplot(data = data, aes(x = Seventh, y=Freq))+
     geom_bar(stat = "identity",width=0.25)
     
+     Eighth = unlist(varimp_o[8,])
+  Eighth_table = table(Eighth)
+    data = as.data.frame(Eighth_table)
+    g8 = ggplot(data = data, aes(x = Eighth, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
+    
 
-means = rowMeans(varimp)
+means = rowMeans(varimp_o)
 ordered_means = as.data.frame(round(sort(means, decreasing = TRUE),1))
 colnames(ordered_means) = "Average %IncMSE"
 varnames = c("Northing" ,"PHI","Buffer", "no_NVC",
             "sd_pH" , "sd_LBA", "sd_meandbh","sd_TD") 
 
 
-grid.arrange(g1,g2,g3,g4,g5,g6,g7,ncol =2)
+grid.arrange(g1,g2,g3,g4,g5,g6,g7,g8,ncol =2)
                
 ```
 
 
+```{r}
+par <- partial(forest, pred.var = c("Northing", "meanLBA"), chull = TRUE)
+plot <- autoplot(par, contour = TRUE, 
+               legend.title = "Partial\ndependence")
 
+plot
+
+partialPlot(forest, train, x.var = "meandbh", plot = TRUE)
+```
 
 
 

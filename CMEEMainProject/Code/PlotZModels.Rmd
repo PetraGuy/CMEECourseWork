@@ -20,7 +20,7 @@ library(corrr)
 
 
 AllSiteVars = read.csv("../Data/CompleteSiteLevelVars.csv")
-plotZdata = read.csv("../Data/z_ave_fits.csv")
+ plotZdata = read.csv("../Data/z_ave_fits.csv")
 AllPlotVars= read.csv("../Data/AllPlotsVarsRichness.csv")
 
 

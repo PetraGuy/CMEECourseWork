@@ -50,12 +50,13 @@ subset_sd = subset_all%>%select("Richness",
 
 
 subset_mean = subset_all%>%select("Richness",
+                                  "Buffer","Northing",
                               "PHI",  "meandbh",
-                              "meanph", "Buffer", "meanSOM","meanLBA",
+                              "meanph",  "meanSOM","meanLBA",
                               "meanTD","area_ratio", "no_NVC", 
                               "no_MSG")
 
-
+#,
 ```
 
 

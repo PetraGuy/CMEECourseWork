@@ -46,7 +46,9 @@ for( i in 1:103){
   z = emp_zetas[,i]
   r[i] = (z[1]-z[2])/z[1]
 }
-correlation = round(cor(r, Richness, method = "spearman"),2)
+c = cor.test(r, Richness, method = "pearson")
+pearson = round(c$estimate,2)
+p = round(c$p.value, 4)
 
 data7 = as.data.frame(cbind(Richness,r))
 
@@ -54,7 +56,7 @@ ggplot(data = data7, aes(x = r, y = Richness))+
   geom_point()+
   geom_smooth(method = lm)+
   labs(title = "Richness with r for the 103 sites of the woodland survey",
-        subtitle = paste("Spearman correlation coefficient = ",correlation))
+        subtitle = paste("pearson correlation coefficient = ",pearson,"p = ", p))
 
 
 ```

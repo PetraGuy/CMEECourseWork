@@ -297,15 +297,22 @@ model_glmm = lmer(log(ave_cf)~log(areas)+(1|Site), data = ave_data, na.action = 
 fit_glmm = predict(model)
 ave_data$fit_glmm = exp(fit_glmm)
 
-model_glmm2 = glmer(log(ave_cf)~log(areas)+(1|Site), data = ave_data, family = "inverse",na.action = na.omit)
+model_glmm2 = glmer(log(ave_cf)~log(areas)+(1|Site), data = ave_data, 
+                    family = "inverse",na.action = na.omit)
 fit_glmm = predict(model)
+
 ave_data$fit_glmm = exp(fit_glmm)
 
 model_glmm3 = glmer(ave_cf~log(areas)+(1|Site), data = ave_data, 
                     family = gaussian(link ="log"),na.action = na.omit)
+fit_glmm3 = predict(model_glmm3)
+r.squaredGLMM(model_glmm3)
+
 
 model_glmm4 = glmer(log(ave_cf)~log(areas)+(1|Site), data = ave_data, 
                     family = gaussian,na.action = na.omit)
+fit_glmm4 = predict(model_glmm4)
+
 
 fit_glmm = predict(model)
 ave_data$fit_glmm = exp(fit_glmm)

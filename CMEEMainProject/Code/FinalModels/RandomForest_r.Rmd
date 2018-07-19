@@ -186,10 +186,15 @@ forest = randomForest(formula = Richness~., data = train,importance = TRUE,
                       nodesize = 8,
                       sampsize = 61)   
 
-pred= predict(object = forest, newdata = test)
+pred_test= predict(object = forest, newdata = test)
+pred_train = predict(object = forest, newdata = train)
 
-rmse(actual = test$Richness,
-     predicted = pred)
+rmse_test = rmse(actual = test$Richness,
+     predicted = pred_test)
+rmse_train = rmse(actual = train$Richness,
+           predicted = pred_train)
+rmse_test
+rmse_train
 
 ```
 
@@ -388,4 +393,30 @@ varimp_o = varimp_o[,-1]
 
 grid.arrange(g1,g2,g3,g4,g5,g6,g7,ncol =2)
         
+```
+
+
+```{r, message=FALSE, warning=FALSE}
+#Some maps like look nice
+#uses good_bad and data
+#ggmap version,  scaled these by diversity with max richess/min richness ####
+library(ggmap)
+
+wood_rich = cbind(woods,d) # just add richness to locations
+
+map<- get_map(location = c(lon = -1.5, lat = 54),
+                         color = "color",
+                         source = "google",
+                         maptype = "satellite",
+                         zoom = 6) 
+#png("../Data/Talk/Map.png") 
+ggmap(map, extent ='device')+
+    geom_point(aes(x = Long, y = Lat, colour = d),data = wood_rich, size = 2, alpha=1)+
+    scale_color_gradient(low = "yellow", high="red")+
+  geom_point(aes(x = Long, y = Lat, colour = d),data = min_max, size = 4, alpha=1)+
+  scale_color_gradient(low = "yellow", high="red")+
+  geom_text_repel(data = good_bad, aes(x = Long, y = Lat,label = d), 
+            size = 3, colour = "white")
+
+##################################
 ```

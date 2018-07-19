@@ -213,6 +213,9 @@ ggmap(map, extent ='device')+
 ##################################
 ```
 
+
+
+
 ```{r, warning = FALSE, message = FALSE}
 #select nearby woods
 #uses data
@@ -374,7 +377,7 @@ ggplot(melted_cf)+
   geom_point(aes(x=log(area),y=log(value),na.rm =TRUE), colour = "black") +
   geom_line(aes(x=log(area), y = fit3, group = plot), colour = "red")+
   geom_abline(intercept = 2.2497,slope = 0.2357, size = 2, colour = "blue")+
-  ggtitle("Site 83, best wood, species area curve")+
+  ggtitle("Site 83")+
   ylim(low = -0.6, high = 5)+
          annotate("text",x = 2, y = 4, label  = "S = 9.9A^0.24")
 ```
@@ -544,4 +547,62 @@ ggplot(data, aes(x = log(area), y = log(value), colour = plot )) +
   geom_line(aes(y = predict(fit), group = plot))
 
   
+```
+
+
+```{r}
+ggplot(fits, aes(slope))+
+  geom_histogram(binwidth = 0.05, col = "black", fill = "grey")+
+  ggtitle("Distribution of slopes in linear mixed effect ln/ln fit", subtitle = "S = cA^0.25 ish")
+
+
+```
+
+
+
+```{r, warning=FALSE, error=FALSE, message=FALSE}
+##fit every wood and look at coefficients ---adding in the r.squared for each site
+#prepare data
+plots = c("plot1","plot2","plot3","plot4","plot5","plot6","plot7",
+          "plot8","plot9","plot10","plot11","plot12","plot13","plot14","plot15","plot16")
+area = c("4","25","50","100","200") 
+areas = sort(as.numeric(rep(area,16)), decreasing = FALSE)
+
+fits_all_woods = function(){
+  r2_list = list()
+  
+  #prepare data
+  for (i in 1:103){
+    #browser()
+    cf_site = cum_rich_all[[i]]
+    cf_site$plot = plots
+    melted_cf = melt(cf_site)
+    melted_cf$area = areas
+    # zeros will freak this model out, make them NAs
+    melted_cf[melted_cf==0]=NA
+    #model
+    model_nlme_area_log = lme(log(value)~log(area),random = ~1|plot, data = melted_cf, na.action = na.omit)
+    
+    #get coefficients r.squared
+    r2_list[[i]] = r.squaredGLMM(model_nlme_area_log)
+  }
+  
+  return(r2_list)
+}
+fits = fits_all_woods()
+```
+
+```{r}
+r_fixed = vector()
+r_random = vector()
+for (i in 1:103){
+  r_fixed[i] = fits[[i]][[1]]
+  r_random[i] = fits[[i]][[2]] - fits[[i]][[1]]
+  
+}
+data = as.data.frame(cbind(r_fixed,r_random))
+
+ggplot(data=data, aes(x = r_random, y =  r_fixed))+
+  geom_point()+
+  geom_abline(slope = -1, intercept = 0)
 ```

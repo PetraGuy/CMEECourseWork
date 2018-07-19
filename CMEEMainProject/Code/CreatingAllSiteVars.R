@@ -137,7 +137,7 @@ for (i in 1:130){
   sd_R = sd(site$R, na.rm = TRUE)
   mean_R = mean(site$R, na.rm = TRUE)
   sd_N = sd(site$N, na.rm = TRUE)
-  mean_N = mean(site$R, na.rm = TRUE)
+  mean_N = mean(site$N, na.rm = TRUE)
   sd_W = sd(site$W, na.rm = TRUE)
   mean_W =mean(site$W,na.rm = TRUE)
   sd_L = sd(site$L, na.rm = TRUE)
