@@ -75,7 +75,55 @@ get_site_df = function(occ,numplots,Sn){
   return(sitedf)
 }
   
- 
+get_final_row = function(sitedf,numplots,Sn){
+  value1 = vector()
+  for (i in 1:numplots){
+   tmp = (choose(numplots,i))^-1
+   value1 = c(value1,tmp)
+  }
+  value2 = colSums(sitedf)
+  finalrow = Sn - value1*value2
+  return(finalrow)
+}
   
-  
-  
+#now get the SAC for each site
+
+get_SAC = function(sitenum,allspecieslists){
+  brc = get_site_brcs(sitenum)
+  occ = get_occurances(brc)
+  numplots = get_numplots(allspecieslists,sitenum)
+  Sn = get_Sn(occ)
+  df = get_site_df(occ,numplots,Sn)
+  SAC = get_final_row(df,numplots,Sn)
+  return(SAC)
+}
+################
+
+#get the SACs for each wood
+
+SAC_list = list()
+for (i in 1:103){
+  SAC_list[[i]] = get_SAC(i,Data_Yr2_veg)
+}
+
+###############
+#Now get the zs for those SACs
+
+get_z = function(SAC){
+  numplots = length(SAC)
+  end = 200*numplots
+  areas = seq(200,end,200)
+  df = as.data.frame(cbind(log(areas),log(SAC)))
+  colnames(df) = c("logarea","logfreq")
+  rownames(df) = c()
+  model = lm(logfreq~logarea,df)
+  z = model$coefficients[2][[1]]
+  return(z)
+}
+
+zexp = vector()
+for(i in 1:103){
+  zexp = c(zexp,get_z(SAC_list[[i]]))
+}
+
+write.csv(zexp,"../Data/zexp.csv")

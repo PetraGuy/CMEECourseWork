@@ -45,17 +45,25 @@ site_data_zs = inner_join(site_data,Zs)
 ```
 
 ```{r}
-#add in the new random path z's
+#add in the new random path z's AND expectation method Zs
 
 rand_zs = read.csv("../../Data/rand_zs.csv")
 colnames(rand_zs) = c("Site","zr")
+
+exp_zs = read.csv("../../Data/zexp.csv")
+colnames(exp_zs) = c("Site","expz")
+
 site_data_zs_zr=inner_join(site_data_zs,rand_zs)
+site_data_allzs = inner_join(site_data_zs_zr,exp_zs)
+
+
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # slect only required variables
-#change to either slope or zr if you want minmax method or random method...."zr"
-subset_all = site_data_zs_zr%>%select("Site","slope","Area_ha",
+#change to either slope or zr or zexp if you want minmax , 1000 random paths or expectation 
+
+subset_all = site_data_allzs%>%select("Site","expz","Area_ha",
                                 "Northing", "Pos_Hetero_Index","Buffer3",
                                 "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
                                 "sd_meandbh","sd_treedensity","area_ratio",
@@ -236,7 +244,7 @@ The graph shows the averaged effect sizes of the model with delta < 2. Number of
 library(MuMIn) #dredge and avg
  #get top models
 models = dredge(mod_sd)
-model_set = get.models(models, subset = delta<2)
+model_set = get.models(models, subset = delta<1.5)
 
 
 #do model averaging, subset means zero method
@@ -312,7 +320,7 @@ ggplot(data, aes(x = predicted_Z, y = empirical_Z))+
 #extract model averaged parameter estimates
 
 predicted_Z = predict(sd_avg_models, full = TRUE)
-empirical_Z =  site_data_outlier3$randomz
+empirical_Z =  site_data_outlier3$z
 fit = lm(empirical_Z ~ predicted_Z)
 R2 = round(summary(fit)$r.squared,2)
 subtitle = paste("R2 = ",R2)
@@ -331,8 +339,10 @@ ggplot(data, aes(x = predicted_Z, y = empirical_Z))+
 ```{r}
 #llok and z and rand z together
 
-df = as.data.frame(cbind(site_data_zs_zr$zr,site_data_zs_zr$slope))%>%gather(key,value)
-
+df = as.data.frame(cbind(site_data_allzs$zr, site_data_allzs$slope, site_data_allzs$expz))%>%gather(key,value)
+df[df=="V1"]="random_path"
+df[df=="V2"]="min/max"
+df[df=="V3"]="expected_z"
 ggplot(df,aes(value, fill=key))+
   geom_density(show.legend = TRUE,alpha = 0.5)
   #theme_minimal()+
