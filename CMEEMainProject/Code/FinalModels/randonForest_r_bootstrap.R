@@ -70,7 +70,7 @@ subset_sd = subset_all%>%select("Richness",
 rmse_test = 0
 rmse_train = 0
 #varimp_o = data.frame(nrow = 8 )
-vars = (colnames(subset_mean[-1]))
+vars = (colnames(subset_sd[-1]))
 vis = c(0,0,0,0,0,0,0,0,0,0,0)
 
 for (i in 1:100){
@@ -78,8 +78,8 @@ for (i in 1:100){
   assignment <- sample(1:2, size = nrow(subset_mean), prob = c(0.75,0.25), replace = TRUE)
   
 
-  train <- subset_mean[assignment == 1, ]    # subset the grade data frame to training indices only
-  test <- subset_mean[assignment == 2, ]
+  train <- subset_sd[assignment == 1, ]    # subset the grade data frame to training indices only
+  test <- subset_sd[assignment == 2, ]
   forest = randomForest(formula = Richness~., data = train,importance = TRUE,
                         mtry = 4,
                         nodesize = 8,

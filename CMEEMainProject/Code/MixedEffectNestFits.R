@@ -23,7 +23,7 @@ fits_all_woods = function(){
     melted_cf = melt(cf_site)
     melted_cf[melted_cf == 0] = NA # if a site has missing plots they will be zeros
     melted_cf$area = areas
-    model = lme(log(value)~log(area),random = ~1|plot, data = melted_cf, na.action = na.omit)
+    model = lme(log(value)~log(area),random = ~1|plot, data = melted_cf, na.action = na.omit) 
     #get coefficients
     int = round(model$coefficients$fixed[[1]],digits = 2)
     slope = round(model$coefficients$fixed[[2]],digits = 2)

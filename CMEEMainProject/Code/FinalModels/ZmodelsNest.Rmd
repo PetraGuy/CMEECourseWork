@@ -309,7 +309,7 @@ fit = lm(empirical_Z ~ predicted_Z)
 R2 = round(summary(fit)$r.squared,2)
 f = summary(fit)$fstatistic
 p = round(pf(f[1],f[2],f[3], lower.tail = F),4)
-subtitle = paste("R2 = ",R2, "p = ",p)
+subtitle = paste("R2 = ",R2, "p = ",p)  
 data = as.data.frame(cbind(predicted_Z, empirical_Z))
 
 ggplot(data, aes(x = predicted_Z, y = empirical_Z))+

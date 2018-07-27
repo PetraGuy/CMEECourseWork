@@ -161,6 +161,7 @@ run_boosted_bootstrap = function(dataset){
 }
 
 variables = colnames(dataset[-1])
+
 relinlf_df = data.frame(rel_influence = length(variables))
 
 for (i in 1:ncol(dataset[-1])){

@@ -172,7 +172,8 @@ Correlations all <0.51
 # we know richness vs ph usually unimodal around .5, therefore fit to meanpH^2
 data = subset_mean[,-1]
 richness = subset_mean[,2] # removed because going to scale in next chunk
-data$meanph2 = (data$meanph)^2 #just leave as meanpH because doesnt come out either way??
+#data$meanph2 = (data$meanph)^2 #just leave as meanpH because doesnt come out either way??
+#dont do this because meanpH and meanpH2 correlated and messes it all up. Just accept that model wont select mean pH very well
 ```
 
 
@@ -282,8 +283,8 @@ ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
   stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7)+
   stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
   geom_abline(intercept = 0, slope = 0)+
-  labs(y = "Parameter estimate and 95%CI",x = "Parameter")+ 
-  labs(title = "Model averaged results for delta <2, mean dataset",
+  labs(y = "Effect size and 95%CI",x = "Parameter")+ 
+  labs(title = "MEAN dataset. Model averaged results for delta <2",
        subtitle = "Numbers in red are importance")
 
 
@@ -341,8 +342,8 @@ ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
   stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7)+
   stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
   geom_abline(intercept = 0, slope = 0)+
-  labs(y = "Parameter estimate and 95%CI",x = "Parameter")+ 
-  labs(title = "Model averaged results for delta <2, mean dataset",
+  labs(y = "Effect size and 95%CI",x = "Parameter")+ 
+  labs(title = "STANDARD DEVIATION dataset. Model averaged results for delta <2",
        subtitle = "Numbers in red are importance")
 
 
