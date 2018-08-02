@@ -53,7 +53,7 @@ ggplot(data = NVCdiff, aes(x = NVCcode, y = diffF))+
   annotate(geom = "text",x=5,y=-0.05,label = "Fagus")+
   annotate(geom = "text",x=6,y=0.05,label = "Quercus")+
   annotate(geom = "text",x=7,y=-0.13,label = "Scrub")+
-  annotate(geom = "text",x=8,y=.06,label = "Betula,,Molina")+
+  annotate(geom = "text",x=8,y=.06,label = "Betula,Molina")+
   annotate(geom = "text",x=9,y=.07,label = "Alnus,Urtica")+
   annotate(geom = "text",x=10,y=-0.1,label = "Fraxinus, Acer")
   
@@ -69,14 +69,18 @@ Scotland80df = scotsNVCs%>%filter(NVCcode%in%Scotland80)
 
 g1 = ggplot(England80df, aes(x = reorder(NVCcode,-normFE), y = normFE))+
   geom_bar(stat = "identity")+
+  ylab("normalised frequency")+
 xlab("NVCcode")+
 ggtitle("NVC codes giving 80% of English and Welsh woodlands")
 
 g2 = ggplot(Scotland80df, aes(x = reorder(NVCcode,-normFS), y = normFS))+
   geom_bar(stat = "identity")+
   xlab("NVCcode")+
-  ggtitle("NVC codes givin 80% of Scottish woodlands")
+  ylab("normalised frequency")+
+  ggtitle("NVC codes giving 80% of Scottish woodlands")
 
 
 grid.arrange(g1,g2, ncol = 2)
+
+ 
 

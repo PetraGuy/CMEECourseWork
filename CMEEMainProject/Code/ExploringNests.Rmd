@@ -159,7 +159,9 @@ saveRDS(cum_rich_all, "CumulateveRichness.RDS")
 ```{r}
 #some stats, might use these
 wood_rich = cbind(woods,d) # just add richness to locations
+
 max_wood = wood_rich%>%filter(Site==match(max(d),d))
+
 min_wood = wood_rich%>%filter(Site==match(min(d),d))
 #wont work with 0s
 plot_rich[plot_rich == 0] = NA
@@ -189,6 +191,8 @@ u_woods = wood_rich%>%filter(d>100)
 l_woods = wood_rich%>%filter(d<60)
 good_bad = rbind(u_woods,l_woods) #good_bad used in mappin below
 
+SOM = site_data$meanSOM
+wood_rich$SOM = SOM
 ```
 
 ```{r, message=FALSE, warning=FALSE}
@@ -203,7 +207,7 @@ map<- get_map(location = c(lon = -1.5, lat = 54),
                          zoom = 6) 
 #png("../Data/Talk/Map.png") 
 ggmap(map, extent ='device')+
-    geom_point(aes(x = Long, y = Lat, colour = d),data = wood_rich, size = 2, alpha=1)+
+    geom_point(aes(x = Long, y = Lat, colour = SOM),data = wood_rich, size = 2, alpha=1)+
     scale_color_gradient(low = "yellow", high="red")+
   geom_point(aes(x = Long, y = Lat, colour = d),data = min_max, size = 4, alpha=1)+
   scale_color_gradient(low = "yellow", high="red")+
@@ -211,6 +215,11 @@ ggmap(map, extent ='device')+
             size = 3, colour = "white")
 
 ##################################
+
+ggmap(map, extent ='device')+
+  geom_point(aes(x = Lon, y = Lat, colour = meanSOM),data = woods_SOM, size = 4, alpha=1)+
+  scale_color_gradient(low = "yellow", high="red")
+
 ```
 
 
