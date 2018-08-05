@@ -78,8 +78,8 @@ pvals = paste("p ave N =",round(ps[1],2),
     geom_point()+
    geom_smooth(method = "lm")+
   ylab("Average Ellenberg for plot")+
-   annotate("text", x = 80, y = 6, label = "W10")+
-   annotate("text", x = 40, y = 3, label = pvals)
+   annotate("text", x = 80, y = 9, label = "W10")
+   #annotate("text", x = 40, y = 3, label = pvals)
 ###############
  w8vals = get_som_ellens("W8")
  melted = melt(w8vals, id.vars = "SOM")
@@ -92,8 +92,8 @@ pvals = paste("p ave N =",round(ps[1],2),
    geom_point()+
    geom_smooth(method = "lm",linetype="dashed")+
    ylab("Average Ellenberg for plot")+
-   annotate("text", x = 80, y = 6, label = "W8")+
-   annotate("text", x = 40, y = 3, label = pvals)
+   annotate("text", x = 80, y = 9, label = "W8")
+  # annotate("text", x = 40, y = 3, label = pvals)
 ###########
  
  w6vals = get_som_ellens("W6")
@@ -107,8 +107,8 @@ pvals = paste("p ave N =",round(ps[1],2),
    geom_point()+
    geom_smooth(method = "lm", linetype="dashed")+
    ylab("Average Ellenberg for plot")+
-   annotate("text", x = 80, y = 6, label = "W6")+
-   annotate("text", x = 40, y = 3, label = pvals)
+   annotate("text", x = 80, y = 9, label = "W6")
+   #annotate("text", x = 40, y = 3, label = pvals)
  
 #############
  
@@ -123,8 +123,8 @@ pvals = paste("p ave N =",round(ps[1],2),
    geom_point()+
    geom_smooth(method = "lm")+
    ylab("Average Ellenberg for plot")+
-   annotate("text", x = 80, y = 6, label = "W16")+
-   annotate("text", x = 40, y = 3, label = pvals)
+   annotate("text", x = 80, y = 9, label = "W16")
+   #annotate("text", x = 40, y = 3, label = pvals)
  
 ###########
 
@@ -139,8 +139,8 @@ pvals = paste("p ave N =",round(ps[1],2),
    geom_point()+
    geom_smooth(method = "lm",linetype="dashed")+
    ylab("Average Ellenberg for plot")+
-   annotate("text", x = 80, y = 6, label = "W21")+
-   annotate("text", x = 40, y = 3, label = pvals)
+   annotate("text", x = 80, y = 9, label = "W21")
+   #annotate("text", x = 40, y = 3, label = pvals)
  
 ######
  
@@ -155,10 +155,15 @@ pvals = paste("p ave N =",round(ps[1],2),
    geom_point()+
    geom_smooth(method = "lm",linetype="dashed")+
    ylab("Average Ellenberg for plot")+
-   annotate("text", x = 80, y = 6, label = "OV27")+
-   annotate("text", x = 40, y = 3, label = pvals)
+   annotate("text", x = 80, y = 9, label = "OV27")
+   #annotate("text", x = 40, y = 3, label = pvals)
  
 ###
  
  grid.arrange(w6plot,w8plot,w10plot,w16plot,w21plot,ov27plot, ncol = 2)
  
+ ######
+ 
+ 
+ 
+  

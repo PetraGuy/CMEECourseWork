@@ -317,3 +317,47 @@ ggplot(data, aes(x = predicted_Z, y = empirical_Z))+
 
   
 ```
+
+
+```{R}
+
+emp_zetas = readRDS("empirical_zetas.RDS")
+z1 = t(emp_zetas[1,])
+Site = seq(1,103,1)
+z1df = as.data.frame(cbind(Site,z1))
+PHIdf = site_data_outlier3[,c("Site","PHI")]
+df = inner_join(z1df,PHIdf)
+colnames(df) = c("Site","z1","PHI")
+ggplot(df, aes(x = PHI, y = z1))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  ylab("zeta1")
+
+
+DBHdf = as.data.frame(cbind(site_data_outlier3$Site, site_data_outlier3$meandbh))
+colnames(DBHdf) = c("Site","meanDBH")
+df = inner_join(DBHdf,z1df)
+colnames(df) = c("Site","meanDBH","zeta1")
+
+g1 = ggplot(site_data_outlier3, aes(x = meandbh, y = PHI))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  ylab("zeta_r")+
+xlab("meanDBH")
+  
+g2 = ggplot(site_data_outlier3, aes(x = meanTD, y = PHI))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  ylab("zeta_r")+
+  xlab("meanTD")
+
+grid.arrange(g1,g2,ncol = 2)
+  
+
+```
+
+
+```{R}
+
+
+```
