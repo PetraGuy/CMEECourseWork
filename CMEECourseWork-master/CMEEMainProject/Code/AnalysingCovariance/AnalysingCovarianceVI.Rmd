@@ -1,0 +1,705 @@
+---
+title: "ExaminingCovariatesVI"
+author: "PetraGuy"
+date: "27 March 2018"
+header-includes: 
+- \usepackage{wrapfig}
+- \usepackage{pdflscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
+output: pdf_document
+---
+From previous analysis it became obvious (maybe should have been in the first place) that most of the variables I had "created" in order to express heterogeneity were already contained within the existing variates. Eg, the standard deviation of pH and  number of major soil groups. In addition, I wasnt sure what standardising a standard deviation in the PCA would mean? And - there were so many variables the analysis was becoming harder  rather than simpler - none of the additional variables added obvious correlation with richness. So I decided to strip the variables back to those that were originally measured and recorded.
+
+Here I will go through these and remove firstly, those that are not correlated with species richess amd/or are correlated with each other - eg. we dont want all of area, permimeter and area_ratio, but which is most important for richness? It has been suggested that the geometry of the wood can be related to richness - eg, an undistrbed core could contain poorly dispersing woodland species, or a long narrow wood would more easily allow recolonisation. So arearatio might be the most useful variable. 
+
+There are also a few outliers that may affect the analysis, one site(74) has area > 300ha, the others area less that 150ha. Including this site gives a stronger correlation with richness and area than when it is removed.
+Two sites have positive heterogeneity indices above 78, the rest are below 40. Again, the correlation with richness is reduced if they are removed. 
+
+In previous analysis I split the variables in two - physical variables (eg mean dbh) and heterogeneoty variables. The problem with this was that correlations across the two groups, in the presence of the other variables could not be seen.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE,
+	out.width="60%"
+	
+)
+rm(list = ls())
+cat("\014")
+library(dplyr)
+library(visreg) # for visreg plots 
+library(ggplot2)
+library(GGally) # for ggpairs
+library(factoextra)
+library(FactoMineR)# these two for PCA
+library(corrplot)
+library(car)
+library(gridExtra)
+library(reshape)
+library(kableExtra)
+```
+
+
+```{r}
+sitevars =  read.csv("../../Data/CompleteSiteLevelVars.csv")
+#toremove = c(23,53,74)
+#sitevars = sitevars%>%filter(!Site %in% toremove)
+colnames(sitevars)
+```
+
+These were all the variables I created because I was to express the heterogenity of the woodland. But none showed a correaltion with richness.
+
+```{r}
+sitevars_reduced = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffer1,Buffer2,sd_pH, 
+                                                sd_SOM,sd_LBA, sd_meandbh,sd_treedensity,
+                                                sd_R,mean_R, sd_N,mean_N , sd_W, mean_W,
+                                                sd_L, mean_L ))
+sitevars_all_lesRich = subset(sitevars_reduced, select = -c(Richness))
+colnames(sitevars_reduced)
+```
+
+These are the measured variables - I have calculated mean - which is the mean over all the plots - plots with no trees have a dbh of 0 and therefore this variable also reflects the heterogeneity of the woodland in relation to its cover. This means that number of sites with no trees (no_trees), meanLBA and tree density are not all required. Similarly, area, perimeter and area ratio are not all required and will make model selection difficult.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="35%"}
+
+model_all = lm(Richness ~., data = sitevars_reduced)
+
+visreg(model_all)
+```
+
+The multiple linear regression using all variables shows the following variables are correlated with richness : Buffer,Northing, no_NVC, no_trees, meandbh, meanSOM, meantreedensity, arearatio. (It is a bit surprising that meanLBA is not included in the correlations with tree variables, perhaps there are too many tree variables?)
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+panel.cor <- function(x, y, digits=2, prefix="", cex.cor) 
+{
+    usr <- par("usr"); on.exit(par(usr)) 
+    par(usr = c(0, 1, 0, 1)) 
+    r <- abs(cor(x, y)) 
+    txt <- format(c(r, 0.123456789), digits=digits)[1] 
+    txt <- paste(prefix, txt, sep="") 
+    if(missing(cex.cor)) cex <- 0.8/strwidth(txt) 
+ 
+    test <- cor.test(x,y) 
+    # borrowed from printCoefmat
+    Signif <- symnum(test$p.value, corr = FALSE, na = FALSE, 
+                  cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1),
+                  symbols = c("***", "**", "*", ".", " ")) 
+ 
+    text(0.5, 0.5, txt, cex = cex ) 
+    text(.8, .8, Signif, cex=cex, col=2) 
+}
+
+```
+
+```{r echo=FALSE, fig.align='center', message=FALSE, warning=FALSE, out.height="595px", out.width="592px", paged.print=FALSE}
+
+# too many variables to be legible
+pairs(sitevars_all_lesRich, lower.panel = panel.smooth, upper.panel = panel.cor)
+      
+```
+
+Area,perimeter and area ratio, are correlated, as you’d expect. 
+Also Buffer and Northing (0.52) Do Northern woods have larger buffers because there’s more room?
+
+Also mean tree density, meanLBA, meanDBH no_trees, (0.306, -0.442, -0.417,) also as you’d expect, since all are also computationally similar. But meantreedensity is also correlated with  buffer, Northing and Easting (-0.38, -0.416, 0.336)
+
+This implies that Eastern woods are denser while northern woods are more open, and woods with a larger buffer are less dense - yes, because they are northern.Buffer is correlated with northing (0.52), then what we are  seeing is the expression of the less dense northern woods.
+
+
+That is, northern woods both have a larger buffer, **and** are less dense. 
+This may be  a problem when looking at the correaltion with richness - is the increase in richness related to the density, the buffer or the latitude - there are ecological reasons why all could be true. Less dense woods allow the introduction of more light loving species. A larger buffer provides a seed bank, allows recolonisation and offers potential protection from nitrogen enrichment and the further north you go, the less the species richness, (not sure how much this counts in UK - is the change in latitude enough? Is it more likely to be due to soil types etc which would swamp any latitude effect).
+
+
+```{r, fig.align='center'}
+data = as.data.frame(cbind(sitevars$meantreedensity,sitevars$Northing, sitevars$Easting))
+colnames(data)= c("meantreedensity", "Northing","Easting")
+melted = melt(data, id.vars = "meantreedensity")
+
+data2 = as.data.frame(cbind(sitevars$meandbh,sitevars$Northing, sitevars$Easting))
+colnames(data2)= c("meandbh", "Northing","Easting")
+melted2 = melt(data2, id.vars = "meandbh")
+
+g1 = ggplot(melted, aes(x= meantreedensity, y = value))+
+  geom_point(aes(colour = variable))+
+ geom_smooth(method = lm, aes(colour = variable))
+
+g2 = ggplot(sitevars, aes(x = Buffer3, y = Northing))+
+  geom_point()+
+   geom_smooth(method = "lm")
+
+ g3 =  ggplot(melted2, aes(x= meandbh, y = value))+
+  geom_point(aes(colour = variable))+
+ geom_smooth(method = lm, aes(colour = variable))
+
+grid.arrange(g1,g3,g2, nrow = 2)
+ 
+```
+
+If the less dense northern woods also had more plants with higher L Ellenberg values, this might suggest that the increase in richness was related to the tree variables. 
+
+```{r, fig.align='center'}
+ggplot(sitevars, aes(x = Northing, y = mean_L))+
+  geom_smooth(method = lm)
+
+```
+
+The increase in the mean_L with Northing supports the idea that it is the reduced density (or mean dbh) of the woodland that is adding to the species richness, and not the buffer (or the Latitude?)
+
+
+```{r}
+all_PCA = PCA(sitevars_all_lesRich, scale.unit = TRUE, ncp = 11, graph = FALSE)
+var = get_pca_var(all_PCA)
+```
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+eig.val = get_eigenvalue(all_PCA)
+eig.val
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, wrapf=TRUE}
+fviz_cos2(all_PCA, choice = "var")
+```
+
+Area and Perimeter contribute to the variance, could this be due mainly to the outlier?
+The mean tree density contributes more than the meandbh - No idea what that means, especially since mean dbh has a greater gradient with richness than meantreedensity.
+
+No_NVC also has no contribution to variance, but has strong correlation with richness. 
+
+```{r}
+fitall = lm(Richness ~ ., data = sitevars_reduced)
+s = summary(fitall)
+p = round(s$coefficients[,4], digits =2)
+r = round(s$r.squared, digits = 2)
+pad = rep("-", length(p)-1)
+r = c(r,pad)
+m1 = as.data.frame(cbind(p,r))
+colnames(m1) = c("p","R2")
+m1
+```
+
+#Removing area and perimeter
+
+```{r, out.width="35%"}
+sitevars_reduced = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffer1,Buffer2,sd_pH, 
+                                                sd_SOM,sd_LBA, sd_meandbh,sd_treedensity,
+                                                sd_R,mean_R, sd_N,mean_N , sd_W, mean_W,
+                                                sd_L, mean_L, Area_ha, Perim_m ))
+sitevars_all_lesRich = subset(sitevars_reduced, select = -c(Richness))
+
+model_all = lm(Richness ~., data = sitevars_reduced)
+
+visreg(model_all)
+```
+
+```{r eval=FALSE, fig.align='center', message=FALSE, warning=FALSE, include=FALSE, out.height="595px", out.width="592px", paged.print=FALSE}
+
+# too many variables to be legible
+pairs(sitevars_all_lesRich, lower.panel = panel.smooth, upper.panel = panel.cor)
+      
+```
+
+```{r}
+all_PCA = PCA(sitevars_all_lesRich, scale.unit = TRUE, ncp = 11, graph = FALSE)
+var = get_pca_var(all_PCA)
+```
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+eig.val = get_eigenvalue(all_PCA)
+eig.val
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_cos2(all_PCA, choice = "var")
+```
+
+
+```{r}
+
+fitall = lm(Richness ~ ., data = sitevars_reduced)
+s = summary(fitall)
+p = round(s$coefficients[,4], digits =2)
+r = round(s$r.squared, digits = 2)
+pad = rep("-", length(p)-1)
+r = c(r,pad)
+m2 = as.data.frame(cbind(p,r))
+colnames(m1) = c("p","R2")
+m2
+
+```
+
+Removing area and perimeter doesnt effect the correlation with richness (accept to make area_ratio a bit more signifiant).
+
+##Droppping Easting, number MSG,mean pH and altitude
+
+None of these variables contribute to the richness and none are significant. We already saw that any contribution asting might make is via tree density.
+
+```{r, out.width="35%"}
+sitevars_reduced = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffer1,Buffer2,sd_pH, 
+                                                sd_SOM,sd_LBA, sd_meandbh,sd_treedensity,
+                                                sd_R,mean_R, sd_N,mean_N , sd_W, mean_W,
+                                                sd_L, mean_L, Area_ha, Perim_m, Easting, no_MSG, meanph, Alt_m ))
+sitevars_all_lesRich = subset(sitevars_reduced, select = -c(Richness))
+
+model_all = lm(Richness ~., data = sitevars_reduced)
+
+visreg(model_all)
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.align = 'right'}
+
+ggpairs(sitevars_all_lesRich, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+
+```
+
+
+```{r}
+all_PCA = PCA(sitevars_all_lesRich, scale.unit = TRUE, ncp = 11, graph = FALSE)
+var = get_pca_var(all_PCA)
+```
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+eig.val = get_eigenvalue(all_PCA)
+eig.val
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_cos2(all_PCA, choice = "var")
+
+
+```
+
+```{r}
+
+fitall = lm(Richness ~ ., data = sitevars_reduced)
+s = summary(fitall)
+p = round(s$coefficients[,4], digits =2)
+r = round(s$r.squared, digits = 2)
+pad = rep("-", length(p)-1)
+r = c(r,pad)
+m3 = as.data.frame(cbind(p,r))
+colnames(m1) = c("p","R2")
+m3
+
+```
+
+
+
+
+#Drop meanLBA, mean tree density, no_trees
+
+Since we dont need all the tree variables, and meandbh has the strongest correlation with richness.
+
+```{r, out.width="35%"}
+sitevars_reduced = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffer1,Buffer2,sd_pH, 
+                                                sd_SOM,sd_LBA, sd_meandbh,sd_treedensity,
+                                                sd_R,mean_R, sd_N,mean_N , sd_W, mean_W,
+                                                sd_L, mean_L, Area_ha, Perim_m, Easting, no_MSG, meanph, Alt_m,
+                                                meanLBA,meantreedensity, no_trees))
+sitevars_all_lesRich = subset(sitevars_reduced, select = -c(Richness))
+
+model_all = lm(Richness ~., data = sitevars_reduced)
+
+visreg(model_all)
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.align='center'}
+
+ggpairs(sitevars_all_lesRich, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+
+```
+
+```{r}
+all_PCA = PCA(sitevars_all_lesRich, scale.unit = TRUE, ncp = 11, graph = FALSE)
+var = get_pca_var(all_PCA)
+```
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+eig.val = get_eigenvalue(all_PCA)
+eig.val
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_cos2(all_PCA, choice = "var")
+```
+
+```{r}
+
+fitall = lm(Richness ~ ., data = sitevars_reduced)
+s = summary(fitall)
+p = round(s$coefficients[,4], digits =2)
+r = round(s$r.squared, digits = 2)
+pad = rep("-", length(p)-1)
+r = c(r,pad)
+m4 = as.data.frame(cbind(p,r))
+colnames(m1) = c("p","R2")
+m4
+
+```
+
+
+
+If the correlation with richness is about tree density - for which I have retained meandbh, then buffer and Northing are spurious. Lets look at fits without first Northing, Then Buffer, then both.
+
+#Remove Northing keep Buffer
+
+
+```{r, out.width="35%"}
+sitevars_reduced = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffer1,Buffer2,sd_pH, 
+                                                sd_SOM,sd_LBA, sd_meandbh,sd_treedensity,
+                                                sd_R,mean_R, sd_N,mean_N , sd_W, mean_W,
+                                                sd_L, mean_L, Area_ha, Perim_m, Easting, no_MSG, meanph,        meanLBA,meantreedensity, Alt_m, no_trees, Northing ))
+sitevars_all_lesRich = subset(sitevars_reduced, select = -c(Richness))
+
+model_all = lm(Richness ~., data = sitevars_reduced)
+
+visreg(model_all)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.align='center'}
+
+ggpairs(sitevars_all_lesRich, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+```
+
+```{r}
+all_PCA = PCA(sitevars_all_lesRich, scale.unit = TRUE, ncp = 11, graph = FALSE)
+var = get_pca_var(all_PCA)
+```
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+eig.val = get_eigenvalue(all_PCA)
+eig.val
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_cos2(all_PCA, choice = "var")
+```
+
+```{r}
+
+fitall = lm(Richness ~ ., data = sitevars_reduced)
+s = summary(fitall)
+p = round(s$coefficients[,4], digits =2)
+r = round(s$r.squared, digits = 2)
+pad = rep("-", length(p)-1)
+r = c(r,pad)
+m5 = as.data.frame(cbind(p,r))
+colnames(m1) = c("p","R2")
+m5
+
+```
+
+
+##Keep Buffer remove Northing.
+
+```{r, out.width="35%"}
+sitevars_reduced = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffer1,Buffer2,sd_pH, 
+                                                sd_SOM,sd_LBA, sd_meandbh,sd_treedensity,
+                                                sd_R,mean_R, sd_N,mean_N , sd_W, mean_W,
+                                                sd_L, mean_L, Area_ha, Perim_m, Easting, no_MSG, meanph,        meanLBA,meantreedensity, Alt_m, no_trees, Buffer3 ))
+sitevars_all_lesRich = subset(sitevars_reduced, select = -c(Richness))
+
+model_all = lm(Richness ~., data = sitevars_reduced)
+
+visreg(model_all)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+ggpairs(sitevars_all_lesRich, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+```
+
+```{r}
+all_PCA = PCA(sitevars_all_lesRich, scale.unit = TRUE, ncp = 11, graph = FALSE)
+var = get_pca_var(all_PCA)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+eig.val = get_eigenvalue(all_PCA)
+eig.val
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_cos2(all_PCA, choice = "var")
+```
+
+```{r}
+fitall = lm(Richness ~ ., data = sitevars_reduced)
+s = summary(fitall)
+p = round(s$coefficients[,4], digits =2)
+r = round(s$r.squared, digits = 2)
+pad = rep("-", length(p)-1)
+r = c(r,pad)
+m6 = as.data.frame(cbind(p,r))
+colnames(m1) = c("p","R2")
+m6
+
+```
+
+
+
+#Keep Northing and Buffer remove area ratio
+
+```{r, out.width="35%"}
+sitevars_reduced = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffer1,Buffer2,sd_pH, 
+                                                sd_SOM,sd_LBA, sd_meandbh,sd_treedensity,
+                                                sd_R,mean_R, sd_N,mean_N , sd_W, mean_W,
+                                                sd_L, mean_L, Area_ha, Perim_m, Easting, no_MSG, meanph,        meanLBA,meantreedensity, Alt_m, no_trees, area_ratio ))
+sitevars_all_lesRich = subset(sitevars_reduced, select = -c(Richness))
+
+model_all = lm(Richness ~., data = sitevars_reduced)
+
+visreg(model_all)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+ggpairs(sitevars_all_lesRich, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+```
+
+```{r}
+all_PCA = PCA(sitevars_all_lesRich, scale.unit = TRUE, ncp = 11, graph = FALSE)
+var = get_pca_var(all_PCA)
+```
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+eig.val = get_eigenvalue(all_PCA)
+eig.val
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_cos2(all_PCA, choice = "var")
+```
+
+```{r}
+fitall = lm(Richness ~ ., data = sitevars_reduced)
+s = summary(fitall)
+p = round(s$coefficients[,4], digits =2)
+r = round(s$r.squared, digits = 2)
+pad = rep("-", length(p)-1)
+r = c(r,pad)
+m7 = as.data.frame(cbind(p,r))
+colnames(m1) = c("p","R2")
+m7
+
+```
+
+#Remove area ratio, Northing and Buffer
+
+```{r, out.width="35%"}
+
+sitevars_reduced = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffer1,Buffer2,sd_pH, 
+                                                sd_SOM,sd_LBA, sd_meandbh,sd_treedensity,
+                                                sd_R,mean_R, sd_N,mean_N , sd_W, mean_W,
+                                                sd_L, mean_L, Area_ha, Perim_m, Easting, no_MSG, meanph,        meanLBA,meantreedensity, Alt_m, no_trees, Northing,Buffer3, area_ratio ))
+
+sitevars_all_lesRich = subset(sitevars_reduced, select = -c(Richness))
+
+model_all = lm(Richness ~., data = sitevars_reduced)
+
+visreg(model_all)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+ggpairs(sitevars_all_lesRich, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+```
+
+```{r}
+all_PCA = PCA(sitevars_all_lesRich, scale.unit = TRUE, ncp = 11, graph = FALSE)
+var = get_pca_var(all_PCA)
+```
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+eig.val = get_eigenvalue(all_PCA)
+eig.val
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_cos2(all_PCA, choice = "var")
+```
+
+
+```{r}
+fitall = lm(Richness ~ ., data = sitevars_reduced)
+s = summary(fitall)
+p = round(s$coefficients[,4], digits =2)
+r = round(s$r.squared, digits = 2)
+pad = rep("-", length(p)-1)
+r = c(r,pad)
+m8 = as.data.frame(cbind(p,r))
+colnames(m1) = c("p","R2")
+m8
+
+```
+
+#With Buffer, without area ratio
+
+```{r, out.width="35%"}
+
+sitevars_reduced = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffer1,Buffer2,sd_pH, 
+                                                sd_SOM,sd_LBA, sd_meandbh,sd_treedensity,
+                                                sd_R,mean_R, sd_N,mean_N , sd_W, mean_W,
+                                                sd_L, mean_L, Area_ha, Perim_m, Easting, no_MSG, meanph,        meanLBA,meantreedensity, Alt_m, no_trees,Buffer3, area_ratio ))
+
+sitevars_all_lesRich = subset(sitevars_reduced, select = -c(Richness))
+
+model_all = lm(Richness ~., data = sitevars_reduced)
+
+visreg(model_all)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+ggpairs(sitevars_all_lesRich, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+```
+
+```{r}
+all_PCA = PCA(sitevars_all_lesRich, scale.unit = TRUE, ncp = 11, graph = FALSE)
+var = get_pca_var(all_PCA)
+```
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+eig.val = get_eigenvalue(all_PCA)
+eig.val
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_cos2(all_PCA, choice = "var")
+```
+
+```{r}
+fitall = lm(Richness ~ ., data = sitevars_reduced)
+s = summary(fitall)
+p = round(s$coefficients[,4], digits =2)
+r = round(s$r.squared, digits = 2)
+pad = rep("-", length(p)-1)
+r = c(r,pad)
+m9 = as.data.frame(cbind(p,r))
+colnames(m1) = c("p","R2")
+m9
+
+```
+
+
+#With Northing without area ratio
+```{r, out.width="35%"}
+
+sitevars_reduced = subset(sitevars, select = -c(X,Site,No.of.Des, Any.Anc,Buffer1,Buffer2,sd_pH, 
+                                                sd_SOM,sd_LBA, sd_meandbh,sd_treedensity,
+                                                sd_R,mean_R, sd_N,mean_N , sd_W, mean_W,
+                                                sd_L, mean_L, Area_ha, Perim_m, Easting, no_MSG, meanph,        meanLBA,meantreedensity, Alt_m, no_trees,Northing, area_ratio ))
+
+sitevars_all_lesRich = subset(sitevars_reduced, select = -c(Richness))
+
+model_all = lm(Richness ~., data = sitevars_reduced)
+
+visreg(model_all)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+ggpairs(sitevars_all_lesRich, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+```
+
+```{r}
+all_PCA = PCA(sitevars_all_lesRich, scale.unit = TRUE, ncp = 11, graph = FALSE)
+var = get_pca_var(all_PCA)
+```
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+eig.val = get_eigenvalue(all_PCA)
+eig.val
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_cos2(all_PCA, choice = "var")
+```
+
+```{r}
+fitall = lm(Richness ~ ., data = sitevars_reduced)
+s = summary(fitall)
+p = round(s$coefficients[,4], digits =2)
+r = round(s$r.squared, digits = 2)
+pad = rep("-", length(p)-1)
+r = c(r,pad)
+m10 = as.data.frame(cbind(p,r))
+colnames(m1) = c("p","R2")
+m10
+
+```
+
+
+

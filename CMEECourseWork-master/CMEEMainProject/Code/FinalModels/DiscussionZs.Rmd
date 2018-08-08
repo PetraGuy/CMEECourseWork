@@ -1,0 +1,38 @@
+---
+title: "Discussion ZModels"
+author: "Petra Guy"
+date: "13 May 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE
+)
+library(gridExtra)
+library(dplyr)
+library(ggplot2)
+```
+
+The PHI had a positive effect on the nest Z and the meanSOM a negative effect.
+At plot level the number of NVC codes and sd mean TD had a positive effect and meanSOM and meanTD negative effects.
+
+The nest z tells us more about species interactions on a smaller scale and the habitat within the nests [Crawley]. Crawley showed that different habitats had different z values. For instance, the z values of bracken was less than 0.1 when the area was below 10m2 and 0.274 as the area changed from 10 to 100 m2. In Crawleys survey the z values for grassland were always greater than those for woodland to areas of 100m2, after which the value for woodland was greater.
+
+Since our woodland plots can contain a mixture of plots from open habitat types to homogenous plots occupied dominated by one or two species, the z values of the plots is likely to vary. When we fit the mixed effects model with random intercepts the slope of the log log fit is averaged across all the plots, but we could expect that vary to vary if, for example, one wood was dominated by homogenous plots versus another with a mixture of habitat types. 
+
+```{r}
+plotdata = read.csv("../../Data/AllPlotsVarsRichness.csv")
+sitedata = read.csv("../../Data/CompleteSiteLevelVars.csv")
+
+dontwant = c("W13","W14","W15","W16")
+
+woods = subset(plotdata,!(ShortNVC %in% dontwant ))
+Site76 = plotdata%>%filter(Site == 76)
+
+CumRich = readRDS("../CumulateveRichness.RDS")
+```
+
+

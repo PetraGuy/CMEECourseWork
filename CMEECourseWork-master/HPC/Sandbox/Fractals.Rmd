@@ -1,0 +1,22 @@
+---
+title: "Fractals Sections of HPC"
+author: "PetraGuy"
+date: "6 December 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+18) Starting with a 2D square. If the sides are divided into 3 and the middle square removed you have 8 copies of the original square.
+Therefore fractal dimension for the 2D Menger gasket is
+
+$$\frac{\log(8)}{\log(3)} = 1.893 $$
+For the 3D Menger sponge. Starting with a cube, if the sides are divided by 3, there are 8+4+8 resulting cubes. This gives a fractal dimension of
+$$\frac{\log(20)}{\log(3)} = 2.727 $$
+
+
+
+
+

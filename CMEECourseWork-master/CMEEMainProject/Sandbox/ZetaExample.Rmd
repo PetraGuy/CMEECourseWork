@@ -1,0 +1,116 @@
+---
+title: "ZetaDiversityExample"
+author: "PetraGuy"
+date: "28 November 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list = ls())
+graphics.off()
+```
+
+I think this might be the way Zeta Diversity works??
+
+Imagine we have 4 sites with a set of species in each site. The species are represented by numbers 1-4.
+These simplistic sites meean we can easily see which species are shared and what to expect. (PS I created a list too because I'm not sure what objects will be needed for the calculations)
+
+```{r}
+Site1 =  c(1:4)
+Site2 = c(2:5)
+Site3 = c(3:6)
+Site4 = c(4:7)
+Sites = cbind(Site1,Site2,Site3,Site4)
+SiteList = list(Site1,Site2,Site3,Site4)
+
+print(Sites)
+
+```
+
+How many species occur in all 4 sites - whats the intersection of all 4 sites?
+
+```{r}
+All4 = Reduce(intersect, list(Site1,Site2,Site3,Site4))
+richness = length(unique(All4))
+print(c("richness", richness))
+z4 = (All4)
+print(c("z4", z4))
+```
+
+How many species occur in 3 out of  4 sites. Need to find all the combinations of 3 from 4, (combs) then use the intersection as above. The columns of combs are the different combinaions of 4 choose 3. So selecting each column (combs[,i]) in turn gives a unique way that the sites must be combined. Then each element of that combination (combo[j]) gives an index for the columns of the Sites - i.e, a single site
+
+```{r}
+combs = combn(4,3)
+richness = vector()
+for (i in 1:ncol(combs)){
+  combo = combs[,i]
+   x =  Reduce(intersect, list(Sites[,combo[3]],Sites[,combo[2]],Sites[,combo[1]]))
+  print(x)
+  richness[i] = length(unique(x))
+  
+} 
+print(c("richness", richness))
+z3 = mean(richness)
+print(c("z3", zeta))
+ 
+```
+Which species occur in 2 of the 4 sites
+
+```{r}
+combs = combn(4,2)
+richness = vector()
+for (i in 1:ncol(combs)){
+  combo = combs[,i]
+   x =  Reduce(intersect, list(Sites[,combo[1]],Sites[,combo[2]]))
+  print(x)
+  richness[i] = length(unique(x))
+  
+} 
+print(c("richness", richness))
+z2 = mean(richness)
+print(c("z2",z2))
+
+```
+What's the avergae number of species across all sites
+
+```{r}
+library(reshape)
+species = melt(Sites)
+richness = length(unique(species$value))
+z1 = mean(richness)/4
+print(c("z1", z1))
+```
+The plot would be zeta vs number of sites
+
+```{r}
+x = (1:4)
+y = c(z1,z2,z3,z4)
+plot(x,y)
+```
+This is simplistic, ugly and clunky, but I was mainly trying to see if I had the right idea for what zeta diversity is. If this is correct, Hui et al have written an R package anyway, so I wont this!
+
+The next step, I think, is to extrapolate the above graph to get the estimate for species area??
+
+
+  print(x)
+  richness[i] = length(unique(x))
+  
+} 
+print(c("richness", richness))
+z2 = mean(richness)
+print(c("z2",z2))
+
+```
+What's the avergae number of species across all sites
+
+```{r}
+library(reshape)
+species = melt(Sites)
+richness = length(unique(species$value))
+z1 = mean(richness)/4
+print(c("z1", z1))
+```

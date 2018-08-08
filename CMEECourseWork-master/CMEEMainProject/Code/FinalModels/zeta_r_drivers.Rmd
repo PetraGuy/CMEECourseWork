@@ -1,0 +1,363 @@
+---
+title: "Zeta_r Drivers"
+author: "Petra Guy"
+output: pdf_document
+---
+
+Modeling the response of zeta_r to the abiotica/heterogeneity varaibles
+
+```{r setup, include=FALSE}
+
+## NB - several libraries mask each other here - arm masks dplyr and corrplot, therefore open libraries #as required.
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE
+)
+# Richness modelling
+
+rm(list = ls())
+cat("\014")
+library(dplyr) # everything
+
+library(ggplot2)
+
+library(car) # for vif
+library(reshape) # melt
+
+# get the data
+site_data =  read.csv("../../Data/CompleteSiteLevelVars.csv")
+PlotZdata = read.csv("../../Data/z_ave_fits.csv")
+Zs = PlotZdata%>%select(Site, slope)
+zeta_r = readRDS("../Zeta/zeta_r")
+Site = c(1:103)
+zeta_r = as.data.frame(cbind(Site,zeta_r))
+site_data = inner_join(site_data,zeta_r)
+
+#mean impute the missing PHI
+meanPHI = round(mean(site_data$Pos_Hetero_Index, na.rm = TRUE),2)
+x = site_data$Pos_Hetero_Index
+x[is.na(x)] = meanPHI
+site_data$Pos_Hetero_Index = x
+
+site_data_zs = inner_join(site_data,Zs)
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# slect only required variables
+subset_all = site_data_zs%>%select("Site","slope","Area_ha",
+                                "Northing", "Pos_Hetero_Index","Buffer3",
+                                "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
+                                "sd_meandbh","sd_treedensity","area_ratio",
+                                "meandbh","meanph", "meanSOM","meanLBA",
+                                "meantreedensity","zeta_r")
+
+
+
+colnames(subset_all) = c("Site","nestZ","Area",
+                         "Northing", "PHI","Buffer",
+                         "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
+                         "sd_meandbh","sd_TD","area_ratio",
+                         "meandbh","meanph", "meanSOM","meanLBA",
+                         "meanTD","zeta_r")
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#remove the wood with the largest area
+largest_area = as.numeric(subset_all%>%filter(Area == max(Area))%>%select(Site))
+site_data_outlier1 = subset_all%>%filter(Site!=largest_area)
+site_data_outlier1 = site_data_outlier1[,-3] # remove area column now
+
+#remove the outlier in PHI
+largest_PHI = as.numeric(subset_all%>%filter(PHI == max(PHI))%>%select(Site))
+site_data_outlier2 = site_data_outlier1%>%filter(Site!=largest_PHI)
+
+largest_PHI = as.numeric(site_data_outlier2%>%filter(PHI == max(PHI))%>%select(Site))
+site_data_outlier3 = site_data_outlier2%>%filter(Site!=largest_PHI)
+
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+subset_sd = site_data_outlier3%>%select("Site","zeta_r",
+                               "Northing", "PHI","Buffer",
+                               "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
+                               "sd_meandbh","sd_TD","area_ratio")
+
+
+
+subset_mean = site_data_outlier3%>%select("Site","zeta_r",
+                              "Northing", "PHI",  "meandbh",
+                              "meanph", "Buffer", "meanSOM","meanLBA",
+                              "meanTD","area_ratio", "no_NVC", 
+                              "no_MSG")
+
+```
+
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width = '50%'}
+
+# we know richness vs ph usually unimodal around .5, therefore fit to meanpH^2
+data = subset_mean[,-1]
+zeta_r = subset_mean[,2]
+#data$meanph = (data$meanph)^2
+
+#rescale the data
+library(arm) #for standarize
+rescaled_mean_data = apply(data[,-1],2, rescale)
+rescaled_mean_data = as.data.frame(cbind(zeta_r, rescaled_mean_data))
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#create the model
+mod_mean = lm(zeta_r~., data=rescaled_mean_data, na.action = "na.fail")
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#have a look at the linear model
+par(mfrow =c(2,2))
+plot(mod_mean, main = "Mean dataset")
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width = '50%'}
+
+# we know richness vs ph usually unimodal around .5, therefore fit to meanpH^2
+data = subset_sd[,-1]
+zeta_r = subset_mean[,2]
+
+#rescale the data
+library(arm) #for standarize
+rescaled_sd_data = apply(data[,-1],2, rescale)
+rescaled_sd_data = as.data.frame(cbind(zeta_r, rescaled_sd_data))
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#create the model
+mod_sd = lm(zeta_r~., data=rescaled_sd_data, na.action = "na.fail")
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#have a look at the linear model
+par(mfrow =c(2,2))
+plot(mod_sd, main = "SD dataset")
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# look at vifs
+vif(mod_mean)
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# look at vifs
+vif(mod_sd)
+```
+
+The variance inflation factors in the sd dataset are also low
+
+The models which had a delta <2 were selected from the MuMin dredge funtion as the top model set. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+library(MuMIn) #dredge and avg
+ #get top models
+models = dredge(mod_mean)
+model_set = get.models(models, subset = delta<2)
+
+
+#do model averaging, subset means zero method
+mean_avg_models = model.avg(model_set, subset)
+
+#select output data
+summary = summary(mean_avg_models)
+coefs =  mean_avg_models$coefficients
+importance =  c(NA,(as.vector(mean_avg_models$importance)))
+
+coef_matrix = summary$coefmat.full
+coefs = coef_matrix[,1]
+adj_se = coef_matrix[,3]
+CI_lower =  coefs - 1.96*adj_se
+CI_upper = coefs + 1.96*adj_se
+
+output = round(as.data.frame(cbind(coefs,adj_se, CI_lower, CI_upper, importance)),2)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# make plot of the variables and CI
+n = nrow(output)
+data = output[c(2:n),]
+data = data[,c(1,3,4)]
+data = t(data)
+data = as.data.frame(data)
+melted = melt(data)
+
+fun_mean <- function(x){
+  data = data.frame(y=mean(x),label=mean(x,na.rm=T))
+  data = round(data,2)
+  return(data)}
+
+#(aes_string(x = 'variable', y='value', na.rm = TRUE)
+
+melted$variable = as.factor(melted$variable)# ps, wont plot as separate plots if x continous
+
+ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
+  geom_boxplot(na.rm = TRUE, width = 0)+
+  stat_summary(fun.y = mean, geom="point",colour="darkred", size=3) +
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7)+
+  stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
+  geom_abline(intercept = 0, slope = 0)+
+  labs(y = "Effect size and 95%CI",x = "effect")+
+  labs(title = "Model averaged results for delta <2, zeta_r, Mean dataset",
+       subtitle = "numbers in red are variable importance")
+  
+
+
+```
+
+The graph shows the averaged effect sizes of the model with delta < 2. Number of NVC codes, mean tree density and mean soil organic matter effect the plot level Z
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+library(MuMIn) #dredge and avg
+ #get top models
+models = dredge(mod_sd)
+model_set = get.models(models, subset = delta<2)
+
+
+#do model averaging, subset means zero method
+sd_avg_models = model.avg(model_set, subset)
+
+#select output data
+summary = summary(sd_avg_models)
+coefs =  sd_avg_models$coefficients
+importance =  c(NA,(as.vector(sd_avg_models$importance)))
+
+coef_matrix = summary$coefmat.full
+coefs = coef_matrix[,1]
+adj_se = coef_matrix[,3]
+CI_lower =  coefs - 1.96*adj_se
+CI_upper = coefs + 1.96*adj_se
+
+output = round(as.data.frame(cbind(coefs,adj_se, CI_lower, CI_upper, importance)),2)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# make plot of the variables and CI
+n = nrow(output)
+data = output[c(2:n),]
+data = data[,c(1,3,4)]
+data = t(data)
+data = as.data.frame(data)
+melted = melt(data)
+
+fun_mean <- function(x){
+  data = data.frame(y=mean(x),label=mean(x,na.rm=T))
+  data = round(data,2)
+  return(data)}
+
+#(aes_string(x = 'variable', y='value', na.rm = TRUE)
+
+melted$variable = as.factor(melted$variable)# ps, wont plot as separate plots if x continous
+
+ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
+  geom_boxplot(na.rm = TRUE, width = 0)+
+  stat_summary(fun.y = mean, geom="point",colour="darkred", size=3) +
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7)+
+  stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
+  geom_abline(intercept = 0, slope = 0)+
+  labs(y = "Effect size and 95%CI",x = "effect")+
+  labs(title = "Model averaged results for delta <2, zeta_rs, SD dataset",
+       subtitle = "numbers in red are variable importance")
+  
+
+
+```
+
+In the sd dataset model the standard deviaiton of mean dbh has an effect.
+##Using the model for prediction
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#extract model averaged parameter estimates
+
+predicted_Z = predict(mean_avg_models, full = TRUE)
+empirical_Z =  site_data_outlier3$zeta_r
+fit = lm(empirical_Z ~ predicted_Z)
+R2 = round(summary(fit)$r.squared,2)
+subtitle = paste("R2 = ",R2)
+data = as.data.frame(cbind(predicted_Z, empirical_Z))
+
+ggplot(data, aes(x = predicted_Z, y = empirical_Z))+
+  geom_point()+
+  geom_abline(intercept = 0, slope = 1)+
+  labs(title = "Observed versus predicted data, mean dataset",
+       subtitle = subtitle)
+
+  
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#extract model averaged parameter estimates
+
+predicted_Z = predict(sd_avg_models, full = TRUE)
+empirical_Z =  site_data_outlier3$zeta_r
+fit = lm(empirical_Z ~ predicted_Z)
+R2 = round(summary(fit)$r.squared,2)
+subtitle = paste("R2 = ",R2)
+data = as.data.frame(cbind(predicted_Z, empirical_Z))
+
+ggplot(data, aes(x = predicted_Z, y = empirical_Z))+
+  geom_point()+
+  geom_abline(intercept = 0, slope = 1)+
+  labs(title = "Observed versus predicted data, sd dataset",
+       subtitle = subtitle)
+
+  
+```
+
+
+```{R}
+
+emp_zetas = readRDS("empirical_zetas.RDS")
+z1 = t(emp_zetas[1,])
+Site = seq(1,103,1)
+z1df = as.data.frame(cbind(Site,z1))
+PHIdf = site_data_outlier3[,c("Site","PHI")]
+df = inner_join(z1df,PHIdf)
+colnames(df) = c("Site","z1","PHI")
+ggplot(df, aes(x = PHI, y = z1))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  ylab("zeta1")
+
+
+DBHdf = as.data.frame(cbind(site_data_outlier3$Site, site_data_outlier3$meandbh))
+colnames(DBHdf) = c("Site","meanDBH")
+df = inner_join(DBHdf,z1df)
+colnames(df) = c("Site","meanDBH","zeta1")
+
+g1 = ggplot(site_data_outlier3, aes(x = meandbh, y = PHI))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  ylab("zeta_r")+
+xlab("meanDBH")
+  
+g2 = ggplot(site_data_outlier3, aes(x = meanTD, y = PHI))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  ylab("zeta_r")+
+  xlab("meanTD")
+
+grid.arrange(g1,g2,ncol = 2)
+  
+
+```
+
+
+```{R}
+
+
+```

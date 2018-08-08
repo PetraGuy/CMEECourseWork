@@ -1,0 +1,260 @@
+---
+title: "ExaminingCovariatesI"
+author: "PetraGuy"
+date: "27 March 2018"
+header-includes: 
+- \usepackage{pdflscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE,
+	out.width = "50%"
+)
+rm(list = ls())
+cat("\014")
+library(dplyr) 
+library(visreg) # for visreg plots 
+library(ggplot2)
+library(GGally) # for ggpairs
+library(factoextra)
+library(FactoMineR)# these two for PCA
+library(corrplot)
+```
+
+
+```{r}
+sitevars =  read.csv("../Data/SiteVars.csv")
+```
+Several approaches will be used to examine the colinearity of the variates used in the to explain he richness of the 16 plots in each site, and the response of the richness to the variates will be considered,
+
+A) Visref will be used to plot scatter graphs of individual variables used in a simple additive multiple linear regression. 
+Using visref to look at the variables allows a multiple regression to be carried out and the effect of each variable is shown with the other variables held constant. This allows for the effect of each variable on the richness, in the presence of the other variables to be considered.
+B) Pairs plots will be used to examine colinearity between all variables.
+C) PCA will be used to see if we can extract a few key variables to represent the data.
+D) VIR values will be calculated
+E) p values for the variables will be recorded as variables are removed from the regression.
+F)ANOVA will be used to see if there is a difference between the means
+
+Since there are a lot of variables, they have been split in two, those which directly relate to abiotic features and those which represent the heterogeneity of the site:
+
+```{r}
+physical_df = sitevars%>%select("Alt_m", "Area_ha","Perim_m","Easting","Northing","Buffer3","meandbh","meanph","meanSOM","meanLBA","area_ratio")
+hetero_df = sitevars%>%select("Pos_Hetero_Index","no_NVC","sd_pH", "sd_SOM" , "no_MSG", "sd_LBA", "sd_meandbh", "sd_treedensity","no_trees"  )
+hetero_df[is.na(hetero_df)] = 0
+```
+
+Physical Variables
+```{r}
+colnames(physical_df)
+```
+
+Heterogeneity variables
+
+```{r}
+colnames(hetero_df)
+```
+
+#Effect of each variable on richness using multiple linear regression, simple additive model.
+
+
+```{r}
+physical_df_incRich = as.data.frame(cbind(sitevars$Richness, physical_df))
+colnames(physical_df_incRich) = c("Richness","Alt_m" ,"Area_ha" ,"Perim_m" ,"Easting","Northing" ,"Buffer3" , "meandbh" , "meanph" ,"meanSOM" , "meanLBA","area_ratio" )
+physical_model = lm(Richness ~., data = physical_df_incRich)
+
+visreg(physical_model)
+```
+
+
+
+```{r}
+heter_df_incRich = as.data.frame(cbind(sitevars$Richness, hetero_df))
+colnames(heter_df_incRich) = c("Richness","Pos_Hetero_Index","no_NVC", "sd_pH" ,"sd_SOM", "no_MSG", "sd_LBA" ,"sd_meandbh" , "sd_treedensity" , "no_trees"  ) 
+hetero_model = lm(Richness ~., data = heter_df_incRich)
+
+visreg(hetero_model)
+```
+
+
+
+\clearpage
+\newpage
+\blandscape
+
+#Colinearity of variables using pair plots
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="250%", }
+
+ggpairs(physical_df, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+
+```
+
+
+\clearpage
+\newpage
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="250%", }
+
+ggpairs(hetero_df, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+```
+
+\elandscape
+\clearpage
+\newpage
+
+#PCA
+##Physical variables
+
+```{r}
+physical_PCA = PCA(physical_df, scale.unit = TRUE, ncp = 11, graph = FALSE)
+var = get_pca_var(physical_PCA)
+```
+
+```{r}
+eig.val_physical = get_eigenvalue(physical_PCA)
+eig.val_physical
+```
+
+5 components explain 76% of the variance, the first 2 explain 45%
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+fviz_eig(physical_PCA, addlabels = TRUE, ylim = c(0,30))
+```
+    
+```{r}
+fviz_pca_var(physical_PCA, col.var = "cos2", repel = TRUE)
+```
+
+ 
+```{r}
+
+corrplot(var$cos2)
+```
+
+
+
+```{r}
+fviz_cos2(physical_PCA, choice = "var")
+```
+
+```{r eval=FALSE, include=FALSE}
+fviz_contrib(physical_PCA, choice = "var", axes = 1, top = 10)
+```
+
+```{r eval=FALSE, include=FALSE}
+fviz_contrib(physical_PCA, choice = "var", axes = 2, top = 10)
+
+```
+
+```{r eval=FALSE, include=FALSE}
+area_outier = sitevars%>%filter(Area_ha == max(Area_ha))
+
+
+```
+
+```{r}
+hetero_PCA = PCA(hetero_df, scale.unit = TRUE, ncp = 11, graph = FALSE)
+var = get_pca_var(hetero_PCA)
+```
+
+```{r}
+eig.val_hetero = get_eigenvalue(hetero_PCA)
+eig.val_hetero
+```
+
+75% of variance is expressed by the first 5 components,  41% by the first 2
+
+```{r eval=FALSE, include=FALSE}
+fviz_eig(hetero_PCA, addlabels = TRUE, ylim = c(0,30))
+```
+
+```{r}
+fviz_pca_var(hetero_PCA, col.var = "cos2", repel = TRUE)
+```
+
+```{r}
+corrplot(var$cos2)
+```
+
+```{r}
+fviz_cos2(hetero_PCA, choice = "var")
+```
+
+```{r eval=FALSE, include=FALSE}
+fviz_contrib(hetero_PCA, choice = "var", axes = 1, top = 10)
+```
+
+```{r eval=FALSE, include=FALSE}
+fviz_contrib(hetero_PCA, choice = "var", axes = 2, top = 10)
+
+```
+
+#Regression
+The plots show that the following variables have a positive correlation with species richness : Northing, Buffer, mean SOM, area to perimeter ratio ,Number of positive heterogeneity indices,number of NVC codes, number of sites with no trees, standard deviation of the tree density.
+
+Mean dbh has a negative corrleation.
+
+The correlation with Positive heterogenity index may be heavily influenced by the two outliers, Site 23 with 97 and Site 53 with 78),
+
+#Pairs Plots
+Abiotic variables: No correlation is greather than 0.52 between any variables, accept area and perimeter and area ratio - as you'd expect. 
+Buffer and Northing have correlation coefficient of 0.52 and Easting and mean SOM of  -0.417."
+
+Heterogenity variables: The largest correlation coefficient is 0.385, between standard deviation of mean dbh and number of sites with no trees, not unexpected. Number of major soil groups and standard devation of SOM have correlation coefficient of 0.337 and number of NVC codes and number of plots with no trees has 0.299."
+
+#PCA
+
+Abiotic : Area, perimeter, buffer contribute to the first component, area ratio and area to the second, mean dbh and mean LBA to the third, northing and altitude to the fourth.
+The corr plot shows area, perimeter, buffer and mean soil organic matter increse together, as domean dbh and mean LBA, as well as Northing and altitude.
+
+The strong contribution of area and perimeter may be due to the outlier - one wood had a area of over 300ha,(Site 74) the others were all below 150ha. 
+
+
+The inclusion of area, perimeter and area/perimeter ratio may seems strange, but they may have different effects on richness. A large area may increase richness due to increased species pool. A large area/perimeter ratio may increase richness due to the increased possibility of species migration, or conversely have a negative impact because the wood may then not contain a core of undisturbed woodland with poorly dispersing woodland species, which are then lost. Buffer may be a good substitute for all the above variables because it also represents a species pool, a wood with a large perimeter and a large area will equally have a large buffer. 
+
+Heterogeneity: The standard deviation of soil organic matter, tree density, LBA and mean dbh contribute the first principle component. Number of NVC codes, sd of soil pH and number of sites with no trees to the second and number of MSG to the third. 
+
+The corr plot shows sd SOM increases with sd of tree density and sd of mean dbh, and that number of NVC codes increase with sd of soil pH.
+
+#Discussion
+
+Abiotic vars.
+Area, perimeter and area ratio show correlations above 0.7, as you would expect. Only area has strong relationship with richness, but this may be due to the outlier. Of the three variables perimeter is not required as it is the area, or the geometry of the wood, expressed in the area/preimeter ratio that might affect richness. Therefore the outlier will be removed and the perimeter will be removed.
+
+The other correlations are all below 0.5 and there isnt a clear reason why any should be dropped, e.g. buffer and northing are not ecologically related, so it doesnt make sense to drop one at this stage.
+
+PCA shows mean_dbh and mean_lba increase together, and they are obviously related, so one of these coud be dropped. Its not obvious why they are not more strongly correlated??
+
+**DROP?? perimeter, meanLBA, outlier**
+
+Heterovars.
+Number of sites with no trees and sd mean dbh show correlation of 0.385 - since they are computationally related both may be unnecessary. PCA shows that sd_treedensity increases with sd_mean dbh - again related variables, it might be worth dropping both since mean dbh  which has a strong influence on richness, and is being used. Since number of sites with no trees has the strongest influence on richness, keep this variable and drop se_meandbh, sd_treedensity, sd_meandbh.
+
+Number of MSG and sd SOM groups, likewise
+
+
+**PS = Check correlation between no_trees and mean dbh** you would expect the to be related, but they werent considered her because of the way the variables ahve been split into two groups. 
+
+**DROP?? sd meandbh, sd_treedensity, sd_MSG, outliers**
+
+

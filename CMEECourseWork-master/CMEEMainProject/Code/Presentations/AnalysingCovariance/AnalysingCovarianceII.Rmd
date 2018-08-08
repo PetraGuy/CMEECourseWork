@@ -1,0 +1,210 @@
+---
+title: "ExaminingCovariatesII"
+author: "PetraGuy"
+date: "27 March 2018"
+header-includes: 
+- \usepackage{pdflscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
+output: pdf_document
+---
+##Repeat of covariance analysis without sites 23, 53 , 74
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE,
+	out.width="50%"
+)
+rm(list = ls())
+cat("\014")
+library(dplyr)
+library(visreg) # for visreg plots 
+library(ggplot2)
+library(GGally) # for ggpairs
+library(factoextra)
+library(FactoMineR)# these two for PCA
+library(corrplot)
+```
+
+
+```{r}
+sitevars =  read.csv("../Data/SiteLevelVars.csv")
+toremove = c(23,53,74)
+sitevars = sitevars%>%filter(!Site %in% toremove)
+```
+
+```{r}
+physical_df = sitevars%>%select("Alt_m", "Area_ha","Perim_m","Easting","Northing","Buffer3","meandbh","meanph","meanSOM","meanLBA","area_ratio")
+hetero_df = sitevars%>%select("Pos_Hetero_Index","no_NVC","sd_pH", "sd_SOM" , "no_MSG", "sd_LBA", "sd_meandbh", "sd_treedensity","no_trees"  )
+hetero_df[is.na(hetero_df)] = 0
+```
+
+Physical Variables
+```{r}
+colnames(physical_df)
+```
+
+Heterogeneity variables
+
+```{r}
+colnames(hetero_df)
+```
+
+#Effect of each variable on richness using multiple linear regression, simple additive model.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+physical_df_incRich = as.data.frame(cbind(sitevars$Richness, physical_df))
+colnames(physical_df_incRich) = c("Richness","Alt_m" ,"Area_ha" ,"Perim_m" ,"Easting","Northing" ,"Buffer3" , "meandbh" , "meanph" ,"meanSOM" , "meanLBA","area_ratio" )
+physical_model = lm(Richness ~., data = physical_df_incRich)
+
+visreg(physical_model)
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+heter_df_incRich = as.data.frame(cbind(sitevars$Richness, hetero_df))
+colnames(heter_df_incRich) = c("Richness","Pos_Hetero_Index","no_NVC", "sd_pH" ,"sd_SOM", "no_MSG", "sd_LBA" ,"sd_meandbh" , "sd_treedensity" , "no_trees"  ) 
+hetero_model = lm(Richness ~., data = heter_df_incRich)
+
+visreg(hetero_model)
+```
+
+
+\clearpage
+\newpage
+\blandscape
+
+#Colinearity of variables using pair plots
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="250%"}
+
+ggpairs(physical_df, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE,out.width="250%"}
+
+ggpairs(hetero_df, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+```
+\clearpage
+\newpage
+\elandscape
+
+
+#PCA
+##Physical variables
+
+```{r}
+physical_PCA = PCA(physical_df, scale.unit = TRUE, ncp = 11, graph = FALSE)
+var = get_pca_var(physical_PCA)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+eig.val_physical = get_eigenvalue(physical_PCA)
+eig.val_physical
+```
+
+
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+fviz_eig(physical_PCA, addlabels = TRUE, ylim = c(0,30))
+```
+    
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_pca_var(physical_PCA, col.var = "cos2", repel = TRUE)
+```
+
+ 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+corrplot(var$cos2)
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_cos2(physical_PCA, choice = "var")
+```
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+fviz_contrib(physical_PCA, choice = "var", axes = 1, top = 10)
+```
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+fviz_contrib(physical_PCA, choice = "var", axes = 2, top = 10)
+
+```
+
+
+```{r eval=FALSE, include=FALSE}
+area_outier = sitevars%>%filter(Area_ha == max(Area_ha))
+
+
+```
+
+```{r}
+hetero_PCA = PCA(hetero_df, scale.unit = TRUE, ncp = 11, graph = FALSE)
+var = get_pca_var(hetero_PCA)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+eig.val_hetero = get_eigenvalue(hetero_PCA)
+eig.val_hetero
+```
+
+
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+fviz_eig(hetero_PCA, addlabels = TRUE, ylim = c(0,30))
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_pca_var(hetero_PCA, col.var = "cos2", repel = TRUE)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+corrplot(var$cos2)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+fviz_cos2(hetero_PCA, choice = "var")
+```
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+fviz_contrib(hetero_PCA, choice = "var", axes = 1, top = 10)
+```
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+fviz_contrib(hetero_PCA, choice = "var", axes = 2, top = 10)
+
+```
+
+#Discussion
+
+Removing the outliers in area and positive heterogeneity index has:
+Reduced slope of richness ~ pos hetero index
+Redued the contribution of altidude to component 4, (Site 74 is Glen Beasdale, could be up on the hill).
+Area contribution now more distributed towards component 2.
+
+
+

@@ -1,0 +1,136 @@
+---
+title: "ExaminingCovariatesIV"
+author: "PetraGuy"
+date: "27 March 2018"
+header-includes: 
+- \usepackage{pdflscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
+output: pdf_document
+---
+##Repeat of covariance analysis without sites 23, 53 , 74.
+##Already dropped :perimeter, meanLBA, sdmean_dbh, sd_treedensity, sd_SOM
+##Now drop sd_LBA, sd_pH, and combine the variables##
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE,
+	out.width="50%"
+)
+rm(list = ls())
+cat("\014")
+library(dplyr)
+library(visreg) # for visreg plots 
+library(ggplot2)
+library(GGally) # for ggpairs
+library(factoextra)
+library(FactoMineR)# these two for PCA
+library(corrplot)
+```
+
+
+```{r}
+sitevars =  read.csv("../Data/SiteLevelVars.csv")
+toremove = c(23,53,74)
+sitevars = sitevars%>%filter(!Site %in% toremove)
+
+```
+
+```{r}
+physical_df = sitevars%>%select("Alt_m", "Area_ha","Perim_m","Easting","Northing","Buffer3","meandbh","meanph","meanSOM","meanLBA","area_ratio")
+hetero_df = sitevars%>%select("Pos_Hetero_Index","no_NVC","sd_pH", "sd_SOM" , "no_MSG", "sd_LBA", "sd_meandbh", "sd_treedensity","no_trees"  )
+hetero_df[is.na(hetero_df)] = 0
+physical_df = subset(physical_df, select = -c(Perim_m,meanLBA))
+hetero_df = subset(hetero_df, select=-c(sd_meandbh,sd_treedensity,sd_SOM, sd_LBA, sd_pH))
+combo_df = as.data.frame(cbind(physical_df,hetero_df))
+```
+
+Combined data fram variables
+```{r}
+colnames(combo_df)
+```
+
+#Effect of each variable on richness using multiple linear regression, simple additive model.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+combo_df_incRich = as.data.frame(cbind(sitevars$Richness, combo_df))
+colnames(combo_df_incRich) = c("Richness", "Alt_m", "Area_ha", "Easting","Northing",  "Buffer3" , "meandbh" , "meanph" , "meanSOM"  , "area_ratio" , "Pos_Hetero_Index", "no_NVC","no_MSG" , "no_trees" )
+combo_model = lm(Richness ~., data = combo_df_incRich)
+
+visreg(combo_model)
+```
+
+
+\clearpage
+\newpage
+\blandscape
+
+#Colinearity of variables using pair plots
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="250%"}
+
+ggpairs(combo_df, axisLabels="none",
+        lower = list(continuous="smooth"),
+        diag="blankDiag",
+        upper = list(corSize=2,axisLabels='show'))+
+theme(legend.position = "none",
+      panel.grid.major = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_rect(linetype = "dashed", colour = "black", fill = NA))
+
+```
+
+
+\clearpage
+\newpage
+\elandscape
+
+
+#PCA
+##Physical variables
+
+```{r}
+combo_PCA = PCA(combo_df, scale.unit = TRUE, ncp = 11, graph = FALSE)
+var = get_pca_var(combo_PCA)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+eig.val_physical = get_eigenvalue(combo_PCA)
+eig.val_physical
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_eig(combo_PCA, addlabels = TRUE, ylim = c(0,30))
+```
+    
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_pca_var(combo_PCA, col.var = "cos2", repel = TRUE)
+```
+
+ 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+corrplot(var$cos2)
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_cos2(combo_PCA, choice = "var")
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_contrib(combo_PCA, choice = "var", axes = 1, top = 10)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fviz_contrib(combo_PCA, choice = "var", axes = 2, top = 10)
+
+```
+
+##Remove altitude and easting as the richness is not correlated with them. altitude contributes little to component 1. Easting contributes 10% to component 2, not sure if that matters.No_trees is not convincing, so drop this.

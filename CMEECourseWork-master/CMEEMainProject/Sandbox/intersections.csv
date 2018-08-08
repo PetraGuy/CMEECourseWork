@@ -1,0 +1,122 @@
+"","SITE.x","PLOT.x","NEST.x","Cover.x","BRC_number.x","Year.x","Species","SITE.y","PLOT.y","NEST.y","Cover.y","BRC_number.y","Year.y"
+"1",1,1,1,30,920687,2,"Hyacinthoides non-scripta",1,4,3,0.5,920687,2
+"2",1,1,4,1,920983,2,"Holcus lanatus",1,4,5,0.5,920983,2
+"3",1,1,1,8,9101619,2,"Pteridium aquilinum",1,4,1,15,9101619,2
+"4",1,1,NA,NA,9201484,2,"Pinus sylvestris",1,4,NA,NA,9201484,2
+"5",1,1,NA,NA,9204446,2,"Quercus seedling/sp",1,4,NA,NA,9204446,2
+"6",1,1,5,0.5,9204446,2,"Quercus seedling/sp",1,4,NA,NA,9204446,2
+"7",1,2,1,50,920687,2,"Hyacinthoides non-scripta",1,4,3,0.5,920687,2
+"8",1,2,4,0.5,920983,2,"Holcus lanatus",1,4,5,0.5,920983,2
+"9",1,2,3,0.5,9101619,2,"Pteridium aquilinum",1,4,1,15,9101619,2
+"10",1,2,3,0.5,9201296,2,"Milium effusum",1,4,1,1,9201296,2
+"11",1,2,NA,NA,9204446,2,"Quercus seedling/sp",1,4,NA,NA,9204446,2
+"12",1,2,3,0.5,200001583,2,"Dryopteris dilatata/carthusiana",1,4,3,0.5,200001583,2
+"13",1,2,3,0.5,200001583,2,"Dryopteris dilatata/carthusiana",1,4,1,0.5,200001583,2
+"14",1,3,2,0.5,920640,2,"Digitalis purpurea",1,4,4,0.5,920640,2
+"15",1,3,3,0.5,920687,2,"Hyacinthoides non-scripta",1,4,3,0.5,920687,2
+"16",1,3,1,1,920983,2,"Holcus lanatus",1,4,5,0.5,920983,2
+"17",1,3,4,0.5,9201188,2,"Lonicera periclymenum",1,4,4,0.5,9201188,2
+"18",1,3,1,30,9201296,2,"Milium effusum",1,4,1,1,9201296,2
+"19",1,3,2,5,9201728,2,"Rubus fruticosus agg.",1,4,2,0.5,9201728,2
+"20",1,3,NA,NA,9204446,2,"Quercus seedling/sp",1,4,NA,NA,9204446,2
+"21",1,5,1,10,920687,2,"Hyacinthoides non-scripta",1,4,3,0.5,920687,2
+"22",1,5,3,0.5,9201023,2,"Ilex aquifolium",1,4,3,0.5,9201023,2
+"23",1,5,4,0.5,9101619,2,"Pteridium aquilinum",1,4,1,15,9101619,2
+"24",1,5,3,0.5,9201188,2,"Lonicera periclymenum",1,4,4,0.5,9201188,2
+"25",1,5,1,40,9201296,2,"Milium effusum",1,4,1,1,9201296,2
+"26",1,5,1,5,9201728,2,"Rubus fruticosus agg.",1,4,2,0.5,9201728,2
+"27",1,6,2,0.5,920640,2,"Digitalis purpurea",1,4,4,0.5,920640,2
+"28",1,6,1,5,920687,2,"Hyacinthoides non-scripta",1,4,3,0.5,920687,2
+"29",1,6,3,0.5,9201023,2,"Ilex aquifolium",1,4,3,0.5,9201023,2
+"30",1,6,1,60,9101619,2,"Pteridium aquilinum",1,4,1,15,9101619,2
+"31",1,6,2,0.5,9201188,2,"Lonicera periclymenum",1,4,4,0.5,9201188,2
+"32",1,6,1,5,9201296,2,"Milium effusum",1,4,1,1,9201296,2
+"33",1,6,NA,NA,9201482,2,"Pinus nigra",1,4,NA,NA,9201482,2
+"34",1,6,NA,NA,9201484,2,"Pinus sylvestris",1,4,NA,NA,9201484,2
+"35",1,6,1,1,9201728,2,"Rubus fruticosus agg.",1,4,2,0.5,9201728,2
+"36",1,7,5,0.5,200001583,2,"Dryopteris dilatata/carthusiana",1,4,3,0.5,200001583,2
+"37",1,7,5,0.5,200001583,2,"Dryopteris dilatata/carthusiana",1,4,1,0.5,200001583,2
+"38",1,7,5,0.5,920412,2,"Carex remota",1,4,5,0.5,920412,2
+"39",1,7,1,1,920640,2,"Digitalis purpurea",1,4,4,0.5,920640,2
+"40",1,7,2,0.5,920687,2,"Hyacinthoides non-scripta",1,4,3,0.5,920687,2
+"41",1,7,1,0.5,920983,2,"Holcus lanatus",1,4,5,0.5,920983,2
+"42",1,7,1,0.5,9201023,2,"Ilex aquifolium",1,4,3,0.5,9201023,2
+"43",1,7,1,30,9101619,2,"Pteridium aquilinum",1,4,1,15,9101619,2
+"44",1,7,1,0.5,9201188,2,"Lonicera periclymenum",1,4,4,0.5,9201188,2
+"45",1,7,1,1,9201296,2,"Milium effusum",1,4,1,1,9201296,2
+"46",1,7,NA,NA,9201484,2,"Pinus sylvestris",1,4,NA,NA,9201484,2
+"47",1,7,3,0.5,9201728,2,"Rubus fruticosus agg.",1,4,2,0.5,9201728,2
+"48",1,7,NA,NA,9204446,2,"Quercus seedling/sp",1,4,NA,NA,9204446,2
+"49",1,7,1,0.5,200001583,2,"Dryopteris dilatata/carthusiana",1,4,3,0.5,200001583,2
+"50",1,7,1,0.5,200001583,2,"Dryopteris dilatata/carthusiana",1,4,1,0.5,200001583,2
+"51",1,8,5,0.5,920983,2,"Holcus lanatus",1,4,5,0.5,920983,2
+"52",1,8,2,1,9201188,2,"Lonicera periclymenum",1,4,4,0.5,9201188,2
+"53",1,8,2,0.5,9201296,2,"Milium effusum",1,4,1,1,9201296,2
+"54",1,8,NA,NA,9201484,2,"Pinus sylvestris",1,4,NA,NA,9201484,2
+"55",1,8,1,80,9201728,2,"Rubus fruticosus agg.",1,4,2,0.5,9201728,2
+"56",1,8,1,0.5,200001583,2,"Dryopteris dilatata/carthusiana",1,4,3,0.5,200001583,2
+"57",1,8,1,0.5,200001583,2,"Dryopteris dilatata/carthusiana",1,4,1,0.5,200001583,2
+"58",1,9,3,0.5,920687,2,"Hyacinthoides non-scripta",1,4,3,0.5,920687,2
+"59",1,9,5,1,920983,2,"Holcus lanatus",1,4,5,0.5,920983,2
+"60",1,9,3,0.5,9201188,2,"Lonicera periclymenum",1,4,4,0.5,9201188,2
+"61",1,9,1,10,9201296,2,"Milium effusum",1,4,1,1,9201296,2
+"62",1,9,1,1,9201728,2,"Rubus fruticosus agg.",1,4,2,0.5,9201728,2
+"63",1,9,NA,NA,9204446,2,"Quercus seedling/sp",1,4,NA,NA,9204446,2
+"64",1,9,4,0.5,9204446,2,"Quercus seedling/sp",1,4,NA,NA,9204446,2
+"65",1,9,3,0.5,200001583,2,"Dryopteris dilatata/carthusiana",1,4,3,0.5,200001583,2
+"66",1,9,3,0.5,200001583,2,"Dryopteris dilatata/carthusiana",1,4,1,0.5,200001583,2
+"67",1,10,5,0.5,920687,2,"Hyacinthoides non-scripta",1,4,3,0.5,920687,2
+"68",1,10,1,1,9201188,2,"Lonicera periclymenum",1,4,4,0.5,9201188,2
+"69",1,10,1,8,9201296,2,"Milium effusum",1,4,1,1,9201296,2
+"70",1,10,NA,NA,9201484,2,"Pinus sylvestris",1,4,NA,NA,9201484,2
+"71",1,10,1,15,9201728,2,"Rubus fruticosus agg.",1,4,2,0.5,9201728,2
+"72",1,10,NA,NA,9204446,2,"Quercus seedling/sp",1,4,NA,NA,9204446,2
+"73",1,10,5,0.5,200001583,2,"Dryopteris dilatata/carthusiana",1,4,3,0.5,200001583,2
+"74",1,10,5,0.5,200001583,2,"Dryopteris dilatata/carthusiana",1,4,1,0.5,200001583,2
+"75",1,11,5,0.5,920687,2,"Hyacinthoides non-scripta",1,4,3,0.5,920687,2
+"76",1,11,2,0.5,9101619,2,"Pteridium aquilinum",1,4,1,15,9101619,2
+"77",1,11,3,1,9201188,2,"Lonicera periclymenum",1,4,4,0.5,9201188,2
+"78",1,11,NA,NA,9201484,2,"Pinus sylvestris",1,4,NA,NA,9201484,2
+"79",1,11,4,0.5,9201728,2,"Rubus fruticosus agg.",1,4,2,0.5,9201728,2
+"80",1,11,NA,NA,9204446,2,"Quercus seedling/sp",1,4,NA,NA,9204446,2
+"81",1,11,5,0.5,9204446,2,"Quercus seedling/sp",1,4,NA,NA,9204446,2
+"82",1,12,2,0.5,920687,2,"Hyacinthoides non-scripta",1,4,3,0.5,920687,2
+"83",1,12,3,0.5,9201188,2,"Lonicera periclymenum",1,4,4,0.5,9201188,2
+"84",1,12,1,2,9201296,2,"Milium effusum",1,4,1,1,9201296,2
+"85",1,12,NA,NA,9201484,2,"Pinus sylvestris",1,4,NA,NA,9201484,2
+"86",1,12,NA,NA,9204446,2,"Quercus seedling/sp",1,4,NA,NA,9204446,2
+"87",1,13,2,0.5,200001583,2,"Dryopteris dilatata/carthusiana",1,4,3,0.5,200001583,2
+"88",1,13,2,0.5,200001583,2,"Dryopteris dilatata/carthusiana",1,4,1,0.5,200001583,2
+"89",1,13,4,0.5,920640,2,"Digitalis purpurea",1,4,4,0.5,920640,2
+"90",1,13,1,80,920687,2,"Hyacinthoides non-scripta",1,4,3,0.5,920687,2
+"91",1,13,2,0.5,920983,2,"Holcus lanatus",1,4,5,0.5,920983,2
+"92",1,13,NA,NA,9201484,2,"Pinus sylvestris",1,4,NA,NA,9201484,2
+"93",1,13,1,5,9201728,2,"Rubus fruticosus agg.",1,4,2,0.5,9201728,2
+"94",1,13,NA,NA,9204446,2,"Quercus seedling/sp",1,4,NA,NA,9204446,2
+"95",1,13,3,0.5,200001583,2,"Dryopteris dilatata/carthusiana",1,4,3,0.5,200001583,2
+"96",1,13,3,0.5,200001583,2,"Dryopteris dilatata/carthusiana",1,4,1,0.5,200001583,2
+"97",1,14,1,1,920640,2,"Digitalis purpurea",1,4,4,0.5,920640,2
+"98",1,14,4,0.5,9101619,2,"Pteridium aquilinum",1,4,1,15,9101619,2
+"99",1,14,1,1,9201188,2,"Lonicera periclymenum",1,4,4,0.5,9201188,2
+"100",1,14,NA,NA,9201484,2,"Pinus sylvestris",1,4,NA,NA,9201484,2
+"101",1,14,1,0.5,9201728,2,"Rubus fruticosus agg.",1,4,2,0.5,9201728,2
+"102",1,14,NA,NA,9204446,2,"Quercus seedling/sp",1,4,NA,NA,9204446,2
+"103",1,14,1,2,200001583,2,"Dryopteris dilatata/carthusiana",1,4,3,0.5,200001583,2
+"104",1,14,1,2,200001583,2,"Dryopteris dilatata/carthusiana",1,4,1,0.5,200001583,2
+"105",1,15,4,0.5,920640,2,"Digitalis purpurea",1,4,4,0.5,920640,2
+"106",1,15,2,0.5,9201023,2,"Ilex aquifolium",1,4,3,0.5,9201023,2
+"107",1,15,1,20,9101619,2,"Pteridium aquilinum",1,4,1,15,9101619,2
+"108",1,15,2,1,9201188,2,"Lonicera periclymenum",1,4,4,0.5,9201188,2
+"109",1,15,3,1,9201296,2,"Milium effusum",1,4,1,1,9201296,2
+"110",1,15,NA,NA,9201484,2,"Pinus sylvestris",1,4,NA,NA,9201484,2
+"111",1,15,1,0.5,9201728,2,"Rubus fruticosus agg.",1,4,2,0.5,9201728,2
+"112",1,15,NA,NA,9204446,2,"Quercus seedling/sp",1,4,NA,NA,9204446,2
+"113",1,15,2,0.5,200001583,2,"Dryopteris dilatata/carthusiana",1,4,3,0.5,200001583,2
+"114",1,15,2,0.5,200001583,2,"Dryopteris dilatata/carthusiana",1,4,1,0.5,200001583,2
+"115",1,16,2,0.5,920687,2,"Hyacinthoides non-scripta",1,4,3,0.5,920687,2
+"116",1,16,5,0.5,9101619,2,"Pteridium aquilinum",1,4,1,15,9101619,2
+"117",1,16,2,0.5,9201188,2,"Lonicera periclymenum",1,4,4,0.5,9201188,2
+"118",1,16,5,0.5,9201296,2,"Milium effusum",1,4,1,1,9201296,2
+"119",1,16,NA,NA,9204446,2,"Quercus seedling/sp",1,4,NA,NA,9204446,2
+"120",1,16,5,0.5,200001583,2,"Dryopteris dilatata/carthusiana",1,4,3,0.5,200001583,2
+"121",1,16,5,0.5,200001583,2,"Dryopteris dilatata/carthusiana",1,4,1,0.5,200001583,2

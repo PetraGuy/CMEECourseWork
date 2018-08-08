@@ -1,0 +1,355 @@
+---
+title: "RichnessDiscussion"
+author: "Petra Guy"
+date: "11 May 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE
+)
+library(gridExtra)
+library(dplyr)
+library(ggplot2)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+rm(list = ls())
+cat("\014")
+plotdata = read.csv("../../Data/AllPlotsVarsRichness.csv")
+sitedata = read.csv("../../Data/CompleteSiteLevelVars.csv")
+```
+
+The mean data set shows that Buffer, number of NVC codes and PHI positively affect the richness and mean SOM has a negative effect. The sd data set adds sd tree density and Northing as having a positive effect on richness.
+
+#Soil Organic Matter
+Higher soil organic matter is a feature of lower pH soils, which generally have lower species richness. The graphs below demonstrate this. Plots with a pH of around 6 are the most rich and site richness peaks at a site mean pH of around 5.5 and the meanpH can be seen to reduce as the meanSOM increases, however, this relationship is not strong in this data set.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+data = plotdata%>%filter(!is.na(pHYr2))
+
+g1 = ggplot(data = data , aes(x = as.factor(round(pHYr2,0)), y = plot_richness))+
+  geom_boxplot()+
+  labs(x = "pH", y = "plot richnesses")+
+  ggtitle( "Plot richness with pH")
+  
+g2 = ggplot(data = sitedata, aes(x = meanSOM, y = meanph))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  ggtitle("MeanpH with meanSOM")
+
+g3 = ggplot(data = sitedata, aes(x = meanph, y = Richness))+
+  geom_point()+
+  geom_smooth(method = loess)+
+  ggtitle("Site richness with meanpH")+
+  ylab("site richness")
+
+#g4 = ggplot(data = sitedata, aes(x = meanSOM, y = Richness))+
+#  geom_point()+
+ # geom_smooth(method = lm)+
+ # ggtitle("Site richness with meanSOM")+
+#ylab("site richness")
+
+
+g4 = ggplot(data = sitedata, aes(x = cut(meanSOM, breaks = 10), y = Richness))+
+  geom_boxplot(varwidth = TRUE)+
+  xlab("mean soil organic matter")+ggtitle("Site richness with grouped meanSOM content")+
+  theme(axis.text.x = element_blank())
+
+
+
+g5 = ggplot(data = sitedata, aes(x = Pos_Hetero_Index, y = Northing))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  ggtitle("Northing with PHI")+
+ylab("Northing")
+
+g6 = ggplot(data = sitedata, aes(x = meanSOM, y = meantreedensity))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  ggtitle("meanTD with meanSOM")+
+ylab("mean_TD")
+
+g7 = ggplot(data = sitedata, aes(x = meanSOM, y = mean_L))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  ggtitle("Ellenberg L with meanSOM")+
+ylab("mean_L")
+
+g8 = ggplot(data = sitedata, aes(x = mean_N, y = Buffer3))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  ggtitle("Buffer with Mean Ellenberg N")+
+ylab("Buffer")
+
+g9 = ggplot(data = sitedata, aes(x = Northing, y =Richness))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  ylab("Richness")+
+  xlab("Northing")
+
+
+grid.arrange(g1,g3)
+grid.arrange(g1,g2,g3,g4, nrow = 2)
+grid.arrange(g8,g9, ncol = 2)
+```
+
+Higher soil organic matter could be indicative of higher dbh because the more mature trees are producing more litterIn turn, larger trees would mean more mature woodland with lower species richness [ref?] If so, those variables would be positively correlated with meanSOM. In the graphs below, that does not appear to be the case.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width = "50%"}
+ ggplot(data = sitedata, aes(x = meanSOM, y = meandbh))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  ggtitle("MeanDBH of each site with meanSOM")
+
+
+
+```
+
+High meanSOM is often a feature of upland or mires and heaths which can be dominated by a small number of species [ref JNCC?]. For example Calluna vulgaris heath (NVC H2), Betula pubescens woodland (NVC W4) or Scirpus cespitosus wet heath (NVC M15). If a large number of woodlands fell into this category, then it might be this feature that was linking high SOM with low richness. However, the first tree plot below shows that the proportion of sites with high SOM is small, while we have already seen in fig (the one with pH vs SOM) that pH is not strongly correlated with SOM in this data. Most of the sites surveyed are intermediate in both these features.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="75%"}
+
+fNVC = as.data.frame(table(plotdata$Yr2NVC))
+fNVC = fNVC[order(fNVC$Freq),]
+colnames(fNVC) = c("ShortNVC","frequency")
+meanSOM = plotdata%>%group_by(ShortNVC)%>%summarise(meanSOM = round(mean(SOMYr2, na.rm = TRUE),1))
+
+
+NVC_SOM = inner_join(fNVC,meanSOM)   
+library(RColorBrewer)
+library(treemap)
+
+tm1 <- treemap(
+  NVC_SOM,
+  index="ShortNVC",
+  vSize="frequency",
+  vColor="meanSOM",
+  type="value",
+  title.legend = "SOM content",
+  title = "Frequency of the different NVC codes and their mean SOM content",
+  palette = "Blues"
+  )
+
+meanRichness = plotdata%>%group_by(ShortNVC)%>%summarise(meanRichness = round(mean(plot_richness, na.rm = TRUE),1))
+NVC_Richness = inner_join(fNVC,meanRichness) 
+
+tm2 <- treemap(
+  NVC_Richness,
+  index=c("ShortNVC"),
+  vSize="frequency",
+  vColor="meanRichness",
+  palette = "Greens",
+  type="value",
+  title.legend = "Average Plot Richness",
+  title = "Frequency of the different NVC codes and their mean plot richness"
+)
+
+
+```
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, out.width="75%", paged.print=FALSE}
+
+meanRichness = plotdata%>%group_by(ShortNVC)%>%summarise(meanRichness = round(mean(plot_richness, na.rm = TRUE),1))
+NVC_Richness = inner_join(fNVC,meanRichness) 
+tm2 <- treemap(
+  NVC_Richness,
+  index=c("ShortNVC"),
+  vSize="frequency",
+  vColor="meanRichness",
+  palette = "RdYlBu",
+  type="value",
+  title.legend = "Average Plot Richness",
+  title = "Frequency of the different NVC codes and their mean plot richness"
+)
+
+tm2
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fNVC = as.data.frame(table(plotdata$ShortNVC))
+fNVC = fNVC[order(fNVC$Freq),]
+colnames(fNVC) = c("ShortNVC","frequency")
+
+meanSOMbyNVC = plotdata%>%group_by(ShortNVC)%>%summarise(meanSOM = mean(SOMYr2, na.rm=TRUE))
+meanRichnessbyNVC =plotdata%>%group_by(ShortNVC)%>%summarise(meanRichness = mean(plot_richness, na.rm=TRUE))
+
+data = inner_join(fNVC,meanSOMbyNVC)
+data = inner_join(data,meanRichnessbyNVC)
+```
+
+Previous work also showed that sites with increased SOM had increased nitrogen deposition [Simon?] which has been shown to decrease plant species richness[Pallet, etc]. In addition, increased nitrogen deposition has been show to decrease the decay of SOM [Zak, 2017, Fang]. It is therefore plausible that the effect we are seeing is due to increased eutrophication which is resulting in both reduced species richness and increased SOM.
+
+#Buffer
+The size of the buffer could enhance species richness through habitat connectivity [Thiele,Brudvig,] or by protecting the site from nitrogen deposition. Dry nitrogen deposition has been found to be significantly greater within 50 to 100m of the forest edge [Draaijers]. The plot below showing species richness of the 16 plots with area may also be demonstrating this effect. Larger woods, regardless of the buffer, have higher species richness.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE,out.width="50%"}
+ggplot(data = sitedata, aes(x = log(Area_ha), y = Richness))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  ylab("Site richness")+
+  ggtitle("Species richnesss of the 16 plots with site area")
+
+
+```
+
+ 
+
+#PHI
+Previous authors have shown that the features used here to create the PHI can lead to increased species richness. (Here summarize those authors)
+
+#Number of NVC codes
+
+The number of NVC codes directly correlates with the number of different habitats and, by its nature, a new NVC code is likely to introduce new species to the site. Therefore the more NVC codes contained in a site the higher the probability of different species assemblages and higher richness.
+
+#SD tree density. 
+
+A change in tree density implies a lack of homogeneity in the woodland. This change will occur is there are open plots, plots with a high density of saplings and plots with a few more mature trees. These habitats represent the change in habitats through the succession process of the woodland and will attract different plant species assemblages, and therefore potentially increase the overall site richness.
+
+#Northing
+The positive effect of Northing on richness is the opposite of what might be expected from the generally accepted view that species richness decreases with latitude, but it is more likely that this effect is unrealted to latitude.  Northing and buffer are correlated, the northern woods have larger buffers. It is probably the effect of the buffer size that we are seeing here.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE,out.width="50%"}
+ggplot(data = sitedata, aes(x = Buffer3, y = Northing))+
+  geom_point()+
+  geom_smooth(method = loess)+
+  ggtitle("Relationship between Northing and buffer size")+
+  xlab("Buffer size")
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE,out.width="50%"}
+ggplot(data = sitedata, aes(x = Buffer3, y = Northing))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  ggtitle("Relationship between Northing and buffer size")+
+  xlab("Buffer size")
+```
+
+```{r}
+
+
+
+g1 = ggplot(data = sitedata , aes(x = mean_L, y = Richness))+
+  geom_point()+
+  labs(x = "Ellenberg_L", y = "Site Richnesses")+
+  ggtitle( "Site richness with Ellenberg L")+
+  geom_smooth(method = lm)
+
+g2 = ggplot(data = sitedata , aes(x = mean_W, y = Richness))+
+  geom_point()+
+  labs(x = "Ellenberg_W", y = "Site Richnesses")+
+  ggtitle( "Site richness with Ellenberg W")+
+  geom_smooth(method = lm)
+
+g3 = ggplot(data = sitedata , aes(x = mean_N, y = Richness))+
+  geom_point()+
+  labs(x = "Ellenberg_N", y = "Site Richnesses")+
+  ggtitle( "Site richness with Ellenberg N")+
+  geom_smooth(method = lm)
+
+g4 = ggplot(data = sitedata , aes(x = mean_R, y = Richness))+
+  geom_point()+
+  labs(x = "Ellenberg_R", y = "Site Richnesses")+
+  ggtitle( "Site richness with Ellenberg R")+
+  geom_smooth(method = lm)
+
+g5 = ggplot(data = sitedata , aes(x = meantreedensity, y = Northing))+
+  geom_point()+
+  labs(x = "meanTD", y = "Northing")+
+geom_smooth(method = lm)
+
+g6 = ggplot(data = sitedata , aes(x = mean_L, y = Northing))+
+  geom_point()+
+  labs(x = "mean_L", y = "Northing")+
+  geom_smooth(method = lm)
+
+g7 = ggplot(data = sitedata , aes(x = meantreedensity, y = mean_L))+
+  geom_point()+
+  labs(x = "meanTD", y = "mean_L")+
+  geom_smooth(method = lm)
+
+
+grid.arrange(g5,g6,g7,g1, ncol = 2)
+
+```
+
+
+```{r}
+
+g1 = ggplot(data = sitedata , aes(x = meanph, y = Northing))+
+  geom_point()+
+  labs(x = "mean pH", y = "Northing")+
+  ggtitle( "orthing withmean pH")+
+  geom_smooth(method = lm)
+```
+
+
+```{r}
+
+g1 = ggplot(data = sitedata , aes(x = mean_N, y = Buffer3))+
+  geom_point()+
+  labs(x = "mean_N", y = "Buffer")+
+    geom_smooth(method = lm)
+
+g2 =ggplot(data = sitedata , aes(x = meanSOM, y = Buffer3))+
+  geom_point()+
+  labs(x = "meanSOM", y = "Buffer")+
+    geom_smooth(method = lm)
+
+g3 = ggplot(data = sitedata , aes(x = meanSOM, y = mean_N))+
+  geom_point()+
+  labs(x = "meanSOM", y = "mean_N")+
+    geom_smooth(method = lm)
+
+g10 = ggplot(data = sitedata , aes(x = meanSOM, y = mean_R))+
+  geom_point()+
+  labs(x = "meanSOM", y = "mean_R")+
+    geom_smooth(method = lm)
+#g4 = ggplot(data = sitedata , aes(x = meantreedensity, y = meanSOM))+
+ # geom_point()+
+ # labs(x = "meanTD", y = "meanSOM")+
+ #   geom_smooth(method = lm)
+
+g4 = ggplot(data = sitedata , aes(x = mean_N, y = Richness))+
+  geom_point()+
+  labs(x = "mean Ellenberg N", y = "Richness")+
+    geom_smooth(method = lm)
+  
+
+
+g6 = ggplot(data = sitedata , aes(x = mean_N, y = mean_R))+
+  geom_point()+
+  labs(x = "mean  N", y = "mean Ellenberg R")+
+    geom_smooth(method = lm)
+
+g7 = ggplot(data = sitedata , aes(x = mean_R, y = Richness))+
+  geom_point()+
+  labs(x = "mean  R", y = "Richness")+
+    geom_smooth(method = lm)
+
+g8 = ggplot(data = sitedata , aes(x = mean_N, y = Richness))+
+  geom_point()+
+  labs(x = "mean_N", y = "Richness")+
+    geom_smooth(method = lm)
+
+g9 = ggplot(data = sitedata , aes(x = mean_R, y = Buffer3))+
+  geom_point()+
+  labs(x = "mean_R", y = "Buffer")+
+    geom_smooth(method = lm)
+
+
+grid.arrange(g1,g9, ncol = 1)
+```
+
+
+```{r}
+ggplot(data = sitedata , aes(x = mean_R, y = mean_N))+
+  geom_point()+
+  labs(x = "mean_R", y = "mean_N")+
+    geom_smooth(method = lm)
+```
+
