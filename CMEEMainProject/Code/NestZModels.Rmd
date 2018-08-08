@@ -1,0 +1,258 @@
+---
+title: "NestZModels"
+output:
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+rm(list = ls())
+cat("\014")
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
+library(MuMIn)
+library(reshape)
+library(energy)#dcor
+library(corrplot)
+
+library(corrr)
+
+```
+
+
+In this analysis the slopes obtained by  fitting SAC to each site by a ln/ln lme model is explored. The slopes were obtained using ln/ln transpose of species and area across the nests (4m^{2} to 200m^{2}). Slope was constant and intercept random with plot as the random variable. The slopes were approximately normally distributed about .25. We want to examine whether any of the abiotic variables collected can explain any of the variation in the z values.
+
+The mixed effects model has the effect of averaging the alpha diversity of each plot across the  site(?), so you could expect that the slope would be proportional to the average of abiotic site variables. 
+
+(I have already removed several variables for clarity, which I saw had no effect, altitude, area, perimeter. I also decided to restrict this analysis to the mean variables, and not look first at the standard deviations. I think this is OK, because we suspect that this z will be related to means - and when I included it the whole story was getting epic. Since I am repeating this for 5 other variables, I feel like I need to condense things a bit. And if I say that this variable could relate to the means, then it makes sense to related the standard dev of intercepts to the standard deviations?)
+
+```{r, echo=FALSE}
+#Get site vars and nest slopes
+
+AllSiteVars = read.csv("../Data/CompleteSiteLevelVars.csv")
+nestdata = readRDS("nest_mixed_model_fits.RDS")
+AllPlotVars= read.csv("../Data/AllPlotsVarsRichness.csv")
+
+#All site vars has some cols we know are not useful, delete these now
+
+cols = colnames(AllSiteVars)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+todelete = c(1,3,4,5,6,7,8,9,11,12,14,18,21, 22,23,24,25,26,27,28,29,30)
+Sitevars = AllSiteVars[-todelete]
+colnames(Sitevars) = c("Site","PHI","Buffer","Num_NVC","sd_pH", "sd_SOM" ,"sd_LBA",
+                        "sd_meanDBH","meanDBH" , "meanph" , "meanSOM" , "meanLBA" ,
+                        "meanTD", "area_ratio" )
+# ps I have removed no trees after analysis, not shown. If I include all the analysis it makes the discussion to convoluted
+# in retrospect no trees is not required, obvs realted to mean dbh and sd meand dbh, and since I created it,
+#it wasnt a collected variable, I think its logical to drop it - it was a onbvuscating, unnecessary addition
+# same fo rnumber major soil groups.
+```
+
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+#take site and slope from nestdata
+NestSlope = nestdata[-c(2,4,5)]
+#join to SiteData
+SitedataZ = inner_join(Sitevars,NestSlope)
+SitedataZ[is.na(SitedataZ)] = 0
+
+
+```
+ 
+```{r zhistogram, out.width="50%"}
+
+ggplot(NestSlope, aes(x = slope))+
+  geom_histogram(binwidth = 0.05, colour = "black",fill = "grey")+
+  ggtitle("Distribution of slopes")
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# taking all remaing vars and either means or sd
+Set_mean = SitedataZ[c(1,2,3,4,9,10,11,12,13,14,15)] #11 inc Site, slope
+
+# look at correlations now
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="75%"}
+# first look for response of z to the variables
+
+melted = melt(Set_mean[-1], id.vars = "slope")
+
+
+ggplot(melted, aes(x = value, y = slope))+
+  geom_point()+
+  geom_smooth(method = loess)+
+  facet_wrap(~variable, scales = "free")
+
+```
+
+```{r echo=FALSE}
+corrs = sort(round(apply(Set_mean[-c(1,11)],2, function(x) dcor(x,SitedataZ$slope)), digits = 2), decreasing = TRUE)
+corrs = as.data.frame(corrs)
+corrs
+```
+
+
+The scatter plots show the slope with the variables collected. There is a lot of scatter, and no obvious relationship. The two variables with the lowest correlation coefficients (using dcor distance correlation) to slope are meanLBA and meanTD,(Corr = 0.14,0.12)
+
+The outliers in PHI, area_ratio make it hard to see the response of slope to these variable. Initially the outliers were removed, but the distribution of some variables, eg sd_SOM was very right skew, and removing outliers did not rectify this,  therefore the data is replotted with a log transpose to the x axis
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE, out.width="75%"}
+
+melted = melt(Set_mean[-1], id.vars = "slope")
+ggplot(melted, aes(x = log(value), y = slope))+
+  geom_point()+
+  geom_smooth(method = loess)+
+  facet_wrap(~variable, scales = "free")
+
+```
+
+```{r}
+tmp = Set_mean%>%filter(Site != 25)
+slopecor =sort(round(apply(tmp[-c(1,11)],2, function(x) dcor(log(x),tmp$slope)),  2), decreasing = TRUE)
+slopecor = as.data.frame(slopecor)
+slopecor
+
+```
+
+The strongest correlation is still with PHI.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="50%"}
+vars = Set_mean[-c(1,11)]
+mcor = round(cor(vars, method = "pearson"),2)
+corrplot(mcor, type = "upper", tl.pos = "td",
+         method = "number", tl.cex = 0.5, tl.col = 'black',tl.srt=45,
+         order = "hclust", diag = FALSE,
+         title = "pearson correlation",
+         mar=c(0,0,1,0))
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="50%"}
+vars = Set_mean[-c(1,11)]
+mcor = round(cor(vars, method = "kendall"),2)
+corrplot(mcor, type = "upper", tl.pos = "td",
+         method = "number", tl.cex = 0.5, tl.col = 'black',tl.srt=45,
+         order = "hclust", diag = FALSE, title = "kendal correlation", mar=c(0,0,1,0))
+```
+
+
+Kendall correlation was used as well as Pearson due to the outliers and the non-linearity of the data. The Pearson method show a network of correlations above/below 0.3/-.03 between buffer, meanDBH,meanTD,meanpH,meanLBA. This is not reflected in the Kendal correlation, which is -0.4 for meanTD and meanDBH. It is obvious that meanLBA, meanTD and meanDBH are correlated. The relationship with meanpH could be through additional litter dropped by large trees. Additionally, we have already seen in previous analysis the the northern woods have larger buffers, are less dense and more mature. This could explain the correlation with meanpH to these variables. It seems sensible to eliminate two from meanDBH, meanTD and meanLBA, but first the dedge method of MuMIn will be used to look at all models.
+
+
+#Models
+```{r}
+data = Set_mean[-1]
+mod_mean = lm(slope~., data=data, na.action = "na.fail")
+#have a look at the linear model
+#par(mfrow =c(2,2))
+#plot(mod_mean)
+```
+
+
+```{r}
+models = dredge(mod_mean)
+get.models(models, subset = delta<1)
+```
+
+
+```{r}
+head(models)
+```
+
+The "best" two models use number NVC, meanpH, meanSOM, PHI and either do or do not include area_ratio. Neither use buffer, meanLBA or meanTD so this potential confounding network has been removed. 
+
+
+We expect meanSOM to effect pH, and that pH effects richness, with greatest richness occurring around neutral pH - so the inclusion of both terms seems unnecessary.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="75%"}
+g1 = ggplot(AllSiteVars, aes(x = meanph, y = meanSOM))+
+  geom_point()+
+  geom_smooth(method = loess)+
+  ggtitle("Site level")
+
+
+g5 = ggplot(AllPlotVars, aes(x = pHYr2, y = SOMYr2))+
+  geom_point()+
+  geom_smooth(method = loess)+
+  ggtitle("Plot level")
+
+
+
+grid.arrange(g1,g5, nrow = 1 )
+```
+
+The plots suggest that in these sites meanSOM is not strongly correlated with meanpH at Site level, but at plot level there is a negative correlation below pH5, However, there is a lot of scatter. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="75%"}
+g1 = ggplot(AllPlotVars, aes(x = log(SOMYr2), y = plot_richness), na.rm = TRUE)+
+  geom_point()+
+  geom_smooth(method = loess)+
+  ggtitle("Plot level")
+
+g2 = ggplot(AllPlotVars, aes(x = log(pHYr2), y = plot_richness))+
+   geom_point()+
+  geom_smooth(method = loess)+
+  ggtitle("Plot level")
+ 
+g3 =  ggplot(AllSiteVars, aes(x = meanph, y = Richness))+
+   geom_point()+
+  geom_smooth(method = loess)+
+  ggtitle("Site level")
+  
+g4 =  ggplot(AllSiteVars, aes(x =meanSOM, y = Richness))+
+   geom_point()+
+  geom_smooth(method = loess)+
+  ggtitle("Site level")
+
+
+grid.arrange(g1,g2,g4,g3)
+```
+
+
+The richness at site and plot level does not have a strong linear correlation with pH, but there is the expected unimodal peak, which is stronger at site level. This would suggest that pH is a strong influencing factor on richness, and thereby z, but its effect is not linear. Therefore the coefficient of the linear term in the model could be expected to be small and less significant than a non-linear term, and its effect on z when averaged across the site will be reduced.
+
+The richness at site or plot level does not appear to correlate strongly with SOM, and its effect on the slope would therefore be small
+
+These plots suggest that meanpH would be a better term for predicting richness and therefore slope, than meanSOM but that it should be non-linear. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="50%"}
+ggplot(SitedataZ, aes(x = meanph, y = slope))+
+  geom_point()+
+  geom_smooth(method = loess)
+```
+
+
+However, when we look at the plot of slope with mean pH, although there is the corresponding peak at 5.5, the curve is not unimodal,and therefore using it in the model as either a unimodal or linear term will not give a strong relationship to the actual value of the response.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width="50%"}
+amodel = lm(slope ~ area_ratio + meanph + meanSOM + Num_NVC + PHI, SitedataZ)
+bmodel = lm(slope ~ meanph + meanSOM + Num_NVC + PHI, SitedataZ)
+fita = predict(amodel,SitedataZ)
+fitb = predict(bmodel,SitedataZ)
+fitdf = as.data.frame(cbind(fita,fitb,SitedataZ$slope))
+colnames(fitdf) = c("fita", "fitb", "slope")
+ggplot(fitdf, aes(x = slope))+
+  geom_point(y = fita,colour = "blue")+
+  geom_point(y = fitb, colour = "red")+
+  ylim(0.1,0.45)+
+  xlim(0.1,0.45)+
+  geom_abline(slope = 1,intercept = 0)+
+  ggtitle("Two fits to models obtained from dredge function")
+  
+
+```
+
+The  plot of predicted slope values versus actual slope values using the variables predicted by the dredge function show that these variables do not predict the value of z successfully. The first uses slope ~ area_ratio + meanph + meanSOM + Num_NVC + PHI, the second does not use area_ratio. In both models the coefficients are significant at 5% (except area ratio in the first 13% and Num NVC in the second 6%). In both models R2 is below 0.2, as suggested by the plot. In both models PHI was the most significant coefficient.
+
+This analysis has shown that these variables  are not good predictors of the z value obtained from a ln/ln linear mixed effects model to the SAC of each site where plot was used as the random variable. Although we saw that plot was a strong predictor of richness, often equal to or greater than area (previous analysis). Therefore the standard deviations of the intercepts will be considered next since these reflect the plot to plot variation.....
+
+...TBC!!
+
+
+
+

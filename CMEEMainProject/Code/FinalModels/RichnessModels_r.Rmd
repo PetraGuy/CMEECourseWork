@@ -1,0 +1,438 @@
+---
+title: "Analysing the effect of abiotic factors on species richness"
+author: "Petra Guy"
+date: "9 May 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+
+## NB - aseveral libraries mask each other here - arm masks dplyr and corrplot, therefore open libraries #as required.
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE
+)
+# Richness modelling
+
+rm(list = ls())
+cat("\014")
+library(dplyr) # everything
+
+library(ggplot2)
+library(corrplot)
+library(car) # for vif
+library(reshape) # melt
+
+zeta_r = readRDS("../Zeta/zeta_r")
+# get the data
+site_data =  read.csv("../../Data/CompleteSiteLevelVars.csv")
+site_data = site_data[,-1]
+```
+
+This is identical to richnessModels - but I am now adding in the zeta ratio zeta1-zeta2/zeta1
+
+```{r}
+Site = c(1:103)
+zeta_r = as.data.frame(cbind(Site,zeta_r))
+site_data = inner_join(site_data,zeta_r)
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#mean impute the missing PHI
+meanPHI = round(mean(site_data$Pos_Hetero_Index, na.rm = TRUE),2)
+x = site_data$Pos_Hetero_Index
+x[is.na(x)] = meanPHI
+site_data$Pos_Hetero_Index = x
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# slect only required variables
+subset_all = site_data%>%select("Site","Richness","Area_ha",
+                                "Northing", "Pos_Hetero_Index","Buffer3",
+                                "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
+                                "sd_meandbh","sd_treedensity","area_ratio",
+                                "meandbh","meanph", "meanSOM","meanLBA",
+                                "meantreedensity","zeta_r")
+
+
+
+colnames(subset_all) = c("Site","Richness","Area",
+                         "Northing", "PHI","Buffer",
+                         "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
+                         "sd_meandbh","sd_TD","area_ratio",
+                         "meandbh","meanph", "meanSOM","meanLBA",
+                         "meanTD","zeta_r")
+```
+
+All woods had areas below 100 hectares,except one, which had an area of 311 ha.This was removed
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#remove the wood with the largest area
+largest_area = as.numeric(subset_all%>%filter(Area == max(Area))%>%select(Site))
+site_data_outlier = subset_all%>%filter(Site!=largest_area)
+site_data_outlier = site_data_outlier[,-3] # remove area column now
+
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+subset_sd = site_data_outlier%>%select("Site","Richness",
+                                "PHI","Buffer","Northing",
+                               "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
+                               "sd_meandbh","sd_TD","area_ratio","zeta_r")
+
+#,
+
+
+subset_mean = site_data_outlier%>%select("Site","Richness",
+                               "PHI", "Northing", "meandbh","Buffer",
+                              "meanph",  "meanSOM","meanLBA",
+                              "meanTD","area_ratio", "no_NVC", 
+                              "no_MSG","zeta_r")
+#,
+```
+
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, out.width='50%', paged.print=FALSE}
+#look at correaltions between explanatory variables
+
+vars = site_data_outlier[,-c(1,2)]
+
+mcor = round(cor(vars, method = "pearson", use = "na.or.complete"),2)
+
+corrplot(mcor, type = "upper", tl.pos = "td",
+         method = "number", tl.cex = 0.5, tl.col = 'black',tl.srt=45,
+         order = "hclust", diag = FALSE,
+         title = "pearson correlation",
+         mar=c(0,0,1,0))
+
+mcor = round(cor(vars, method = "spearman", use = "na.or.complete"),2)
+
+corrplot(mcor, type = "upper", tl.pos = "td",
+         method = "number", tl.cex = 0.5, tl.col = 'black',tl.srt=45,
+         order = "hclust", diag = FALSE,
+         title = "spearman correlation",
+         mar=c(0,0,1,0))
+
+
+```
+
+Spearman correlations of mean and sd of tree density, live basal area, SOM and DBH are above 0.66. The variables will therefore be split into two groups. One group containing the meanTD, meanLBA, meanSOm and meanDBH along with all other variables, and the other containing the standard devation of these factors along with all other variables. Although meanpH and sd_pH only show Spearman correlation of 0.46 it makes sense to include these variables in this split as the mean describes a site level condition whereas the SD describes a site heterogeneity, therefore we are dividing the data into two subsets, one which is more slanted to considering overall abiotic properties of the site and one which is more focused on looking at heterogeneity within the site.
+
+##Correlations between covariates after creating two sets
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width = '50%'}
+###Means correlations...
+library(corrplot)
+vars = subset_mean[,-c(1,2)]
+
+mcor = round(cor(vars, method = "pearson", use = "na.or.complete"),2)
+corrplot(mcor, type = "upper", tl.pos = "td",
+         method = "number", tl.cex = 1, tl.col = 'black',tl.srt=45,
+         order = "hclust", diag = FALSE,
+         title = "mean dataset pearson correlation",
+         number.cex = 1,
+         mar=c(0,0,1,0))
+
+mcor = round(cor(vars, method = "spearman", use = "na.or.complete"),2)
+corrplot(mcor, type = "upper", tl.pos = "td",
+         method = "number", tl.cex = 1, tl.col = 'black',tl.srt=45,
+         order = "hclust", diag = FALSE,
+         title = "mean dataset spearman correlation",
+         number.cex = 1,
+         mar=c(0,0,1,0))
+```
+Correlations all <0.5, except Pearson for Nothing and buffer = 0.51 and Spearman for meanTD and meanDBH = -.055, however correlations at this level are unlikely to effect the parameter estimates {Freckleton]
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, out.width = '50%'}
+###SD correlations...
+library(corrplot)
+vars = subset_sd[,-c(1,2)]
+
+mcor = round(cor(vars, method = "pearson", use = "na.or.complete"),2)
+corrplot(mcor, type = "upper", tl.pos = "td",
+         method = "number", tl.cex = 1, tl.col = 'black',tl.srt=45,
+         order = "hclust", diag = FALSE,
+         title = "SD pearson correlation",
+         mar=c(0,0,1,0))
+
+mcor = round(cor(vars, method = "spearman", use = "na.or.complete"),2)
+corrplot(mcor, type = "upper", tl.pos = "td",
+         method = "number", tl.cex = 1, tl.col = 'black',tl.srt=45,
+         order = "hclust", diag = FALSE,
+         title = "SD spearman correlation",
+         mar=c(0,0,1,0))
+```
+Correlations all <0.51
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+##Models for means#############
+# we know richness vs ph usually unimodal around .5, therefore fit to meanpH^2
+data = subset_mean[,-1]
+richness = subset_mean[,2] # removed because going to scale in next chunk
+#data$meanph2 = (data$meanph)^2 #just leave as meanpH because doesnt come out either way??
+#dont do this because meanpH and meanpH2 correlated and messes it all up. Just accept that model wont select mean pH very well
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#rescale the mean data
+library(arm) #for standarize
+rescaled_mean_data = apply(data[,-1],2, rescale)
+rescaled_mean_data = as.data.frame(cbind(richness, rescaled_mean_data))
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#rescale the SD data
+
+data = subset_sd[,-1]
+richness = subset_sd[,2]
+rescaled_sd_data = apply(data[,-1],2, rescale)
+rescaled_sd_data = as.data.frame(cbind(richness, rescaled_sd_data))
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#create the model
+mod_mean = lm(richness~., data=rescaled_mean_data, na.action = "na.fail")
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#have a look at the linear model
+par(mfrow =c(2,2))
+plot(mod_mean)
+```
+The residuals versus fitted values suggest the variance is homogeneous.The QQ plot shows that the residual distribution is approximately normal. There are 3 points which represent the sites with the highest richness which fall slightly above the line. 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#create the model
+mod_sd = lm(richness~., data=rescaled_sd_data, na.action = "na.fail")
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#have a look at the linear model
+par(mfrow =c(2,2))
+plot(mod_sd)
+```
+The residuals versus fitted values suggest the variance is homogeneous.The QQ plot shows that the residual distribution is approximately normal. There are 2 points which represent the sites with the highest richness which fall slightly above the line. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# look at vifs
+vif(mod_mean)
+```
+The variance inflation factors in the mean datset are low, suggesting that correlations between covariates are low and not likely to increase the variance of the parameter estimates.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# look at vifs
+vif(mod_sd)
+```
+The variance inflation factors in the SD dataset are low, suggesting that correlations between covariates are low and not likely to increase the variance of the parameter estimates.
+
+
+The first four models in the mean dataset, which had a delta <2 were selected from the MuMin dredge function as the top model set. (PS a delta less than 3 was also checked, but this resulted in additional effects which all had CI which included zero). Model averaging was achieved using model.avg function of MuMin using the subset call. this means that the zero method us used. Feckleton recommends this when the purpose is to see which factors have the strongest effect on the response.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+library(MuMIn) #dredge and avg
+ #get top models
+models = dredge(mod_mean)
+model_set = get.models(models, subset = delta<2)
+
+
+#do model averaging, subset means zero method
+mean_avg_models = model.avg(model_set, subset)
+
+#select output data
+ summary = summary(mean_avg_models)
+coefs =  mean_avg_models$coefficients
+importance =  c(NA,(as.vector(mean_avg_models$importance)))
+
+coef_matrix = summary$coefmat.full
+coefs = coef_matrix[,1]
+adj_se = coef_matrix[,3]
+CI_lower =  coefs - 1.96*adj_se
+CI_upper = coefs + 1.96*adj_se
+
+output = round(as.data.frame(cbind(coefs,adj_se, CI_lower, CI_upper, importance)),2)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# make plot of the variables and CI
+n = nrow(output)
+data = output[c(2:n),]
+data = data[,c(1,3,4)]
+data = t(data)
+data = as.data.frame(data)
+melted = melt(data)
+
+fun_mean <- function(x){
+  data = data.frame(y=mean(x),label=mean(x,na.rm=T))
+  data = round(data,2)
+  return(data)}
+
+#(aes_string(x = 'variable', y='value', na.rm = TRUE)
+
+melted$variable = as.factor(melted$variable)# ps, wont plot as separate plots if x continous
+
+ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
+  geom_boxplot(na.rm = TRUE, width = 0)+
+  stat_summary(fun.y = mean, geom="point",colour="darkred", size=3) +
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7)+
+  stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
+  geom_abline(intercept = 0, slope = 0)+
+  labs(y = "Effect size and 95%CI",x = "Parameter")+ 
+  labs(title = "MEAN dataset. Model averaged results for delta <2",
+       subtitle = "Numbers in red are importance")
+
+
+```
+
+The graph shows the averaged effect sizes of the model with delta < 2. The effects which have a CI which does not include zero and therefore may influence richness [Gruber] are buffer, mean soil organic matter, number of NVC codes, and Positive Heterogeneity Index. Because the data is standardized, the effects sizes can be directly compared. Therefore the number of NVC codes can be seen to have the greatest effect, with SOM and PHI having approximately equal but opposite effects.
+
+The first seven models from the SD dataset, which had a delta <1.99 were selected from the MuMin dredge function as the top model set. (PS a delta less than 2 was also checked,  this resulted in the effect of sd_LBA with importance of 0.08 and had CI which included zero). 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+library(MuMIn) #dredge and avg
+ #get top models
+models = dredge(mod_sd)
+model_set = get.models(models, subset = delta<1.99)
+
+
+#do model averaging, subset means zero method
+sd_avg_models = model.avg(model_set, subset)
+
+#select output data
+summary = summary(sd_avg_models)
+coefs =  sd_avg_models$coefficients
+importance =  c(NA,(as.vector(sd_avg_models$importance)))
+
+coef_matrix = summary$coefmat.full
+coefs = coef_matrix[,1]
+adj_se = coef_matrix[,3]
+CI_lower =  coefs - 1.96*adj_se
+CI_upper = coefs + 1.96*adj_se
+
+output = round(as.data.frame(cbind(coefs,adj_se, CI_lower, CI_upper, importance)),2)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# make plot of the variables and CI
+n = nrow(output)
+data = output[c(2:n),]
+data = data[,c(1,3,4)]
+data = t(data)
+data = as.data.frame(data)
+melted = melt(data)
+
+fun_mean <- function(x){
+  data = data.frame(y=mean(x),label=mean(x,na.rm=T))
+  data = round(data,2)
+  return(data)}
+
+#(aes_string(x = 'variable', y='value', na.rm = TRUE)
+
+melted$variable = as.factor(melted$variable)# ps, wont plot as separate plots if x continous
+
+ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
+  geom_boxplot(na.rm = TRUE, width = 0)+
+  stat_summary(fun.y = mean, geom="point",colour="darkred", size=3) +
+  stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7)+
+  stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
+  geom_abline(intercept = 0, slope = 0)+
+  labs(y = "Effect size and 95%CI",x = "Parameter")+ 
+  labs(title = "STANDARD DEVIATION dataset. Model averaged results for delta <2",
+       subtitle = "Numbers in red are importance")
+
+
+```
+
+
+##Using the model for prediction
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#extract model averaged parameter estimates
+
+predicted_richness = predict(mean_avg_models, full = TRUE)
+empirical_richness =  site_data_outlier$Richness
+fit = lm(empirical_richness ~ predicted_richness)
+R2 = round(summary(fit)$r.squared,2)
+f = summary(fit)$fstatistic
+p = round(pf(f[1],f[2],f[3], lower.tail = F),4)
+rmse = round(rmse(actual = empirical_richness, predicted =  predicted_richness),2)
+subtitle = paste("R2 = ",R2, "p = ",p, "rmse = ", rmse)
+data = as.data.frame(cbind(predicted_richness, empirical_richness))
+
+
+ggplot(data, aes(x = predicted_richness, y = empirical_richness))+
+  geom_point()+
+  geom_abline(intercept = 0, slope = 1)+
+  labs(title = "Observed versus predicted data, mean dataset",
+       subtitle = subtitle)
+    
+  
+```
+
+
+
+The graph shows the averaged effect sizes of the model with delta < 1.99. The effect which have a CI which does not include zero are again number of NVC codes, and Positive Heterogeneity Index. in addition Northing and standard deviation of tree density have an effect on richness in this model.
+
+##Using the model for prediction
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#extract model averaged parameter estimates
+
+predicted_richness = predict(sd_avg_models, full = TRUE)
+empirical_richness =  site_data_outlier$Richness
+fit = lm(empirical_richness ~ predicted_richness)
+R2 = round(summary(fit)$r.squared,2)
+f = summary(fit)$fstatistic
+p = round(pf(f[1],f[2],f[3], lower.tail = F),4)
+rmse = round(rmse(actual = empirical_richness, predicted =  predicted_richness),2)
+subtitle = paste("R2 = ",R2, "p = ",p, "rmse = ", rmse)
+data = as.data.frame(cbind(predicted_richness, empirical_richness))
+
+ggplot(data, aes(x = predicted_richness, y = empirical_richness))+
+  geom_point()+
+  geom_abline(intercept = 0, slope = 1)+
+  labs(title = "Observed versus predicted data, SD dataset",
+       subtitle = subtitle)
+```
+
+
+
+```{r}
+g1 = ggplot(data = site_data, aes(x = Northing, y = zeta_r))+
+  geom_point()+
+  geom_smooth(method = lm)
+g1
+```
+
+
+```{r}
+library(ggmap)
+SOM = site_data%>%select(Site, meanSOM)
+woods = read.csv("../../Data/EastingNorthing.csv")
+colnames(woods) = c("Site", "Easting", "Northing", "GridRef", "Lat", "Long")
+woods_SOM = inner_join(woods, SOM)
+
+map<- get_map(location = c(lon = -1.5, lat = 54),
+                         color = "color",
+                         source = "google",
+                         maptype = "satellite",
+                         zoom = 6) 
+#png("../Data/Talk/Map.png") 
+ggmap(map, extent ='device')+
+    geom_point(aes(x = Long, y = Lat, colour = meanSOM),data = woods_SOM, size = 2, alpha=1)+
+    scale_color_gradient(low = "yellow", high="blue")
+  #geom_point(aes(x = Long, y = Lat, colour = meanSOM),data = min_max, size = 4, alpha=1)+
+  #scale_color_gradient(low = "yellow", high="red")
+  #geom_text_repel(data = good_bad, aes(x = Long, y = Lat,label = d), 
+            #size = 3, colour = "white")
+
+##################################
+```
+
+
+
+

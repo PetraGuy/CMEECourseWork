@@ -1,0 +1,908 @@
+---
+title: "HPC Coursework"
+author: "PetraGuy"
+date: "14th December 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r, echo=FALSE}
+
+rm(list = ls())
+graphics.off()
+
+#generate random communities
+generate_community = function(m,size) {
+  comm = sample(c(1:m),
+                size = size,
+                replace = TRUE)
+  return(comm)
+}
+
+
+#Q1 get species richness
+species_richness = function(x) {
+  r = length(unique(x))
+  return(r)
+}
+
+#Q2 Get a maximally diverse community
+initialise_max = function(x) {
+  comm = seq(1:x)
+  return(comm)
+}
+
+#Q3 get a minimally diverse community - everything is the same
+initialise_min = function(x) {
+  comm = rep(1, x)
+  return(comm)
+}
+
+
+#Q4 Need for neutral_step functions, just select two numbers from within the length of
+#input vector which can then be used as indices for speciation or death replacement
+choose_two = function(x) {
+  two = sample(x, 2)
+  return(two)
+}
+
+#Q5 Uses choose two and then replaces species at index 1 with that at index 2
+#Simulates a species dieing and being repalced by another within community
+neutral_step = function(x) {
+  index = choose_two(length(x))
+  x[index[1]] = x[index[2]]
+  return(x)
+}
+
+#Q6 Su=imulates n steps of neutral step
+neutral_generation = function(x) {
+  n = round(length(x) / 2)
+  for (i in 1:n) {
+    comm = neutral_step(x)
+  }
+  return(comm)
+}
+
+
+#Q7 Runs several generations and returns species richness a each step
+neutral_time_series = function(x, t) {
+  rich = (species_richness(x))
+  for (i in 1:t) {
+    x = neutral_generation(x)
+    rich = c(rich, species_richness(x))
+    
+  }
+  return(rich)
+}
+
+#Q8 Uses neutral time series over 200 steps on a maximally diverse community and plots the richness
+question_8 = function() {
+  rich = neutral_time_series(initialise_max(100), 2000)
+  plot(rich, main = "Species richness without new species",
+       ylab = "species richness",
+       xlab = "time steps")
+}
+```
+
+```{r}
+question_8()
+```
+
+
+The graph plots species richness of a community starting with 100 different species over 2000 generations. In this model new species are not introduced, so each step either maintains the richness or reduces it. For example, if you begin with a community (1,2,3,4,5), one step could change this to (2,2,3,4,5) At the next step the community will either remain unchanged, or be reduced, for example (2,2,3,3,5). Since there is no mechanism to increase species richness, eventually, given enough steps, the richness will become 1.
+
+
+```{r, echo = FALSE}
+#Q9 creates a neutral step with either a speciation or a replacement, depending on value of v
+neutral_step_speciation = function(x, v) {
+  p = runif(1)
+  if (v < p) {
+    index = choose_two(length(x))
+    x[index[1]] = x[index[2]]
+  }
+  else {
+    newspecies =  max(x) + 1
+    index = sample((length(x)), size = 1, replace = TRUE)
+    x[index] = newspecies
+  }
+  return(x)
+}
+
+#Q10 Takes a community and outputs new community after a few generations with speciation or replacement
+neutral_generation_speciation = function(x, v) {
+  n =  round(length(x) / 2)
+  for (i in 1:n) {
+    x = neutral_step_speciation(x, v)
+  }
+  return(x)
+}
+
+#Q11 Returns community richness at each generation
+neutral_time_series_speciation = function(x, v, t) {
+  rich = vector()
+  for (i in 1:t) {
+    x = neutral_generation_speciation(x, v)
+    rich[i] = species_richness(x)
+  }
+  return(rich)
+}
+```
+
+
+```{r, echo=FALSE}
+question_12 = function() {
+  t = 200
+  v = 0.1
+  comm_max = initialise_max(100)
+  comm_min = initialise_min(100)
+  rich_max = neutral_time_series_speciation(comm_max, v, t)
+  rich_min = neutral_time_series_speciation(comm_min, v, t)
+  
+  x = (1:t)
+  titles = c("Max", "Min")
+  y =  cbind(rich_max, rich_min)
+  colnames(y) = titles
+  
+  matplot (x, y, pch = 19, col = 1:2, main = "Species richness over time with speciation")
+  
+  legend(1,
+         50,
+         legend = colnames(y),
+         col = 1:2,
+         lty = 1:4)
+}
+```
+
+```{r}
+question_12()
+```
+
+The graph shows the species richness for two communities, one with maximum richness, one with minimum, both with 100 individuals and a speciation reate of 0.1.
+Because the speciation rate is the same both communities they tend to the same richness after sufficient generations. A richness of around 30 after 50 generations in this case.
+The higher the speciation rate, the greater the richness of the final community, because the algorithm will more refrequently follow the step of generating a new individual. The final community richness depends on the speciations rate and the size of the initial community - as the graphs below show
+
+```{r}
+question_12b = function() {
+  t = 200
+  
+  v = 0.1
+  comm_max = initialise_max(100)
+  comm_min = initialise_min(100)
+  rich_max = neutral_time_series_speciation(comm_max, v, t)
+  rich_min = neutral_time_series_speciation(comm_min, v, t)
+  y1 =  cbind(rich_max, rich_min)
+  
+ 
+  v = 0.9
+  comm_max = initialise_max(100)
+  comm_min = initialise_min(100)
+  rich_max = neutral_time_series_speciation(comm_max, v, t)
+  rich_min = neutral_time_series_speciation(comm_min, v, t)
+  y2 =  cbind(rich_max, rich_min)
+  
+
+  v = 0.1
+  comm_max = initialise_max(500)
+  comm_min = initialise_min(500)
+  rich_max = neutral_time_series_speciation(comm_max, v, t)
+  rich_min = neutral_time_series_speciation(comm_min, v, t)
+  y3 =  cbind(rich_max, rich_min)
+  
+ 
+  v = 0.1
+  comm_max = initialise_max(1000)
+  comm_min = initialise_min(1000)
+  rich_max = neutral_time_series_speciation(comm_max, v, t)
+  rich_min = neutral_time_series_speciation(comm_min, v, t)
+  y4 =  cbind(rich_max, rich_min)
+  
+  x = (1:t)
+  par(mfrow=c(2,2))
+  
+  matplot (x, y1, pch = 19, col = 1:2, main = "v = 0.1, size = 100")
+  
+  matplot (x, y2, pch = 19, col = 1:2, main = "v = 0.9, size = 100")
+ 
+  matplot (x, y3, pch = 19, col = 1:2, main = "v = 0.1, size = 500")
+  
+  matplot (x, y4, pch = 19, col = 1:2, main = "v = 0.1, size = 1000")
+  
+  
+}
+
+```
+
+```{r}
+question_12b()
+```
+For  community size of 100, the final species richness is around 30 for v = 0.1 and nearly 100 for v = 0.9. If the inital community size is increased to 500, the final richness increases to around 75, and for an inital community of 1000, the final richness is around 125.
+
+
+```{r, echo=FALSE}
+#Q13 calcualte species abundance using table - which gives frequencies
+species_abundance = function(x) {
+  abundance = as.numeric(sort(table(x), decreasing = TRUE))
+  return(abundance)
+}
+#Q14 Arrange the abundances into octets
+octaves = function(x) {
+  oct = tabulate(floor(log2(x)) + 1)
+  return(oct)
+}
+#Q15 Need to add the octets produced by octaves() and average them, but each octet can be a different
+#length, this function pads the shorter octet with zeros
+sum_vect = function(x, y) {
+  if (length(x) < length(y))    {
+    short = x
+    long = y
+    newshort = c(x, rep(0, length(long) - length(short)))
+    sum = newshort + long
+  }   else if (length(x) > length(y)) {
+    short = y
+    long = x
+    newshort = c(y, rep(0, length(long) - length(short)))
+    sum = newshort + long
+  }   else  {
+    sum = x + y
+  }
+  return(sum)
+}
+```
+
+
+```{r, echo=FALSE}
+
+#Q16, produce a barchart of octets after 200 generations burn-in, using another 2000 generations
+#using v = 0.1, size = 100
+
+question_16 = function() {
+  octets = list()
+  x = initialise_min(100)
+  v = 0.1
+  rich = vector()
+  i = 1
+  index = 1
+  # burn in
+  while (i < 2200) {
+    if (i < 200) {
+      x = neutral_generation_speciation(x, v)
+      
+    } else {
+      # continue for 2000 cycles
+      x = neutral_generation_speciation(x, v)
+      if (i %% 20 == 0) {
+        abundance = species_abundance(x)
+        octets[[index]] = octaves(abundance)
+        index = index + 1
+      }
+      
+    }
+    i = i + 1
+  }
+  
+  #find the average of the octaves which are list elements of octets
+  l = length(octets)
+  sum = vector()
+  for (a in 1:(l)) {
+    sum = sum_vect(sum, octets[[a]])
+    
+    
+  }
+
+  ave = sum / l
+  names = names = c("1", "2,3", "4 -7", "8-31", "32-63", ">64")
+  barplot(ave,
+          names.arg = names,
+          main = "Average abundances in octets",
+          xlab = "abundances")
+
+}
+
+```
+
+
+
+```{r}
+question_16()
+```
+
+The graph shows the average abundances of the community after the burn-in of 200 generations. The distribution of abundances would change if the speciation rate changed. A higher speciation rate would result in a richer community and therefore the first octet would have a higher frequency. A low speciation rate results in a community of low richness and therefore the frequencies of the larger octets increase at the expense of the smaller. As we saw bove, a large initial community would also result in higher richness and larger first octet.
+
+```{r,echo=FALSE}
+get_series_average = function(richness_vector){
+  avg = vector()
+  avg = c(avg,richness_vector[1])
+  for ( i in 1:(length(richness_vector)-1)){
+    i = i + 1
+    tmpvect = richness_vector[1:i]
+    total = sum(tmpvect)
+    avgerage = total/length(tmpvect)
+    avg= c(avg, avgerage)
+  }
+  return(avg)
+}
+```
+
+```{r, echo=FALSE}
+ 
+challenge_A = function(){
+t = 200
+v = 0.1
+repeats = 500
+
+#get two starting communities
+comm_max = initialise_max(100)
+comm_min = initialise_min(100)
+
+#initialise richness vector
+richness_max_vect = vector(length = t)
+richness_min_vect = vector(length = t)
+
+#initialise df for storing output for laer calculations
+richness_df_max = data.frame()
+richness_df_min = data.frame()
+
+
+for (i in 1:repeats) {
+  
+  #get times series of richness for them both - repeat this and store values for each repeat
+  rich_max = neutral_time_series_speciation(comm_max, v, t)
+  rich_min = neutral_time_series_speciation(comm_min, v, t)
+  
+  richness_df_max = rbind(richness_df_max,rich_max)
+  richness_df_min = rbind(richness_df_min,rich_min)
+  
+  
+}
+#can be useful to name cols - otherwise first row can become a header
+cols = c(1:t)
+colnames(richness_df_max) = cols
+colnames(richness_df_min) = cols
+#calcualte the standard deviations and averages using the dataframe of stored richnesses
+#because each run is a row the cols are used for sd and ave.
+sd_max = sqrt(apply(richness_df_max,2,var))
+sd_min = sqrt(apply(richness_df_min,2,var))
+avg_max = colSums(richness_df_max)/repeats
+avg_min = colSums(richness_df_min)/repeats
+
+#for 97.2% CI we need 98.6th percentile = z of 2.2
+CI_upper_max = avg_max + 2.2*sd_max
+CI_lower_max = avg_max - 2.2*sd_max
+
+CI_upper_min = avg_min + 2.2*sd_min
+CI_lower_min = avg_min - 2.2*sd_min
+
+#plot the graphs
+
+x = (1:t)
+titles = c("Maximum initial richness", "Minimum initial richness")
+y =  cbind(avg_max, avg_min)
+
+matplot (x, y, pch = 20, col = 1:2, xlim = c(0,t), ylim = c(0,100),
+         xlab = "time", ylab = "Average species richness",
+         main = "Average species richness for 500 repeats of neutral_time_series_speciation, initial community size 100")
+legend(50,
+       100,
+       legend = titles,
+       col = 1:2,
+       lty = 1:4)
+
+lines(CI_upper_max)
+lines(CI_lower_max)
+lines(CI_upper_min, col = "red")
+lines(CI_lower_min, col = "red")
+
+}
+```
+
+```{r}
+challenge_A()
+```
+
+The graph is a plot of average richness values as the times increments. The 97.2% confidence inervals were calculated using z = 2.2 giving the 98.6th percentile - giving 1.4% in each tail. Dynamic equilibrium is reached at around 50 steps. 
+
+```{r, echo = FALSE}
+challenge_B = function(){
+  
+  v = 0.1
+  t = 200
+  size = 100
+  repeats = 50
+  num_communties = 10
+  
+  communities = data.frame(row.names = FALSE)
+  
+  #generate some communites with random initial richnesses and store them
+  #in a datframe called communties. Because expected richness for 100 selected
+  #from 100 is 63.66, richness will always be around 64. To get a variety of richnesses
+  # the number out of wich to select is altered
+  for (i in 1:num_communties){
+    set.seed(i)
+    m = size/i
+    community = generate_community(m,size)
+    communities = cbind(communities, community,row.names = NULL)
+   
+  }
+  
+  #create a list of dataframes of richnesses for each community in communities
+  #when is is processes through neutral_time_series_speciation repeat times
+  
+  richness_list = list()
+  
+  get_repeated_richnesses = function(a_comm,v,t){
+    richness_df = data.frame()
+    for (i in 1:repeats){
+    richness = neutral_time_series_speciation(a_comm, v, t)
+    richness_df = rbind(richness_df,richness,row.names = NULL)
+    }
+    return(richness_df)
+  }
+  
+  for (i in 1:num_communties){
+      richness_list[[i]] = get_repeated_richnesses(communities[,i],v,t)
+  }
+  
+# we now have richness_list. Each element is a num repeats x t dataframe for each 
+#initial community. Each row of the datafram is the richness value through time.
+# There as many rows as we specified repeats to average over. As for challenge A
+#we now take the  average for each column to give an average richness 
+#over the time steps. No CI required this time
+  ave_df =  data.frame(row.names = FALSE)
+  for (i in 1:num_communties){
+    ave = colSums(richness_list[[i]])/repeats
+    ave_df = cbind(ave_df,ave, row.names = NULL)
+  }
+    
+  x = (1:t)
+  matplot (x, ave_df, pch = 19, cex = 0.3,
+           xlab = "generations", ylab = "average richness", 
+           main = "Average species richness for various starting communities",
+           sub = "v = 0.1, community size = 100")
+  
+}
+
+```
+
+
+```{r}
+challenge_B()
+```
+
+A range of initial community richness were used here. The average was calculated over 50 repeats for the time series of species richness. The graph shows that whatever the initial richness, the same richness will be reached eventually for all communities, given that they were all the same size and same speciation rate.
+
+```{r, echo = FALSE}
+############# Question 20 ##########################################
+# Read in the files from the HPC
+#couldnt work out easy wy of specifying files in each batch, so this first function
+#couldnt work out easy wy of specifying files in each batch, so this
+get_quartile = function(i) {
+  if (i == 1) {
+    quartile = c(1:25)
+  }
+  else if (i == 2) {
+    quartile = c(26:50)
+  }
+  else if (i == 3) {
+    quartile = c(51:75)
+  }
+  else {
+    quartile = c(76:100)
+  }
+  return(quartile)
+}
+
+# This function returns the sum and number of the octets in single file, to be found in path specified
+get_sum_and_length_of_octet = function(i) {
+  #browser()
+  infile = paste("../Results/Unzipped/pg5117_cluster_", i, ".rda", sep = "")
+  load(infile)
+  len = length(octets)
+  sum = vector()
+  sum_and_length = list()
+  for (a in 1:len) {
+    sum = sum_vect(sum, octets[[a]])
+  }
+  sum_and_length[[1]] = sum
+  sum_and_length[[2]] = len
+  return(sum_and_length)
+  
+}
+
+
+get_results = function() {
+  #browser()
+  ave_for_file_batch = list()
+  for (i in 1:4) {
+    # this return vector of file numbers in each batch, eg if i = 2, 26:50
+    j = get_quartile(i)    
+    cum_sum = vector()
+    cum_len = 0
+    results = list()
+    for (counts in j) {
+      results =  get_sum_and_length_of_octet(counts)
+      cum_sum = sum_vect(cum_sum, results[[1]])
+      cum_len =  results[[2]] + cum_len
+    }
+    ave_for_file_batch[[i]] = cum_sum / cum_len
+    
+  }
+  return(ave_for_file_batch)
+}
+
+plot_results = function(results) {
+  par(mfrow = c(2, 2))
+  ave1 = results[[1]]
+  plot1 = barplot(ave1,
+                  main = paste(round(results[[1]], 3), collapse = ","),
+                  xlab = "abundances, size = 500")
+  
+  ave2 = results[[2]]
+  plot2 = barplot(ave2,
+                  main = paste(round(results[[2]], 3), collapse = ","),
+                  xlab = "abundances, size = 1000")
+  
+  ave3 = results[[3]]
+  plot3 = barplot(ave3,
+                  main = paste(round(results[[3]], 3), collapse = ","),
+                  xlab = "abundances, size = 2500")
+  
+  ave4 = results[[4]]
+  barplot(ave4,
+          main = paste(round(results[[4]], 3), collapse = ","),
+          xlab = "abundances, size = 5000")
+}
+results =  get_results()
+plot_results(results)
+
+```
+Question 20.
+These are the output average abundances, in octets, from the simulations run on the HPC.The values are shown again below for clarity. The speciation rate was very low for this simulation, therefore you would expect the final species richness to be low. The smaller communities show less richness than the larger ones, as shown in the graphs for question_12b above. With such a low speciation rate, even a community of 500 does not reach a very large final secies richness.
+
+
+
+```{r, echo = FALSE}
+### Coalescence simulation 
+challenge_D = function() {
+sizes  = c(500, 1000, 2500, 5000)
+v = 0.002125
+reps = 500
+octets = rep(list(rep(0,6)),4)
+ 
+ for (j in 1:reps){
+   #browser()
+   octet = list()
+  
+  for (i in 1:4){
+    
+    size = sizes[i]     # set size to 500,1000 etc
+    theta = v * (size - 1) / (1 - v)
+    abundance = vector()
+    lineages = initialise_min(size)  # initialise lineagse to min of size
+    N = size
+    
+    while (N > 1) {
+      p = theta / (theta + N - 1)
+      r = runif(1, 0:1)
+      index = sample(N, 2)
+      
+      if (r < p) {
+        abundance = c(abundance, lineages[index[2]])
+      }
+      else {
+        lineages[index[1]]=lineages[index[1]] + lineages[index[2]]
+        
+      }
+      lineages = lineages[-index[2]]
+      N = length(lineages)
+    }
+   
+    abundance = sort(c(abundance, lineages), decreasing = TRUE)
+    octet[[i]] = octaves(abundance)
+    x = octet[[i]]
+    y = octets[[i]]
+    sum = sum_vect(x,y)
+    octets[[i]] = sum
+    
+  }
+  
+   }
+  
+  par(mfrow = c(2, 2))
+  y1 = octets[[1]]/reps
+  
+  plot1 = barplot(y1,
+                  main = paste(round(y1, 3), collapse = ","),
+                  xlab = "abundances, size = 500")
+  y2 = octets[[2]]/reps
+  
+  plot2 = barplot(y2,
+                  main = paste(round(y2, 3), collapse = ","),
+                  xlab = "abundances, size = 1000")
+  y3 = octets[[3]]/reps
+  
+  plot3 = barplot(y3,
+                  main = paste(round(y3, 3), collapse = ","),
+                  xlab = "abundances, size = 2500")
+  y4 = octets[[4]]/reps
+  
+   plot4 = barplot(y4,
+                  main = paste(round(y4, 3), collapse = ","),
+                  xlab = "abundances, size = 5000")
+   
+print(y1)
+print(y2)
+print(y3)
+print(y4)
+}
+
+```
+ 
+```{r}
+challenge_D()
+```
+
+
+
+These are the octets from the coalescence simulation, which look very similar to the results of the simulation from the HPC.
+Not totally sure why one is quicker - except that in the coalescence model you generate one community, then do the size of the community calculations, so for our sizes,that's a maximum of 10,000 cyles in the loop. For the neutral model you generate a new community of size N many times during the burn in, then you continue recreating new communities for the presest time in order to take an average over all the cyles. Therefore there are many more calculations. 
+
+```{r}
+
+```
+
+Question 18
+
+The fractal dimension,D is given by
+
+$$ D = \frac{\log(N)}{\log(r)}$$
+N is the number of new shapes produced when you divide the original by r. So for the Menger gasket which starts as 1 solid square, cutting the sides into 3 parts results in 8 solid squares. The fractal dimension is therefore
+
+$$ D = \frac{\log(8)}{\log(3)} = 1.893$$
+In the Menger sponge, you start with a sold cube, cutting the sides ino 3 results in 20 smaller cubes, so the dimension is 
+$$ D = \frac{\log(20)}{\log(3)} = 2.727$$
+```{r, echo=FALSE}
+chaos_game = function(){
+  graphics.off()
+  #browser()
+  x = vector()
+  y = vector()
+  X <- list(c(0,0),c(3,4),c(4,1))
+  coord = X[[1]]
+  x1 = coord[[1]]
+  y1 = coord[[2]]
+  plot(NA, xlim=c(0,5), ylim=c(0,5), xlab="X", ylab="Y")
+  points(x1,y1, cex = 0.2)
+  for (i in 1:1000){
+   index = sample((1:3),1)
+   coord = X[[index]]
+   x2 = coord[[1]]
+   y2 = coord[[2]]
+   x1 = (0.5*x2 + 0.5*x1)
+   y1 = (0.5*y2 + 0.5*y1)
+   x = c(x, x1)
+   y = c(y, y1)
+  
+  }
+  plot(x , y, cex = 0.2)
+}
+```
+
+```{r}
+chaos_game()
+```
+
+The code produces a Sierpinski Gasket type picture.
+
+```{r, echo=FALSE}
+
+plot(NA, xlim=c(0,1), ylim=c(0,1), xlab="X", ylab="Y")
+
+turtle = function(start, distance, direction){
+  x1 = start[1]
+  y1 = start[2]
+  x2 = x1 + distance*cos(direction)
+  y2 = y1 + distance*sin(direction)
+  segments(x1,y1,x2,y2)
+  coords = c(x2,y2)
+  return(coords)
+}
+
+spiral = function(start, distance, direction){
+  coords = turtle(start, distance, direction)
+  
+  if (distance > 0.1){
+    #direction = -1* (pi - direction - pi/4)
+    distance = 0.95*distance
+    spiral(coords,distance = 0.95*distance, direction = (-1* (pi - direction - pi/4)))
+  
+}
+}
+spiral(c(0,0),1,1)
+```
+Q22 Fractals.
+The code produces a spiral, but includes a nested, recurssive loop because it continually calls itself. Putting an if (distance > 0.1) statement before calling spiral within spiral ensure that the programme will stop.
+
+The angle was too large in the above spiral - so here's another
+
+```{r, echo=FALSE}
+plot(NA, xlim=c(0,2.5), ylim=c(0,3.5), xlab="X", ylab="Y")
+spiral_2 = function(start, distance, direction){
+    coords = turtle(start, distance, direction)
+    direction = (direction - pi/4)
+    distance = 0.95*distance
+    if (distance > 0.01){
+    spiral_2(coords,distance,direction)
+    }
+  }
+start = c(0,2)
+spiral_2(start,1,pi/4)
+
+```
+
+```{r, echo=FALSE}
+
+tree = function(start, distance, direction) {
+  coords = turtle(start, distance, direction)
+  #coords = turtle(start, distance, direction)
+    if (distance > 0.1){
+    distance = 0.65*distance
+    tree(coords, distance= 0.65*distance, direction = (pi/4) ) 
+    tree(coords, distance= 0.65*distance, direction = (3*pi/4) ) 
+    }
+}
+
+plot(NA, xlim=c(0,50), ylim=c(0,50), xlab="X", ylab="Y")
+tree(c(25,0),30,1.5)
+```
+In this code the direction is always plus or minus pi/4
+
+```{r, echo=FALSE}
+plot(NA, xlim=c(0,10), ylim=c(0,10), xlab="X", ylab="Y")
+tree = function(start,distance,direction){
+  coords = turtle(start, distance, direction)
+  direction1 = (direction - pi/4)
+  direction2 = (direction + pi/4)
+  distance = 0.65*distance
+  if (distance > 0.1){
+    tree(coords,distance,direction1)
+    tree(coords,distance,direction2)
+  }
+}
+start = c(5,0)
+tree(start,3,pi/2)
+```
+Here, the new direction is changed within each recursion so that the branches curl - i.e the new direction is added to the previous one.
+
+```{r, echo=FALSE}
+
+fern = function(start, distance, direction) {
+  coords = turtle(start, distance, direction)
+  distance1 = distance
+  distance2 = distance
+  #coords = turtle(start, distance, direction)
+  if (distance > 0.01){
+    distance = 0.9*distance
+    fern(coords, distance = 0.38*distance1, direction = 3*pi/4 ) 
+    fern(coords, distance= 0.87*distance2, direction = (pi/2) ) 
+  }
+}
+plot(NA, xlim=c(1,1.6), ylim=c(0,10), xlab="X", ylab="Y")
+fern(c(1,0),1,1)
+```
+
+Like the first tree, the direction here is always 3pi/4  or pi/2 because they are hard coded into the function argument.
+
+
+```{r, echo = FALSE}
+plot(NA, xlim=c(2.5,9), ylim=c(0,5), xlab="X", ylab="Y")
+fern = function(start,distance,direction){
+  coords = turtle(start, distance, direction)
+  direction1 = direction + pi/4
+  direction2 = pi/2
+  if (distance > 0.1){
+    fern(coords,0.87*distance, direction1)
+    fern(coords,0.38*distance, direction2)
+  }
+}
+start = c(8,0)
+fern(start,2,pi/2)
+```
+In this code the direction changes within each recursion giving the curled head of an opening dryopteris fern.
+
+```{r,echo=FALSE}
+plot(NA, xlim=c(1,9), ylim=c(0,7), xlab="X", ylab="Y")
+fern_mod = function(start,distance,direction){
+  coords = turtle(start, distance, direction)
+  direction1 = (direction + pi/8)
+  direction2 = 0.9*direction
+  if (distance > 0.1){
+    fern_mod(coords,0.87*distance,direction1)
+    fern_mod(coords,0.5*distance,direction2)
+  }
+}
+start = c(8,0)
+fern_mod(start,2,pi/2)
+```
+By slightly changing direction2 each time the fern gently curls, and by increasing the multiplier for the length we get more iterations for the limit length.
+
+```{r, echo=FALSE}
+plot(NA, xlim=c(1,9), ylim=c(0,15), xlab="X", ylab="Y")
+fern_2 = function(start,distance,direction,dir){
+  
+  coords = turtle(start, distance, direction)
+  direction1 = direction - (pi/4)*dir
+  dir = dir*-1
+  if (distance > 0.1){
+    fern_2(coords,0.38*distance,direction1,dir)
+    fern_2(coords,0.87*distance,direction,dir)
+  }
+}
+start = c(5,0)
+fern_2(start,2,pi/2,-1)
+```
+
+Here the dir*-1 command changes the direction of the plotting.
+
+```{r, echo=FALSE}
+factor = 0.38
+plot(NA, xlim=c(0,40), ylim=c(0,40), xlab="X", ylab="Y")
+fern_2_mod = function(start,distance,direction,dir){
+  #browser()
+  coords = turtle(start, distance, direction)
+  factor = factor*1.2
+  direction1 = direction - (pi/4)*dir
+  dir = dir*-1
+  if (distance > 0.05){
+    fern_2_mod(coords,factor*distance,direction1,dir)
+    fern_2_mod(coords,0.87*distance,direction,dir)
+  }
+}
+start = c(20,0)
+fern_2_mod(start,5,pi/2,-1)
+```
+
+By adding a factor tht increases the size of the lateral branches, so that more occur befoer the limiting size, the fern can be made bushier.
+
+```{r, echo=FALSE}
+plot(NA, xlim=c(0,20), ylim=c(0,12), xlab="X", ylab="Y")
+turtle1 = function(start, distance, direction){
+  x1 = start[1]
+  y1 = start[2]
+  x2 = x1 + distance*cos(direction)
+  y2 = y1 + distance*sin(direction)
+  if (distance > 0.5){
+    col = "brown"
+    lwd = 3
+  }else {
+    col = "green"
+    lwd = 0.5
+  }
+  segments(x1,y1,x2,y2,col = col,lwd =lwd)
+  coords = c(x2,y2)
+  return(coords)
+}
+
+tree_mod = function(start,distance,direction){
+  coords = turtle1(start, distance, direction)
+  direction1 = (direction - pi/5)
+  direction2 = (direction + pi/5)
+  distance = 0.75*distance
+  if (distance > 0.05){
+    tree_mod(coords,distance,direction1)
+    tree_mod(coords,distance,direction2)
+  }
+}
+start = c(10,0)
+tree_mod(start,3,pi/2)
+
+```
+Adding some lines to turtle to use different colours in segments depending on the length of the line
+
+
+
+

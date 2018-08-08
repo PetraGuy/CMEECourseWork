@@ -1,0 +1,118 @@
+---
+title: "Zeta_r modelling"
+author: "Petra Guy"
+date: "30 June 2018"
+output: pdf_document
+---
+
+# Recipe for zeta modelling
+
+If you just want the zetas to look at the seta_r coefficient, there's nly 2 things to do.
+
+1) the species list need to be in the form of a presence absence matrix. 
+ - here is how I did that, but I expect there's an easier way, this is a bit long winded because I had multiple sites,missing plots and duplicate species because of saplings etc.
+ 
+ But bascially you just want to end up with a df with columns for each species and rows for all your quadrats and 1's and 0's. 
+
+
+```{r eval=FALSE, include=FALSE}
+#the data I have is in the form of a long data frame with columns for site, plot, nest and BRC code.
+#so you probably aren't interested in the first bit of this code - I'm just getting
+#taking out each individual site
+
+create_presence_absence = function(sitenum){
+  Site = flora%>%filter(SITE==sitenum)     # extract my site from my flora df according to sitenum
+  BRC = unique(Site$BRC_number)            # make sure there are no duplicates
+  BRC = as.character(BRC)       
+  columns = length(unique(Site$BRC_number))# need to know how many species there are
+  rows = length(unique(Site$PLOT))         # need to know how many plots there are
+  Sitedf = data.frame(matrix(ncol = columns, nrow = rows)) # make a matrix of dims plots x species
+  colnames(Sitedf) = BRC                  # the columns are the species
+  plots = unique(Site$PLOT)               
+  Sitedf$plotnumber = plots             # now you have a df with colnames for each BRC code
+                                        # that occur in a site and a row for each plot
+
+  # these are the bits that make the presence absence df
+  # first find matches to a BRC
+    for (i in seq_along(plots)){          
+      plot_num = plots[i]    #for each plot in a site
+      plot = Site%>%filter(PLOT==plot_num) # get the species list for that plot
+      matches = match(plot$BRC_number,BRC) #see how many BRC matches there are in BRC col
+  
+      #thien turn the matches into 1's
+    for (j in 1:length(matches)){
+      col = matches[j]
+      Sitedf[i,col] = 1
+    }
+}
+  Sitedf[is.na(Sitedf)]=0
+  return(Sitedf)
+}
+
+pres_abs_dfs = list()
+for (i in 1:103){
+  pres_abs_dfs[[i]] = create_presence_absence(i)
+  
+}
+
+saveRDS(pres_abs_dfs, "presence_absence.RDS")
+```
+
+2) Instead of calculating the zetas myself, which got a bit tedious after about zeta3 - I used Guillaume Latombe's zetadiv function :  https://cran.r-project.org/web/packages/zetadiv/zetadiv.pdf
+
+
+
+```{r eval=FALSE, include=FALSE}
+df =  pres_abs_df # take your presence absence data frame
+rows = nrow(df) # how may rows does it have? i.e how many plots/sites/quadrats
+z_decline = Zeta.decline.ex(df, 1:rows) # get  as many zetas as you have plots/sites/quadrats
+zetas = z_decline$zeta.val # this extracts the actual empirical zeta values from the z_decline object
+
+```
+
+
+That's that for just getting empirical zetas.
+
+If you want to carry on and do the SAC extrapolation you then :
+
+1) Fit your model to the above empirical zetas.
+2) Calcualte a set of predicted zeta_1 - zeta_n from your model.
+Here n is the number of plots that would fill a site. e.g if the area of my site is 4000ha, I need n = 4000/200 = 20. I need zetas to 20. 
+
+3) You then need to carry out the following series sum : 
+
+Total richness = nCr x zeta_r  - but the terms alternate so, say you had 4 quadrats you would do this:
+
+Richness = 4C1(zeta1) - 4C2(zeta2) + 4C3(zeta3) - 4C4(zeta4)
+
+I think the venn diagrams Cang uses are the best way to see why the above is happening. Isnt it just that because each zeta is the average number in the intersection - if you multiply the zeta by the number of intersections (the nCr), you're back to the number of species. Then if you go through a small set, of three say, you can see in that venn diagrammy way, why you need to add some and subtract others in order to get the unique set of species for your site, without having double counted any.
+
+
+```{r eval=FALSE, include=FALSE}
+# this is how you calculate the richness
+get_richness = function(){
+  
+  nCr = vector()       ##create a vector for the series sum 
+  Rich_emp = vector()  
+  for (i in 1:103){ 
+    zs = zetas_df[,i]  #take a vector of zetas - I had a df of 16 x 103 - just here I take zetas for                         a site
+    l = length(zs)     # not always sure how many zetas there were coz missing plots
+    z = vector()       ## make a  vector for zetas
+    sign = vector()    ##make a vector for the sign
+    for (j in 1:l){     
+  # this fills three vectors
+      nCr[j] = choose(l,j)  # get the nCr term for your series element
+      sign[j] = (-1)^(j+1)  #they alternate between + and -
+      z[j] = zs[j]          #take the specific zeta for this series element
+    }
+    S = nCr*sign*z          #multiply the three vectors created
+    Rich_emp[i] = sum(S)    
+  }
+  return(Rich_emp)
+}
+```
+
+
+
+
+

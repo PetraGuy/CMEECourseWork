@@ -1,0 +1,582 @@
+Starting weekly assessment for Petra, Week1
+
+Current Marks = 100
+
+Note that: 
+(1) Major sections begin with a double "====" line 
+(2) Subsections begin with a single "====" line 
+(3) Code output or text file content are printed within single "*****" lines 
+
+======================================================================
+======================================================================
+Your Git repo size this week is about 1.56 MiB on disk 
+
+PART 1: Checking project workflow...
+
+Found the following directories in parent directory: Week1, Assessment, Week2, .git
+
+Found the following files in parent directory: .gitignore
+
+Checking for key files in parent directory...
+
+Found .gitignore in parent directory, great! 
+
+Printing contents of .gitignore:
+**********************************************************************
+*~ 
+*.tmp
+**********************************************************************
+
+README file missing, 1 pt deducted
+
+Current Marks = 99
+
+======================================================================
+Looking for the weekly directories...
+
+Found 2 weekly directories: Week1, Week2
+
+The Week1 directory will be assessed 
+
+======================================================================
+======================================================================
+PART 2: Checking weekly code and workflow...
+
+======================================================================
+Assessing WEEK1...
+
+Found the following directories: Code, Data, Sandbox
+
+Found the following files: readme.txt
+
+Checking for readme file in weekly directory...
+
+Found README in parent directory, named: readme.txt
+
+Printing contents of readme.txt:
+**********************************************************************
+
+Week 1 summary
+
+Documents/CMEECourseWork/Week1/Code contains 8 bash files. 
+
+UnixPrac1, a commented out bash file, the chapter 1 practical. I couldn't get expr to work , kept getting 0, I guess because I wasnt handling the decimal places, so I used bc.
+
+6 files are the exercises set during chapter 2; 
+
+ConcatenateTwoFiles - contents of one file added to the end of another (>>)
+
+CountLines - counts lines, wc -l, saved to a variable called NumLines. Not sure why I needed $(wc -l <$filename) when example script had 'wc-1...' 
+
+MyExampleScript - outputs Hello to the terminal user ($USER),
+
+tabtocsv - removes tabs \t ad replaces them commas using tr. This script could be improved by not hard coding the output filename. I got as far as removing the .txt extension, but didnt work out how to addd .csv to the entered filename.
+	
+variables - shows how to use variables in bash - varname=Bob - no spaces!!
+
+csvtospace is the end of chapter 2 practical. The bash rewrote files in my /Data/Temperatures directory, and saved them in the same directory. Note that I have fist copied the files so as not to overwrite them, but it would be better if I'd cut of the extenstion, so the output filename is 1800.csv.txt - bit ugly.Also, as this bash stands, it will take everything in the temperature directory and make copies, so if there are other files, they'll be copied too. 
+
+
+
+And ComplileLatex.sh, which repeates the commands needed to create the pdf from the latex file. (Note to self, make sure you've saved the file and created the bibliography - just create the file name and paste the citation in before compiling the latex file)
+
+I have tried to ensure all data is in Data directory and therefore bash scripts look there for everything.
+
+My program files could be better laid out in a standard format and the comments are not neat. I will improve that in the following weeks.
+
+
+
+
+
+
+
+
+**********************************************************************
+
+Results directory missing!
+
+Found 10 code files: ConcatenateTwoFiles.sh, CompileLatex.sh, .txt, UnixPrac1.sh, CountLines.sh, variables.sh, csvtospace.sh, MyExampleScript.sh, tabtocsv.sh, boilerplate.sh
+
+Found the following extra files: FirstExample.pdf, .csv, .log
+0.5 pt deducted per extra file
+
+Current Marks = 97.5
+
+======================================================================
+Testing script/code files...
+
+======================================================================
+Inspecting script file ConcatenateTwoFiles.sh...
+
+File contents are:
+**********************************************************************
+#!/bin/bash
+#Author pg5117@ic.ac.uk
+# Script: ConcatenateTwoFiles.sh
+# Desc: takes texisting files and adds one to end of the other in new file
+# Arguments : Requires file1.txt and file2.txt in Data
+# Ouput: a filename specified by user
+#October 2017
+#
+echo ' enter filenames to be merged'
+echo 'for this example, file1.txt and file2.txt have been created in Data'
+read var1 var2 
+echo 'enter name for merged file' 
+read mergedvar
+cd ../Data
+
+cat $var1 > $mergedvar
+cat $var2 >> $mergedvar
+echo "Merged File is"
+cat $mergedvar
+**********************************************************************
+
+Testing ConcatenateTwoFiles.sh...
+
+Output (only first 500 characters): 
+
+**********************************************************************
+ enter filenames to be merged
+for this example, file1.txt and file2.txt have been created in Data
+enter name for merged file
+Merged File is
+
+**********************************************************************
+
+Encountered error:
+ConcatenateTwoFiles.sh: line 16: $mergedvar: ambiguous redirect
+ConcatenateTwoFiles.sh: line 17: $mergedvar: ambiguous redirect
+
+======================================================================
+Inspecting script file CompileLatex.sh...
+
+File contents are:
+**********************************************************************
+#!/bin/bash
+# Author pg5117@ic.ac.uk
+# Script: CompileLatex
+# Desc: 
+# runs the commands to compile the latex document then opens the document. 
+# Make sure you've created the bibliography
+# Arguments:Requires FirstExample a tex file in Data directory
+#					 FirstBiblio.bib in Data directory		
+# #Date October 2017
+
+# I put FirstExample in Data dir
+#Remember you need the bibliography to be created
+cd ../Data
+pdflatex $1.tex
+pdflatex $1.tex
+bibtex $1
+pdflatex $1.tex
+pdflatex $1.tex
+evince $1.pdf &
+
+#clean up - this deletes all the files created to make the document
+#rm *~ # too scary
+rm *.aux
+rm *.dvi
+rm *.log
+rm *.nav
+rm *.out
+rm *.snm
+rm *.toc
+#added these last two on, because I could see these had been
+# created hope they're no important? check this later coz StackExchange says
+#you need some of the above, like .aux
+rm *.blg 
+rm *.bbl
+
+**********************************************************************
+
+Testing CompileLatex.sh...
+
+Output (only first 500 characters): 
+
+**********************************************************************
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015/Debian) (preloaded format=pdflatex)
+ restricted \write18 enabled.
+entering extended mode
+(/usr/share/texlive/texmf-dist/tex/latex/tools/.tex
+LaTeX2e <2016/02/01>
+Babel <3.9q> and hyphenation patterns for 81 language(s) loaded.
+File ignored)
+*
+! Emergency stop.
+<*> .tex
+        
+!  ==> Fatal error occurred, no output PDF file produced!
+Transcript written on .log.
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015/Debian) (pre
+**********************************************************************
+
+Encountered error:
+bibtex: Need exactly one file argument.
+Try `bibtex --help' for more information.
+rm: cannot remove '*.aux': No such file or directory
+rm: cannot remove '*.dvi': No such file or directory
+rm: cannot remove '*.log': No such file or directory
+rm: cannot remove '*.nav': No such file or directory
+rm: cannot remove '*.out': No such file or directory
+rm: cannot remove '*.snm': No such file or directory
+rm: cannot remove '*.toc': No such file or directory
+rm: cannot remove '*.blg': No such file or directory
+rm: cannot remove '*.bbl': No such file or directory
+
+** (evince:29553): WARNING **: Error when getting information for file '/home/mhasoba/Documents/Teaching/IC_CMEE/2017-18/Coursework/StudentRepos/PetraGuy_PG5117/Week1/Data/.pdf': No such file or directory
+
+** (evince:29553): WARNING **: Error setting file metadata: No such file or directory
+
+** (evince:29553): WARNING **: Error setting file metadata: No such file or directory
+
+** (evince:29553): WARNING **: Error setting file metadata: No such file or directory
+
+** (evince:29553): WARNING **: Error setting file metadata: No such file or directory
+
+** (evince:29553): WARNING **: Error setting file metadata: No such file or directory
+
+** (evince:29553): WARNING **: Error setting file metadata: No such file or directory
+
+** (evince:29553): WARNING **: Error setting file metadata: No such file or directory
+
+** (evince:29553): WARNING **: Error setting file metadata: No such file or directory
+
+** (evince:29553): WARNING **: Error setting file metadata: No such file or directory
+
+** (evince:29553): WARNING **: Error setting file metadata: No such file or directory
+
+** (evince:29553): WARNING **: Error setting file metadata: No such file or directory
+
+======================================================================
+Inspecting script file .txt...
+
+File contents are:
+**********************************************************************
+**********************************************************************
+
+Testing .txt...
+
+======================================================================
+Inspecting script file UnixPrac1.sh...
+
+File contents are:
+**********************************************************************
+#Author pg5117@ic.ac.uk
+# Script: UnixPrac1
+# Desc: 
+# 1) Count How many lines in each file
+# 2) Print everything starting from the second line in E.coli genome
+# 3) Count sequence length of E. coli genome
+# 4) Count matches for ATGC
+# 5) Find ratio of A and T to G and C
+# Arguments: requires soem fasta's AND E.coli.fasta in Data directory 
+#October 2017
+
+
+
+#cd ../Data # send to Data dir using relative path
+#1 wc -l *.fasta
+#2 cat E.coli.fasta | tail -78103
+#3 tr -d "\n" < E.coli.fasta | wc -m 
+#4 tr -d "\n" < E.coli.fasta | grep ATGC -o |  wc -l 
+#5 tr -d "\n" < E.coli.fasta | tail -78103 | echo "scale=3 ; $( grep 'A\|T' -o E.coli.fasta|  wc -l)/$(grep 'C\|G' -o E.coli.fasta|  wc -l) " | bc
+
+
+
+**********************************************************************
+
+Testing UnixPrac1.sh...
+
+Output (only first 500 characters): 
+
+**********************************************************************
+
+**********************************************************************
+
+Code ran without errors
+
+Time consumed = 0.00387s
+
+======================================================================
+Inspecting script file CountLines.sh...
+
+File contents are:
+**********************************************************************
+#!/bin/bash
+#Author pg5117@ic.ac.uk
+# Script: CountLines.sh
+# Desc:  Count and output number of lines in a file input by user
+#Arguments: Requires any file to count, enter any file name in Data dir
+#October 2017
+#
+
+echo 'enter a filename to count the lines of'
+echo 'eg, spawannxs.txt exists in Data'
+echo 'or any of these '
+cd ../Data
+ls
+read filename
+NumLines=$(wc -l <$filename)
+echo "The file" $filename 'has' $NumLines 'lines'
+
+**********************************************************************
+
+Testing CountLines.sh...
+
+Output (only first 500 characters): 
+
+**********************************************************************
+enter a filename to count the lines of
+eg, spawannxs.txt exists in Data
+or any of these 
+407228326.fasta
+407228412.fasta
+Data.tex
+E.coli.fasta
+file1.csv
+file1.txt
+file2.txt
+FirstBiblio.bib
+FirstExample.pdf
+FirstExample.tex
+spawannxs.txt
+Temperatures
+test.csv
+test.txt
+The file has lines
+
+**********************************************************************
+
+Encountered error:
+CountLines.sh: line 15: $filename: ambiguous redirect
+
+======================================================================
+Inspecting script file variables.sh...
+
+File contents are:
+**********************************************************************
+#!/bin/bash
+#Author pg5117@ic.ac.uk
+# Script: variables.sh
+# Desc: # Shows use of variables in bash - NO SPACES!
+#October 2017
+
+MyVar='a string'
+echo 'the current value of the variable is' $MyVar
+echo 'Please enter a new string'
+read MyVar
+echo 'the current value of the variable is' $MyVar
+## Reading multiple values
+echo 'Enter two numbers separated by space(s)'
+read a b
+echo 'you entered' $a 'and' $b '. Their sum is:'
+mysum=`expr $a + $b`
+echo $mysum
+**********************************************************************
+
+Testing variables.sh...
+
+Output (only first 500 characters): 
+
+**********************************************************************
+the current value of the variable is a string
+Please enter a new string
+the current value of the variable is
+Enter two numbers separated by space(s)
+you entered and . Their sum is:
+
+
+**********************************************************************
+
+Encountered error:
+expr: syntax error
+
+======================================================================
+Inspecting script file csvtospace.sh...
+
+File contents are:
+**********************************************************************
+#!/bin/bash
+# Author pg5117@ic.ac.uk
+# Script: csvtospace
+# Desc: #take csv and convert to space separated
+# keep input and save as new file
+# Arguments: Requires csv file in Data dir
+# Output, a new filename
+#Date October 2017
+
+
+
+echo ' ALL /Data/Temperatures will be copied and converted to space delimited'
+cd ../Data/Temperatures
+# this bit was to accept entered names
+#echo 'enter filenames to convert'# this bit was to accept entered names
+#read filename
+#cat $filename | tr -s "," " " >> testspace # this for entering filenames
+
+# or this loops through files in the directory
+list="$(ls)"
+for i in $list; do 
+	cat "$i"  | tr -s "," " " >> $i.txt ;
+done
+ls
+
+
+
+
+
+**********************************************************************
+
+Testing csvtospace.sh...
+
+Output (only first 500 characters): 
+
+**********************************************************************
+ ALL /Data/Temperatures will be copied and converted to space delimited
+1800.csv
+1800.csv.txt
+1800.csv.txt.txt
+1800.csv.txt.txt.txt
+1801.csv
+1801.csv.txt
+1801.csv.txt.txt
+1801.csv.txt.txt.txt
+1802.csv
+1802.csv.txt
+1802.csv.txt.txt
+1802.csv.txt.txt.txt
+1803.csv
+1803.csv.txt
+1803.csv.txt.txt
+1803.csv.txt.txt.txt
+
+**********************************************************************
+
+Code ran without errors
+
+Time consumed = 0.02619s
+
+======================================================================
+Inspecting script file MyExampleScript.sh...
+
+File contents are:
+**********************************************************************
+#!/bin/bash
+#Author pg5117@ic.ac.uk
+# Script: MyExampleScript.sh
+# Desc: 
+# Says hello to you, the user
+#October 2017
+
+msg1="Hello"
+msg2=$USER
+echo "$msg1 $msg2"
+echo "Hello $USER"
+
+**********************************************************************
+
+Testing MyExampleScript.sh...
+
+Output (only first 500 characters): 
+
+**********************************************************************
+Hello mhasoba
+Hello mhasoba
+
+**********************************************************************
+
+Code ran without errors
+
+Time consumed = 0.00225s
+
+======================================================================
+Inspecting script file tabtocsv.sh...
+
+File contents are:
+**********************************************************************
+#!/bin/bash
+# Author pg5117@ic.ac.uk
+# Script: tabtocsv.sh
+# Desc: 
+#substitute the tabs in the files with commas
+#saves the output into a .csv file
+# Arguments: 1,file.csv has been created in Data
+# the input file, new csv created with same name.csv
+#Date October 2017
+
+cd ../Data
+echo 'enter tab del filename - PS test.txt has been created'
+read varName
+echo 'test.txt in Data directory will be converted'
+echo "Creating a comma delimited version of" $varName
+echo $varName | cut -f 1 -d '.'| tr -s "\t" "," >> test.csv 
+echo 'test.csv created'
+
+ #ps, this is not nice because output file hard coded, but I couldnt work
+ #out how to cut original extension off and add new extension
+ 
+**********************************************************************
+
+Testing tabtocsv.sh...
+
+Output (only first 500 characters): 
+
+**********************************************************************
+enter tab del filename - PS test.txt has been created
+test.txt in Data directory will be converted
+Creating a comma delimited version of
+test.csv created
+
+**********************************************************************
+
+Code ran without errors
+
+Time consumed = 0.00488s
+
+======================================================================
+Inspecting script file boilerplate.sh...
+
+File contents are:
+**********************************************************************
+#!/bin/bash
+# Author: Your Name your.login@imperial.ac.uk
+# Script: boilerplate.sh
+# Desc: simple boilerplate for shell scripts
+# Arguments: none
+# Date: Oct 2015
+
+echo -e "\nThis is a shell script! \n"
+
+#exit
+
+**********************************************************************
+
+Testing boilerplate.sh...
+
+Output (only first 500 characters): 
+
+**********************************************************************
+
+This is a shell script! 
+
+
+**********************************************************************
+
+Code ran without errors
+
+Time consumed = 0.00243s
+
+======================================================================
+======================================================================
+Finished running scripts
+
+Ran into 4 errors
+
+======================================================================
+======================================================================
+
+FINISHED WEEKLY ASSESSMENT
+
+Current Marks for the Week = 97.5
+
+NOTE THAT THESE ARE NOT THE FINAL MARKS FOR THE WEEK, BUT AN UPPER BOUND ON THE MARKS!

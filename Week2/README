@@ -1,0 +1,36 @@
+
+
+cfexercises_flow
+
+To make this a module, and all the functions callable, I added the if (__name__ == "__main__"):bit on the bottom, imported sys and then created a main function tht would run the script.
+
+dictionary_py
+I found 2 ways of tackling this, in one I created the keys and added the values in a for loop, in the other, super neat version, I used defaultdic. You tell it that the values are a list, then it works through the list of tuples assigning accordingly.
+
+
+Chapter 5 Extra Credit - Matching fasta files.
+
+I started this program from scratch in order to learn and consolidate this weeks python.
+
+I created a function to read the fasta file, but the commas, spaces and top two lines had to be removed. I then turned the file into a string
+
+I used the same idea as align_seq to make the longest chain into "longest"
+
+To mimic moving the shorter seq along the longer I removed the first element from the longest chain in a for loop.
+
+I then looked at matches between the two chains using a numpy array.
+
+Since the numpy array equality required arrays of the same size I had to chop the end off the longest chain in incrementally smaller amounts.
+
+Missing Oaks.
+
+The relative paths were wrong, only ../ needed not ../../
+I changed the code so that "quercus" could be input (length string = 7) or quercus with a space or spelling errors such as quercuss (length of string not 7)
+
+I am guessing there would by a nicer way to do this, but couldnt find it.
+The doctest output was confusing because although I got failed messages, the tests also said passed, ok. I reran the code in a different window, and it worked. I could see that each tree test had passed, so I am not sure what the failed messages were.
+
+This week I created a bash script to run all the scripts to see if that would a) make sure I had completed all the scripts b) throw up any errors. It all ran OK. 
+
+
+

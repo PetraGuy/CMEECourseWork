@@ -1,0 +1,147 @@
+---
+title: "Use of site descriptors to compile heterogeneity indices"
+author: "PetraGuy"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+# To create positive heterogeneity indices
+#INPUTS LookUpSiteDescriptorCodes.csv, Site_descriptors00-03, access
+#OUTPUTS PositiveHeterogIndices.csv and NegativeHeterogIndies
+knitr::opts_chunk$set(echo = FALSE)
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
+```
+
+#Introduction.
+[This is outline, details and references etc for woodland ecology and biodiversity to be added]
+
+As part of the woodland survey, site descriptors were noted. These are elements of the entire site, between the plots, and provide additional information on habitats, vegetation, woodland management, grazing, as well as many other features (Full list...) The site descriptors have been used to compile positive and negative heterogeneity indices of the woodland. A variety of environments contribute to the overall biodiversity of the woodland, which may be reflected in the plant richness. Therefore, site descriptors which relate to positive heterogeneity elements have been combined into a score for each site. The number of positive elements recorded for the site is summed.
+
+The following code have been selected. Firstly, those that relate to open areas such large ponds, rivers, moorland,glades tracks or rough pasture.  Secondly codes relating to woodland management such as stumps, brash heaps and burn sites.  Thirdly, any other codes which imply a positive contribution to the ecosystem, such as rotten logs, hollow logs, lichen covered trunks, small streams and fungi.
+
+The items chosen not only add to the openness of the woodland, which will contribute to plant species richness directly,but also provide different habitats and a seed source for other areas of the wood. Woodland management can contribute to plant richness directly by opening areas through coppicing, but also through it addition of habitats such as rotting stumps. 
+
+There are also codes referring to elements which are likely to have a negative impact on the diversity of the woodland; planted conifers, rhododendron, bracken, nettle clumps, roads, and housing. The allelopathy and vigour of rhododendrons and bracken will reduce diversity while housing and roads, by increasing access, may reduce diversity due to trampling and dog use. 
+
+```{r, echo = FALSE}
+#clear the workspace
+rm(list = ls())
+cat("\014")
+```
+
+```{r,echo = FALSE }
+#Get the data , enter input CSV file name here, for data in data directory
+
+
+inputfile = 'LookUpSiteDescriptorCodes.csv'
+fullfile = paste("../Data",inputfile, sep = "/")
+LookUpSite = as.tbl(read.csv(fullfile))
+
+inputfile = 'Site_descriptors00-03.csv'
+fullfile = paste("../Data",inputfile, sep = "/")
+SiteDescriptorsYr2 = as.tbl(read.csv(fullfile))
+
+
+```
+
+
+
+```{r}
+# these codes imply open areas, 8 - 10 are coppicing, 86 -93 are larger water features, 105-117 are glades and tracks
+#208 - 212 are heaths, marsh, rivers and lakes.
+PositiveCodesSites = c(8,9,10,12,13,14,15,16,17,18,24,25,86,87,88,89,90,91,92,93,100,101,103,105,106,107,108,109,110,113,114,115,116,208,209,210,211,212)
+PositveSites = SiteDescriptorsYr2 %>% select(SITE, SD_code)%>% filter(SD_code %in% PositiveCodesSites)
+
+poscodesused =  LookUpSite%>%filter(SD_code%in% PositiveCodesSites)
+poscodesused = poscodesused%>%select(SD_code,Description) 
+write.csv(poscodesused, "../Data/PosCodesUsed")
+```
+
+
+```{r, eval= FALSE}
+#dont think this adds anything
+ggplot(SiteDescriptorsYr2, aes(SiteDescriptorsYr2$SD_code)) +
+         geom_histogram(breaks = seq(1,250, by = 10), col = "black", fill = "green")+
+                        labs(title = "Frequeny of All Site Descriptor Codes", x = "Site descriptor code", y = "Count")
+```
+
+
+```{r}
+ggplot(PositveSites, aes(x = SD_code)) +
+         geom_histogram(breaks = seq(1,220, by = 10), col = "black", fill = "green")+
+                        labs(title = "Positive Site Descriptor Codes", x = "Site descriptor code", y = "Count in data")
+```
+The histogram shows that there are many records that could be considered as contributing positively toward heterogeneity in the woodlands, the 0-10 codes are for coppicing, the early 50s are rotting stumps and hollow trees, 100 -120 codes are glades, rides, fields, paths, marshes and ditches. Those above 200 are for rough grassland, rivers, lakes and heaths.
+
+
+```{r}
+NegativeCodesSites = c(6,41,143,145,149,117,213,215)
+NegativeSites = SiteDescriptorsYr2 %>% select(SITE, SD_code)%>% filter(SD_code %in% NegativeCodesSites)
+```
+
+
+```{r}
+ggplot(NegativeSites, aes(x = SD_code)) +
+         geom_histogram(breaks = seq(1,250, by = 10), col = "black", fill = "green")+
+                        labs(title = "Negative Site Descriptor Codes", x = "SD code", y = "Count in data")
+```
+
+There are a nearly 100 counts for bracken, nettle and rhododendrons,143, 145 and 149, and a similar figure for roads and housing, 213 and 215. The first bar with over 70 counts represents planted conifer.
+
+```{r}
+#the heterogeneity index for each site is the sum of the positive codes
+PositiveHeterogIndices = PositveSites %>% group_by(SITE)%>% summarise(no_rows = length(SITE))
+#max = (max(SiteHeterogenity$no_rows))
+#means = round(mean(SiteHeterogenity$no_rows), digits = 2)
+#min = (min(SiteHeterogenity$no_rows))
+#stats =  tableGrob(rbind(max,means,min))
+
+ggplot(data = PositiveHeterogIndices, aes(x = SITE, y = no_rows)) +
+         geom_bar(stat = "identity", col = "black")+
+                  labs(title = "Positive Heterogenity Indices by Site", x = "Site", y = "Number of positive codes")
+
+#grid.arrange(stats,p, ncol = 2)
+
+```
+
+```{r}
+#the heterogeneity index for each site is the sum of the positive codes
+NegativeHeterogIndices = NegativeSites %>% group_by(SITE)%>% summarise(no_rows = length(SITE))
+
+ggplot(data = NegativeHeterogIndices, aes(x = SITE, y = no_rows)) +
+         geom_bar(stat = "identity", col = "black")+
+                  labs(title = "Negative Heterogenity Indices by Site", x = "Site", y = "Number of negative codes")
+```
+
+```{r}
+#save the indices to merge with the site data 
+colnames(PositiveHeterogIndices) = c("Site", "Pos_Hetero_Index")
+colnames(NegativeHeterogIndices) = c("Site", "Neg_Hetero_Index")
+# Some sites have no records, so ensure 0 appears, not missing row.
+Sitedf = as.data.frame( c(1:103))
+colnames(Sitedf) = "Site"
+PositiveHeterogIndices = right_join(PositiveHeterogIndices,Sitedf)
+NegativeHeterogIndices = right_join(NegativeHeterogIndices,Sitedf)
+PositiveHeterogIndices = write.csv(PositiveHeterogIndices,"../Data/PositiveHeterogIndices.csv")
+NegativeHeterogIndices = write.csv(NegativeHeterogIndices, "../Data/NegativeHeterogIndices.csv")
+
+```
+
+```{r}
+# these are the positive codes used
+positive_key = subset(LookUpSite, SD_code %in% PositiveCodesSites)
+positive_key
+write.csv(positive_key, "../Results/Positive_codes_used.csv")
+```
+```{r}
+# these are the negative codes used
+negative_key = subset(LookUpSite, SD_code %in% NegativeCodesSites)
+negative_key
+write.csv(negative_key,"../Results/Negative_codes_used.csv")
+```
+
+
+
+

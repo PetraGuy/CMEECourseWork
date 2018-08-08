@@ -1,0 +1,1459 @@
+Starting weekly assessment for Petra, Week7
+
+Current Marks = 100
+
+Note that: 
+(1) Major sections begin with a double "====" line 
+(2) Subsections begin with a single "====" line 
+(3) Code output or text file content are printed within single "*****" lines 
+
+======================================================================
+======================================================================
+Your Git repo size this week is about 62.50 MiB on disk 
+
+PART 1: Checking project workflow...
+
+Found the following directories in parent directory: Week3, Week5, .idea, CMEEMainProject, Week1, Week7, Week4, Week2, .git, Assessment, Week6, MiniProject
+
+Found the following files in parent directory: Readme, .gitignore
+
+Checking for key files in parent directory...
+
+Found .gitignore in parent directory, great! 
+
+Printing contents of .gitignore:
+**********************************************************************
+*~ 
+*.tmp
+**********************************************************************
+
+Found README in parent directory, named: Readme
+
+Printing contents of Readme:
+**********************************************************************
+Petra Guy, pg5117@imperial.ac.uk
+Coursework for CMEE MSc 2017
+
+**********************************************************************
+
+======================================================================
+Looking for the weekly directories...
+
+Found 7 weekly directories: Week1, Week2, Week3, Week4, Week5, Week6, Week7
+
+The Week7 directory will be assessed 
+
+======================================================================
+======================================================================
+PART 2: Checking weekly code and workflow...
+
+======================================================================
+Assessing WEEK7...
+
+Found the following directories: Data, Sandbox, .ipynb_checkpoints, Code
+
+Found the following files: Readme
+
+Checking for readme file in weekly directory...
+
+Found README in parent directory, named: Readme
+
+Printing contents of Readme:
+**********************************************************************
+Week 7 
+
+
+blackbirds.py  LV1.py  LV5.py        regexs.py                 TestR.R
+DrawFW.py      LV2.py  Nets.py       run_fmr_R.py              timeitme.py
+fmr.R          LV3.py  Nets.R        script_to_run_scripts.py  using_os.py
+LV1_2.sh       LV4.py  profileme.py  TestR.py
+
+
+**********************************************************************
+
+Results directory missing!
+
+Found 19 code files: using_os.py, Nets.py, regexs.py, timeitme.py, LV4.py, DrawFW.py, TestR.R, LV1_2.sh, LV3.py, Nets.R, LV1.py, fmr.R, TestR.py, blackbirds.py, run_fmr_R.py, profileme.py, LV5.py, LV2.py, script_to_run_scripts.py
+
+======================================================================
+Testing script/code files...
+
+======================================================================
+Inspecting script file using_os.py...
+
+File contents are:
+**********************************************************************
+""" This is using subprocess to fnd files"""
+
+# Use the subprocess.os module to get a list of files and  directories 
+# in your ubuntu home directory 
+
+# Hint: look in subprocess.os and/or subprocess.os.path and/or 
+# subprocess.os.walk for helpful functions
+
+import subprocess
+
+#################################
+#~Get a list of files and 
+#~directories in your home/ that start with an uppercase 'C'
+
+subprocess.os.system("ls -d  ~/Documents/[C]*")
+
+# Get the user's home directory.
+home = subprocess.os.path.expanduser("~")
+
+# Create a list to store the results.
+FilesDirsStartingWithC = []
+
+# Use a for loop to walk through the home directory.
+
+  
+#################################
+# Get files and directories in your home/ that start with either an 
+# upper or lower case 'C'
+
+# Type your code here:
+
+#################################
+# Get only directories in your home/ that start with either an upper or 
+#~lower case 'C' 
+
+# Type your code here:
+ import os
+>>> path = '/home/petra/Documents'
+>>> text_files = [f for f in os.listdir(path) if f.startswith('C')]**********************************************************************
+
+Testing using_os.py...
+
+using_os.py is a Python script file;
+ checking for docstrings...
+
+Found one or more doctrings!
+
+Output (only first 500 characters): 
+
+**********************************************************************
+
+**********************************************************************
+
+Encountered error:
+  File "using_os.py", line 37
+    import os
+    ^
+IndentationError: unexpected indent
+
+======================================================================
+Inspecting script file Nets.py...
+
+File contents are:
+**********************************************************************
+#!usr/bin/python
+
+"""CUsing igraph to plot network"""
+
+__author__ = "Petra Guy, pg5117@ic.ac.uk"
+__version__ = "2.7"
+
+import pandas as pd
+import numpy as np
+import igraph
+import pylab
+
+e = open('../Data/QMEE_Net_Mat_edges.csv', 'r')
+Adj = pd.read_csv(e) # this is the adjacency matrix
+e.close()
+
+n = open('../Data/QMEE_Net_Mat_nodes.csv')
+nodes = pd.read_csv(n) #names of nodes
+n.close()
+
+a_numpy = Adj.as_matrix()
+conn_indices = np.where(a_numpy)
+# Get the values as np.array, it's more convenenient.
+weights = a_numpy[conn_indices]
+
+# a sequence of (i, j) tuples, each corresponding to an edge from i -> j
+edges = zip(*conn_indices)
+
+# initialize the graph from the edge sequence
+
+G = igraph.Graph(edges=edges, directed=True)
+
+# assign node names and weights to be attributes of the vertices and edges
+# respectively
+node_names = nodes['id']
+G.es['width'] = weights
+G.vs['label'] = node_names
+G.es['weight'] = weights
+
+G.es['width'] = weights/10
+# plot the graph
+out = igraph.plot(G,'../Results/Netspy.pdf', layout="rt", labels=True, margin=80)
+print 'Netspy.pdf saved to Results'
+**********************************************************************
+
+Testing Nets.py...
+
+Nets.py is a Python script file;
+ checking for docstrings...
+
+Found one or more doctrings!
+
+Output (only first 500 characters): 
+
+**********************************************************************
+
+**********************************************************************
+
+Encountered error:
+Traceback (most recent call last):
+  File "Nets.py", line 8, in <module>
+    import pandas as pd
+ImportError: No module named pandas
+
+======================================================================
+Inspecting script file regexs.py...
+
+File contents are:
+**********************************************************************
+#!usr/bin/python
+
+"""Chapter 6 Rgular Expressions"""
+
+__author__ = "Petra Guy, pg5117@ic.ac.uk"
+__version__ = "2.7"
+
+import re
+
+my_string = "a given string"
+match = re.search(r'\s', my_string) #\s = whitespace
+print match # there is not match coz no return therefore get funny answer
+
+#match.group()
+
+match = (r's\w*', my_string)#space then any char
+print'2',match
+
+match = re.search(r'\d', my_string)
+print '3',match
+
+
+my_string = 'an example'
+match = re.search(r'\w*\s', my_string)
+
+if match:
+	print 'found a match:', match.group()
+else:
+	print 'no match'
+	
+# not sure what the match.group is doing, makes no difference if run wih or without
+#? .group returns subgroups of the objecct by indices or names.
+
+MyStr = "an example"
+
+match = re.search(r'\w*\s', MyStr) #= any char then space
+
+if match:
+	print 'found a match :', match.group()
+else:
+	print 'Nope'
+	
+match = re.search(r'\d', "it takes 2 to tango") #\d any numeric
+print match.group()
+
+match = re.search(r'\s\w*\s', "once upon a time") #space, any char, space
+print match.group()
+
+match = re.search(r'\s\w{1,3}\s', 'once upon a bit of time')# space 1 or 3 chars?? space
+print match.group()
+
+match = re.search(r'\s\w*$', 'once upon a bit of time') 
+print match.group()
+
+match = re.search(r'\w*\s\d.*\d', 'take 2 grams of H2O')
+print match.group()
+
+match = re.search(r'^\w*.*\s','once upon a time')
+print match.group()
+
+
+
+
+**********************************************************************
+
+Testing regexs.py...
+
+regexs.py is a Python script file;
+ checking for docstrings...
+
+Found one or more doctrings!
+
+Output (only first 500 characters): 
+
+**********************************************************************
+<_sre.SRE_Match object at 0x7ff944185648>
+2 ('s\\w*', 'a given string')
+3 None
+found a match: an 
+found a match : an 
+2
+ upon 
+ a 
+ time
+take 2 grams of H2
+once upon a 
+
+**********************************************************************
+
+Code ran without errors
+
+Time consumed = 0.00863s
+
+======================================================================
+Inspecting script file timeitme.py...
+
+File contents are:
+**********************************************************************
+#!usr/bin/python
+# Week 7 Advanced python, imported code from handbook
+##############################################################################
+import time
+import timeit
+
+
+def a_not_useful_function():
+    y = 0
+    for i in range(100000):
+        y = y + i
+    return 0
+
+
+def a_less_useless_function():
+    y = 0
+    for i in xrange(100000):
+        y = y + i
+    return 0
+# One approach is to time it like this:
+start = time.time()
+a_not_useful_function()
+print "a_not_useful_function takes %f s to run." % (time.time() - start)
+start = time.time()
+a_less_useless_function()
+print "a_less_useless_function takes %f s to run." % (time.time() - start)
+# But you'll notice that if you run it multiple times, the time taken changes a
+# bit. So instead, you can also run:
+# %timeit a_not_useful_function()
+# %timeit a_less_useless_function()
+# in iPython.
+##############################################################################
+# for loops vs. list comprehensions.
+##############################################################################
+my_list = range(1000)
+
+
+def my_squares_loop(x):
+    out = []
+    for i in x:
+        out.append(i ** 2)
+    return out
+
+
+def my_squares_lc(x):
+    out = [i ** 2 for i in x]
+    return out
+# %timeit my_squares_loop(my_list)
+# %timeit my_squares_lc(my_list)
+##############################################################################
+# for loops vs. join method.
+##############################################################################
+import string
+
+my_letters = list(string.ascii_lowercase)
+
+
+def my_join_loop(l):
+    out = ''
+    for letter in l:
+        out += letter
+    return out
+
+
+def my_join_method(l):
+    out = ''.join(l)
+    return out
+
+
+# %timeit(my_join_loop(my_letters))
+# %timeit(my_join_method(my_letters))
+##############################################################################
+# Oh dear.
+##############################################################################
+def getting_silly_pi():
+    y = 0
+    for i in xrange(100000):
+        y = y + i
+    return 0
+
+
+def getting_silly_pii():
+    y = 0
+    for i in xrange(100000):
+        y += i
+    return 0
+    # %timeit(getting_silly_pi())
+    # %timeit(getting_silly_pii())
+**********************************************************************
+
+Testing timeitme.py...
+
+timeitme.py is a Python script file;
+ checking for docstrings...
+
+Found no doctrings!
+1 pt deducted
+
+Current Marks = 99
+
+Output (only first 500 characters): 
+
+**********************************************************************
+a_not_useful_function takes 0.003590 s to run.
+a_less_useless_function takes 0.002380 s to run.
+
+**********************************************************************
+
+Code ran without errors
+
+Time consumed = 0.01633s
+
+======================================================================
+Inspecting script file LV4.py...
+
+File contents are:
+**********************************************************************
+#!usr/bin/python
+
+___author___ = "Petra Guy, pg5117@ic.ac.uk"
+___version___ = "2.7"
+
+""" The typical Lotka-Volterra Model simulated using scipy """
+import sys
+import pylab as p  # Contains matplotlib for plotting
+import pandas as pd
+import numpy as np
+
+
+
+def dR_dt(y0,x0, r,a,z,e):
+    '''Iterative lotka volterrs model'''
+    #import pdb; pdb.set_trace()
+    results = pd.DataFrame({'R': y0, 'C': x0}, index=[0])
+    R=0
+    C=0
+    """ Returns the growth rate of predator and prey populations at any
+    given time step """
+    for t in range(0,1000):
+        if np.isinf(R) or np.isinf(C):
+            print "values too large"
+            break
+        else:
+            Rt = results.iloc[t]['R']
+            Ct = results.iloc[t]['C']
+            R = Rt + Rt*r -Rt*Rt*r/10 - a*Ct
+            C = Ct - Ct*z+Ct*e*a*Rt
+            df = pd.DataFrame({'R':R, 'C':C}, index=[0])
+            #print df
+        results = results.append(df, ignore_index=True)
+    return results
+
+def main(argv):
+    r = float(sys.argv[1])
+    a = float(sys.argv[2])
+    z = float(sys.argv[3])
+    e = float(sys.argv[4])
+    x0 = float(sys.argv[5])
+    y0 = float(sys.argv[6])
+    columns = ['R', 'C']
+    results = dR_dt(y0,x0, r,a,z,e)
+    print results[columns].head()
+    print len(results), "iterations in LV4"
+
+if (__name__ == "__main__"):
+	status = main(sys.argv)
+	#sys.exit()**********************************************************************
+
+Testing LV4.py...
+
+LV4.py is a Python script file;
+ checking for docstrings...
+
+Found one or more doctrings!
+
+Output (only first 500 characters): 
+
+**********************************************************************
+
+**********************************************************************
+
+Encountered error:
+Traceback (most recent call last):
+  File "LV4.py", line 9, in <module>
+    import pandas as pd
+ImportError: No module named pandas
+
+======================================================================
+Inspecting script file DrawFW.py...
+
+File contents are:
+**********************************************************************
+"""
+Plot a snapshot of a food web graph/network.
+Needs: Adjacency list of who eats whom (consumer name/id in 1st
+column, resource name/id in 2nd column), and list of species
+names/ids and properties such as biomass (node abundance), or average
+body mass.
+"""
+import networkx as nx
+import scipy as sc
+import matplotlib.pyplot as plt
+#import matplotlib.animation as ani #for animation
+
+def GenRdmAdjList(N, C):
+    Ids = range(N)
+    ALst = []
+    for i in range(N): #do this N times ...Why N times? If we're just selecting random
+        if sc.random.uniform(0,1,1) < C:
+            Lnk = sc.random.choice(Ids,2).tolist() #selects 2 nos from range N
+            if Lnk[0] != Lnk[1]:
+                ALst.append(Lnk)
+    return ALst
+## Assign body mass range
+SizRan = ([-10,10]) #use log scale
+## Assign number of species (MaxN) and connectance (C)
+MaxN = 30
+C = 0.75
+## Generate adjacency list:
+AdjL = sc.array(GenRdmAdjList(MaxN, C))
+## Generate species (node) data:
+Sps = sc.unique(AdjL) # get species ids
+Sizs = sc.random.uniform(SizRan[0],SizRan[1],MaxN)# Generate body sizes (log10 scale)
+###### The Plotting #####
+plt.close('all')
+##Plot using networkx:
+## Calculate coordinates for circular configuration:
+## (See networkx.layout for inbuilt functions to compute other types of node
+# coords)
+f1 = plt.figure()
+pos = nx.circular_layout(Sps)
+
+G = nx.Graph()
+G.add_nodes_from(Sps)
+G.add_edges_from(tuple(AdjL))
+NodSizs= 10**-32 + (Sizs-min(Sizs))/(max(Sizs)-min(Sizs)) #node sizes in proportion to body sizes
+nx.draw(G, pos, node_size = NodSizs*1000)
+#plt.show()
+f1.savefig('../Results/Drawpy.pdf')
+**********************************************************************
+
+Testing DrawFW.py...
+
+DrawFW.py is a Python script file;
+ checking for docstrings...
+
+Found no doctrings!
+1 pt deducted
+
+Current Marks = 98
+
+Output (only first 500 characters): 
+
+**********************************************************************
+
+**********************************************************************
+
+Encountered error:
+Traceback (most recent call last):
+  File "DrawFW.py", line 47, in <module>
+    f1.savefig('../Results/Drawpy.pdf')
+  File "/usr/lib/python2.7/dist-packages/matplotlib/figure.py", line 1565, in savefig
+    self.canvas.print_figure(*args, **kwargs)
+  File "/usr/lib/python2.7/dist-packages/matplotlib/backend_bases.py", line 2232, in print_figure
+    **kwargs)
+  File "/usr/lib/python2.7/dist-packages/matplotlib/backends/backend_pdf.py", line 2528, in print_pdf
+    file = PdfFile(filename)
+  File "/usr/lib/python2.7/dist-packages/matplotlib/backends/backend_pdf.py", line 422, in __init__
+    fh = open(filename, 'wb')
+IOError: [Errno 2] No such file or directory: '../Results/Drawpy.pdf'
+
+======================================================================
+Inspecting script file TestR.R...
+
+File contents are:
+**********************************************************************
+#!/usr/bin/env Rscript
+#Chapter 7
+
+#Biological Computing Boot Camp
+#R Studio Version 1.1.383 ubuntu 16.04 LTS 64bi
+#Author Petra Guy 28th October 2017
+
+rm(list = ls())
+
+print("Hello, this is TestR")
+**********************************************************************
+
+Testing TestR.R...
+
+Output (only first 500 characters): 
+
+**********************************************************************
+[1] "Hello, this is TestR"
+
+**********************************************************************
+
+Code ran without errors
+
+Time consumed = 0.05696s
+
+======================================================================
+Inspecting script file LV1_2.sh...
+
+File contents are:
+**********************************************************************
+#!/bin/bash
+
+#bash script to run python and R scripts
+
+cd ../Code
+python -m cProfile LV1.py
+python -m cProfile LV2.py
+**********************************************************************
+
+Testing LV1_2.sh...
+
+Output (only first 500 characters): 
+
+**********************************************************************
+         230936 function calls (227360 primitive calls) in 0.314 seconds
+
+   Ordered by: standard name
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.000    0.000 <string>:1(<module>)
+        1    0.000    0.000    0.000    0.000 <string>:1(ArgInfo)
+        1    0.000    0.000    0.000    0.000 <string>:1(ArgSpec)
+        1    0.000    0.000    0.000    0.000 <string>:1(Arguments)
+        1    0.000    0.000    0.000    0.000 <string>:1(A
+**********************************************************************
+
+Encountered error:
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/runpy.py", line 174, in _run_module_as_main
+    "__main__", fname, loader, pkg_name)
+  File "/usr/lib/python2.7/runpy.py", line 72, in _run_code
+    exec code in run_globals
+  File "/usr/lib/python2.7/cProfile.py", line 199, in <module>
+    main()
+  File "/usr/lib/python2.7/cProfile.py", line 192, in main
+    runctx(code, globs, None, options.outfile, options.sort)
+  File "/usr/lib/python2.7/cProfile.py", line 49, in runctx
+    prof = prof.runctx(statement, globals, locals)
+  File "/usr/lib/python2.7/cProfile.py", line 140, in runctx
+    exec cmd in globals, locals
+  File "LV1.py", line 46, in <module>
+    f1.savefig('../Results/prey_and_predators_1.pdf') #Save figure
+  File "/usr/lib/python2.7/dist-packages/matplotlib/figure.py", line 1565, in savefig
+    self.canvas.print_figure(*args, **kwargs)
+  File "/usr/lib/python2.7/dist-packages/matplotlib/backend_bases.py", line 2232, in print_figure
+    **kwargs)
+  File "/usr/lib/python2.7/dist-packages/matplotlib/backends/backend_pdf.py", line 2528, in print_pdf
+    file = PdfFile(filename)
+  File "/usr/lib/python2.7/dist-packages/matplotlib/backends/backend_pdf.py", line 422, in __init__
+    fh = open(filename, 'wb')
+IOError: [Errno 2] No such file or directory: '../Results/prey_and_predators_1.pdf'
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/runpy.py", line 174, in _run_module_as_main
+    "__main__", fname, loader, pkg_name)
+  File "/usr/lib/python2.7/runpy.py", line 72, in _run_code
+    exec code in run_globals
+  File "/usr/lib/python2.7/cProfile.py", line 199, in <module>
+    main()
+  File "/usr/lib/python2.7/cProfile.py", line 192, in main
+    runctx(code, globs, None, options.outfile, options.sort)
+  File "/usr/lib/python2.7/cProfile.py", line 49, in runctx
+    prof = prof.runctx(statement, globals, locals)
+  File "/usr/lib/python2.7/cProfile.py", line 140, in runctx
+    exec cmd in globals, locals
+  File "LV2.py", line 53, in <module>
+    status = main(sys.argv)
+  File "LV2.py", line 38, in main
+    r = float(sys.argv[1])
+IndexError: list index out of range
+
+======================================================================
+Inspecting script file LV3.py...
+
+File contents are:
+**********************************************************************
+#!usr/bin/python
+
+___author___ = "Petra Guy, pg5117@ic.ac.uk"
+___version___ = "2.7"
+
+""" The typical Lotka-Volterra Model simulated using scipy """
+import sys
+import scipy as sc
+import scipy.integrate as integrate
+import pylab as p  # Contains matplotlib for plotting
+
+
+
+def dR_dt(z0, t, r,a,z,e):
+    """ Returns the growth rate of predator and prey populations at any
+    given time step """
+    R = z0[0]
+    C = z0[1]
+    dRdt = r*R*(1-R/35)-a*C*R
+    dydt = -z * C + e * a * R * C
+    return sc.array([dRdt, dydt])
+
+def print_plot(pops,t):
+    prey, predators = pops.T  # What's this for? - transpose
+    f1 = p.figure()  # Open empty figure object
+    p.plot(t, prey, 'g-', label='Resource density')  # Plot
+    p.plot(t, predators, 'b-', label='Consumer density')
+    p.grid()
+    p.legend(loc='best')
+    p.xlabel('Time')
+    p.ylabel('Population')
+    p.title('Consumer-Resource population dynamics')
+    #p.show()
+    f1.savefig('../Results/prey_and_predators_3.pdf')  # Save figure
+
+def main(argv):
+    r = float(sys.argv[1])
+    a = float(sys.argv[2])
+    z = float(sys.argv[3])
+    e = float(sys.argv[4])
+    t = sc.linspace(0, 50, 1000)
+    x0 = 10
+    y0 = 5
+    z0 = sc.array([x0, y0])
+    pops, infodict = integrate.odeint(dR_dt, z0, t, args=(r,a,z,e), full_output=True)
+    print "prey density is ", pops[999][0]
+    print " predator desnsity is ", pops[999][1]
+    infodict['message']
+    print_plot(pops,t)
+
+
+
+if (__name__ == "__main__"):
+	status = main(sys.argv)
+	#sys.exit()**********************************************************************
+
+Testing LV3.py...
+
+LV3.py is a Python script file;
+ checking for docstrings...
+
+Found one or more doctrings!
+
+Output (only first 500 characters): 
+
+**********************************************************************
+
+**********************************************************************
+
+Encountered error:
+Traceback (most recent call last):
+  File "LV3.py", line 54, in <module>
+    status = main(sys.argv)
+  File "LV3.py", line 37, in main
+    r = float(sys.argv[1])
+IndexError: list index out of range
+
+======================================================================
+Inspecting script file Nets.R...
+
+File contents are:
+**********************************************************************
+
+
+library(igraph) # Load the igraph package
+
+rm(list = ls())
+
+# 	ICL	UoR	CEH	ZSL	CEFAS	Nonacademic/CASE
+# ICL	0	0	10	9	5	70
+# UoR		0	12	0	2	76
+# CEH		0	0	0	6
+# ZSL		0 	0	28
+# CEFAS	0	0
+# Nonacademic/CASE	0
+
+links <- read.csv("../Data/QMEE_Net_Mat_edges.csv", header=T, as.is=T)
+nodes <- read.csv("../Data/QMEE_Net_Mat_nodes.csv", header=T, row.names = 1)
+
+#Create graph object
+net <- graph.adjacency(as.matrix(links), mode = "directed", weighted=TRUE, diag=F)
+        
+#Test plot
+plot(net, edge.arrow.size=1, edge.curved=.1,
+    vertex.color="orange", vertex.frame.color="#555555",
+      vertex.label=V(net)$Type, vertex.label.color="black",
+      vertex.label.cex=.7) 
+
+# Generate colors based on partner type:
+colrs <- c("green", "red", "blue")
+V(net)$color <- colrs[V(net)$Type]
+
+# Set node size based on Number of PIs:
+V(net)$size <- V(net)$Pis*0.9
+
+V(net)$size <- 50
+
+# Set edge width based on weight (PhD Students):
+E(net)$width <- E(net)$weight
+
+#change arrow size and edge color:
+E(net)$arrow.size <- 1
+E(net)$edge.color <- "gray80"
+
+E(net)$width <- 1+E(net)$weight/10
+
+graphics.off()
+
+svg("../Results/QMEENet.svg",width=7,height=7)
+
+plot(net, edge.curved=0, vertex.label.color="black") 
+
+# legend(x=-1.5, y=-1.1, c("University","Hosting Partner", "Non-hosting Partner"), pch=21,
+#        col="#777777", pt.bg=colrs, pt.cex=2, cex=.8, bty="n", ncol=1)
+
+dev.off()
+print('QMEENet saved to results')**********************************************************************
+
+Testing Nets.R...
+
+Output (only first 500 characters): 
+
+**********************************************************************
+
+**********************************************************************
+
+Encountered error:
+Loading required package: methods
+
+Attaching package: ‘igraph’
+
+The following objects are masked from ‘package:stats’:
+
+    decompose, spectrum
+
+The following object is masked from ‘package:base’:
+
+    union
+
+Error in plot.new() : cairo error 'error while writing to output stream'
+Calls: plot -> plot.igraph -> plot -> plot.default -> plot.new
+Execution halted
+
+======================================================================
+Inspecting script file LV1.py...
+
+File contents are:
+**********************************************************************
+""" The typical Lotka-Volterra Model simulated using scipy """
+
+import scipy as sc 
+import scipy.integrate as integrate
+import pylab as p #Contains matplotlib for plotting
+import time
+import timeit
+
+start = time.time()
+def dR_dt(z0, t=0):
+    """ Returns the growth rate of predator and prey populations at any 
+    given time step """
+    R = z0[0]
+    C = z0[1]
+    dRdt = r*R - a*R*C 
+    dydt = -z*C + e*a*R*C
+    return sc.array([dRdt, dydt])
+
+# Define parameters:
+r = 1. # Resource growth rate
+a = 0.1 # Consumer search rate (determines consumption rate) 
+z = 1.5 # Consumer mortality rate
+e = 0.75 # Consumer production efficiency
+
+# Now define time -- integrate from 0 to 15, using 1000 points:
+t = sc.linspace(0, 15,  1000)
+
+x0 = 10
+y0 = 5 
+z0 = sc.array([x0, y0]) # initials conditions: 10 prey and 5 predators per unit area
+
+pops, infodict = integrate.odeint(dR_dt, z0,t, full_output=True)
+
+infodict['message']     # >>> 'Integration successful.'
+
+prey, predators = pops.T # What's this for? - transpose
+f1 = p.figure() #Open empty figure object
+p.plot(t, prey, 'g-', label='Resource density') # Plot
+p.plot(t, predators  , 'b-', label='Consumer density')
+p.grid()
+p.legend(loc='best')
+p.xlabel('Time')
+p.ylabel('Population')
+p.title('Consumer-Resource population dynamics')
+#p.show()
+f1.savefig('../Results/prey_and_predators_1.pdf') #Save figure
+print "LV1 takes %f s to run" %(time.time() - start)
+**********************************************************************
+
+Testing LV1.py...
+
+LV1.py is a Python script file;
+ checking for docstrings...
+
+Found one or more doctrings!
+
+Output (only first 500 characters): 
+
+**********************************************************************
+
+**********************************************************************
+
+Encountered error:
+Traceback (most recent call last):
+  File "LV1.py", line 46, in <module>
+    f1.savefig('../Results/prey_and_predators_1.pdf') #Save figure
+  File "/usr/lib/python2.7/dist-packages/matplotlib/figure.py", line 1565, in savefig
+    self.canvas.print_figure(*args, **kwargs)
+  File "/usr/lib/python2.7/dist-packages/matplotlib/backend_bases.py", line 2232, in print_figure
+    **kwargs)
+  File "/usr/lib/python2.7/dist-packages/matplotlib/backends/backend_pdf.py", line 2528, in print_pdf
+    file = PdfFile(filename)
+  File "/usr/lib/python2.7/dist-packages/matplotlib/backends/backend_pdf.py", line 422, in __init__
+    fh = open(filename, 'wb')
+IOError: [Errno 2] No such file or directory: '../Results/prey_and_predators_1.pdf'
+
+======================================================================
+Inspecting script file fmr.R...
+
+File contents are:
+**********************************************************************
+# Plots log(field metabolic rate) against log(body mass) for the Nagy et al 
+# 1999 dataset to a file fmr.pdf.
+# Writes the list of species names to species.csv
+
+cat("Reading CSV\n")
+
+nagy <- read.csv('../Data/NagyEtAl1999.csv', stringsAsFactors = FALSE)
+
+cat("Creating graph\n")
+pdf('../Results/fmr_plot.pdf', 11, 8.5)
+col <- c(Aves='purple3', Mammalia='red3', Reptilia='green3')
+plot(log10(nagy$M.g), log10(nagy$FMR.kJ.day.1), pch=19, col=col[nagy$Class], 
+     xlab=~log[10](M), ylab=~log[10](FMR))
+for(class in unique(nagy$Class)){
+    model <- lm(log10(FMR.kJ.day.1) ~ log10(M.g), data=nagy[nagy$Class==class,])
+    abline(model, col=col[class])
+}
+dev.off()
+
+cat("Finished in R!\n")
+**********************************************************************
+
+Testing fmr.R...
+
+Output (only first 500 characters): 
+
+**********************************************************************
+Reading CSV
+Creating graph
+
+**********************************************************************
+
+Encountered error:
+Error in pdf("../Results/fmr_plot.pdf", 11, 8.5) : 
+  cannot open file '../Results/fmr_plot.pdf'
+Execution halted
+
+======================================================================
+Inspecting script file TestR.py...
+
+File contents are:
+**********************************************************************
+#!usr/bin/python
+# Week 7 Advanced python
+
+
+
+___author___ = "Petra Guy, pg5117@ic.ac.uk"
+___version___ = "2.7"
+
+import subprocess
+
+subprocess.Popen("/usr/bin/env Rscript --verbose TestR.R > \
+ ../Results/TestR.Rout 2> ../Results/TestR_errFile.Rout", shell=True).wait()
+
+print "TestR output saved to Results"
+
+
+**********************************************************************
+
+Testing TestR.py...
+
+TestR.py is a Python script file;
+ checking for docstrings...
+
+Found no doctrings!
+1 pt deducted
+
+Current Marks = 97
+
+Output (only first 500 characters): 
+
+**********************************************************************
+TestR output saved to Results
+
+**********************************************************************
+
+Encountered error:
+/bin/sh: 1: cannot create ../Results/TestR.Rout: Directory nonexistent
+
+======================================================================
+Inspecting script file blackbirds.py...
+
+File contents are:
+**********************************************************************
+#!usr/bin/python
+
+
+"""Chapter 6 Regular Expressions"""
+
+__author__ = "Petra Guy, pg5117@ic.ac.uk"
+__version__ = "2.7"
+
+import re
+import pandas as pd
+
+
+f = open('../Data/blackbirds.txt', 'r')
+text = f.read()
+f.close()
+
+# remove tabs and spaces and put a space in:
+text = text.replace('\t',' ')
+text = text.replace('\n',' ')
+
+text = text.decode('ascii', 'ignore')
+
+my_reg = pd.DataFrame()
+
+matchK = re.findall(r'Kingdom (\w+)', text)
+my_reg['Kingdom'] = (matchK)
+
+matchP = re.findall(r'Phylum (\w+)', text)
+my_reg['Phylum'] = (matchP)
+
+matchG = re.findall(r'Species (\w+)', text)
+my_reg['Genus'] = matchG
+
+matchS = re.findall(r'Species\s*[A-Z]\w*\s*[a-z] (\w+)', text)
+my_reg['Species'] = matchS
+
+print my_reg
+
+
+**********************************************************************
+
+Testing blackbirds.py...
+
+blackbirds.py is a Python script file;
+ checking for docstrings...
+
+Found one or more doctrings!
+
+Output (only first 500 characters): 
+
+**********************************************************************
+
+**********************************************************************
+
+Encountered error:
+Traceback (most recent call last):
+  File "blackbirds.py", line 10, in <module>
+    import pandas as pd
+ImportError: No module named pandas
+
+======================================================================
+Inspecting script file run_fmr_R.py...
+
+File contents are:
+**********************************************************************
+#!usr/bin python
+
+import subprocess
+
+#this just runs this R file
+
+
+subprocess.call("Rscript fmr.R", shell=True)**********************************************************************
+
+Testing run_fmr_R.py...
+
+run_fmr_R.py is a Python script file;
+ checking for docstrings...
+
+Found no doctrings!
+1 pt deducted
+
+Current Marks = 96
+
+Output (only first 500 characters): 
+
+**********************************************************************
+Reading CSV
+Creating graph
+
+**********************************************************************
+
+Encountered error:
+Error in pdf("../Results/fmr_plot.pdf", 11, 8.5) : 
+  cannot open file '../Results/fmr_plot.pdf'
+Execution halted
+
+======================================================================
+Inspecting script file profileme.py...
+
+File contents are:
+**********************************************************************
+#!usr/bin/python
+# Week 7 Advanced python
+
+
+
+___author___ = "Petra Guy, pg5117@ic.ac.uk"
+___version___ = "2.7"
+
+def a_useless_function(x):
+    y = 0
+    for i in range(100000000):
+        y = y + i
+    return 0
+def another_useless_function(x):
+    y = 0
+    z = 0
+    while z <= 100000000:
+        y = y + x
+        z += 1
+    return 0
+
+def a_less_useless_function(x):
+    y = 0
+    for i in range(100000):
+        y = y + i
+    return 0
+def some_function(x):
+    print x
+    a_useless_function(x)
+    another_useless_function(x)
+    a_useless_function(x)
+    return 0
+
+some_function(1000)
+
+print 'profileme'**********************************************************************
+
+Testing profileme.py...
+
+profileme.py is a Python script file;
+ checking for docstrings...
+
+Found no doctrings!
+1 pt deducted
+
+Current Marks = 95
+
+Output (only first 500 characters): 
+
+**********************************************************************
+
+**********************************************************************
+
+Code ran without errors
+
+Time consumed = 10.08862s
+
+======================================================================
+Inspecting script file LV5.py...
+
+File contents are:
+**********************************************************************
+#!usr/bin/python
+
+___author___ = "Petra Guy, pg5117@ic.ac.uk"
+___version___ = "2.7"
+
+""" The typical Lotka-Volterra Model simulated using scipy """
+import sys
+import pylab as p  # Contains matplotlib for plotting
+import pandas as pd
+import numpy as np
+import random
+
+
+def dR_dt(y0,x0, r,a,z,e):
+    '''Iterative Lotka Voltera equation with random gaussian addition'''
+    #import pdb; pdb.set_trace()
+    results = pd.DataFrame({'R': y0, 'C': x0}, index=[0])
+    R=0
+    C=0
+    """ Returns the growth rate of predator and prey populations at any
+    given time step """
+    for t in range(0,1000):
+        if np.isinf(R) or np.isinf(C):
+            print "values too large"
+            break
+        else:
+            eps = random.gauss(0,1)
+            Rt = results.iloc[t]['R']
+            Ct = results.iloc[t]['C']
+            R = Rt*eps + Rt + Rt*r -Rt*Rt*r/35 - a*Ct
+            C = Ct - Ct*z+Ct*e*a*Rt
+            df = pd.DataFrame({'R':R, 'C':C}, index=[0])
+            #print df
+        results = results.append(df, ignore_index=True)
+    return results
+
+def main(argv):
+    r = float(sys.argv[1])
+    a = float(sys.argv[2])
+    z = float(sys.argv[3])
+    e = float(sys.argv[4])
+    x0 = float(sys.argv[5])
+    y0 = float(sys.argv[6])
+    columns = ['R', 'C']
+    results = dR_dt(y0,x0, r,a,z,e)
+    print results[columns].head()
+    print len(results), "iterations with random gaussian"
+
+if (__name__ == "__main__"):
+	status = main(sys.argv)
+	#sys.exit(0)**********************************************************************
+
+Testing LV5.py...
+
+LV5.py is a Python script file;
+ checking for docstrings...
+
+Found one or more doctrings!
+
+Output (only first 500 characters): 
+
+**********************************************************************
+
+**********************************************************************
+
+Encountered error:
+Traceback (most recent call last):
+  File "LV5.py", line 9, in <module>
+    import pandas as pd
+ImportError: No module named pandas
+
+======================================================================
+Inspecting script file LV2.py...
+
+File contents are:
+**********************************************************************
+#!usr/bin/python
+
+___author___ = "Petra Guy, pg5117@ic.ac.uk"
+___version___ = "2.7"
+
+""" The typical Lotka-Volterra Model simulated using scipy """
+import sys
+import scipy as sc
+import scipy.integrate as integrate
+import pylab as p  # Contains matplotlib for plotting
+import time
+
+
+start = time.time()
+def dR_dt(z0, t, r,a,z,e):
+    """ Returns the growth rate of predator and prey populations at any
+    given time step """
+    R = z0[0]
+    C = z0[1]
+    dRdt = r * R - a * R * C
+    dydt = -z * C + e * a * R * C
+    return sc.array([dRdt, dydt])
+
+def print_plot(pops,t):
+    prey, predators = pops.T  # What's this for? - transpose
+    f1 = p.figure()  # Open empty figure object
+    p.plot(t, prey, 'g-', label='Resource density')  # Plot
+    p.plot(t, predators, 'b-', label='Consumer density')
+    p.grid()
+    p.legend(loc='best')
+    p.xlabel('Time')
+    p.ylabel('Population')
+    p.title('Consumer-Resource population dynamics')
+    #p.show()
+    f1.savefig('../Results/prey_and_predators_2.pdf')  # Save figure
+
+def main(argv):
+    r = float(sys.argv[1])
+    a = float(sys.argv[2])
+    z = float(sys.argv[3])
+    e = float(sys.argv[4])
+    t = sc.linspace(0, 15, 1000)
+    x0 = 10
+    y0 = 5
+    z0 = sc.array([x0, y0])
+    pops, infodict = integrate.odeint(dR_dt, z0, t, args=(r,a,z,e), full_output=True)
+    infodict['message']
+    print_plot(pops,t)
+
+
+print "LV2 takes %f s to run" %(time.time() - start)
+if (__name__ == "__main__"):
+	status = main(sys.argv)
+	#sys.exit(status)**********************************************************************
+
+Testing LV2.py...
+
+LV2.py is a Python script file;
+ checking for docstrings...
+
+Found one or more doctrings!
+
+Output (only first 500 characters): 
+
+**********************************************************************
+LV2 takes 0.000001 s to run
+
+**********************************************************************
+
+Encountered error:
+Traceback (most recent call last):
+  File "LV2.py", line 53, in <module>
+    status = main(sys.argv)
+  File "LV2.py", line 38, in main
+    r = float(sys.argv[1])
+IndexError: list index out of range
+
+======================================================================
+Inspecting script file script_to_run_scripts.py...
+
+File contents are:
+**********************************************************************
+#!usr/bin python
+
+import subprocess
+
+
+
+subprocess.call("python LV1.py", shell=True)
+subprocess.Popen("python LV2.py 0.1 0.1 0.1 0.1", bufsize=400, shell=True)
+subprocess.Popen("python LV3.py 1 1 0.1 5",shell=True)
+subprocess.Popen("python LV4.py 0.1 0.1 0.1 0.1 1 1",shell=True).wait()
+subprocess.Popen("python LV5.py 0.1 0.1 0.1 0.1 1 1",shell=True).wait()
+
+
+# the script needed shell=True and the prog name and arguments in one string.
+#the .wait had to occur on the final line otherwise on executing, you
+#dont get back to command prompt...no - when I added LV5 needed .wait on both
+
+**********************************************************************
+
+Testing script_to_run_scripts.py...
+
+script_to_run_scripts.py is a Python script file;
+ checking for docstrings...
+
+Found no doctrings!
+1 pt deducted
+
+Current Marks = 94
+
+Output (only first 500 characters): 
+
+**********************************************************************
+prey density is  -3.28479930237e-10
+ predator desnsity is  0.385459675494
+LV2 takes 0.000001 s to run
+
+**********************************************************************
+
+Encountered error:
+Traceback (most recent call last):
+  File "LV1.py", line 46, in <module>
+    f1.savefig('../Results/prey_and_predators_1.pdf') #Save figure
+  File "/usr/lib/python2.7/dist-packages/matplotlib/figure.py", line 1565, in savefig
+    self.canvas.print_figure(*args, **kwargs)
+  File "/usr/lib/python2.7/dist-packages/matplotlib/backend_bases.py", line 2232, in print_figure
+    **kwargs)
+  File "/usr/lib/python2.7/dist-packages/matplotlib/backends/backend_pdf.py", line 2528, in print_pdf
+    file = PdfFile(filename)
+  File "/usr/lib/python2.7/dist-packages/matplotlib/backends/backend_pdf.py", line 422, in __init__
+    fh = open(filename, 'wb')
+IOError: [Errno 2] No such file or directory: '../Results/prey_and_predators_1.pdf'
+Traceback (most recent call last):
+  File "LV4.py", line 9, in <module>
+    import pandas as pd
+ImportError: No module named pandas
+Traceback (most recent call last):
+  File "LV5.py", line 9, in <module>
+    import pandas as pd
+ImportError: No module named pandas
+Traceback (most recent call last):
+  File "LV3.py", line 54, in <module>
+    status = main(sys.argv)
+  File "LV3.py", line 49, in main
+    print_plot(pops,t)
+  File "LV3.py", line 34, in print_plot
+    f1.savefig('../Results/prey_and_predators_3.pdf')  # Save figure
+  File "/usr/lib/python2.7/dist-packages/matplotlib/figure.py", line 1565, in savefig
+    self.canvas.print_figure(*args, **kwargs)
+  File "/usr/lib/python2.7/dist-packages/matplotlib/backend_bases.py", line 2232, in print_figure
+    **kwargs)
+  File "/usr/lib/python2.7/dist-packages/matplotlib/backends/backend_pdf.py", line 2528, in print_pdf
+    file = PdfFile(filename)
+  File "/usr/lib/python2.7/dist-packages/matplotlib/backends/backend_pdf.py", line 422, in __init__
+    fh = open(filename, 'wb')
+IOError: [Errno 2] No such file or directory: '../Results/prey_and_predators_3.pdf'
+Traceback (most recent call last):
+  File "LV2.py", line 53, in <module>
+    status = main(sys.argv)
+  File "LV2.py", line 48, in main
+    print_plot(pops,t)
+  File "LV2.py", line 35, in print_plot
+    f1.savefig('../Results/prey_and_predators_2.pdf')  # Save figure
+  File "/usr/lib/python2.7/dist-packages/matplotlib/figure.py", line 1565, in savefig
+    self.canvas.print_figure(*args, **kwargs)
+  File "/usr/lib/python2.7/dist-packages/matplotlib/backend_bases.py", line 2232, in print_figure
+    **kwargs)
+  File "/usr/lib/python2.7/dist-packages/matplotlib/backends/backend_pdf.py", line 2528, in print_pdf
+    file = PdfFile(filename)
+  File "/usr/lib/python2.7/dist-packages/matplotlib/backends/backend_pdf.py", line 422, in __init__
+    fh = open(filename, 'wb')
+IOError: [Errno 2] No such file or directory: '../Results/prey_and_predators_2.pdf'
+
+======================================================================
+======================================================================
+Finished running scripts
+
+Ran into 15 errors
+
+======================================================================
+======================================================================
+
+FINISHED WEEKLY ASSESSMENT
+
+Current Marks for the Week = 94
+
+NOTE THAT THESE ARE NOT THE FINAL MARKS FOR THE WEEK, BUT AN UPPER BOUND ON THE MARKS!

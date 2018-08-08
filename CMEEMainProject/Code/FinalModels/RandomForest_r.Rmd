@@ -1,0 +1,422 @@
+---
+title: "RandomForest"
+author: "Petra Guy"
+date: "17 May 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE
+)
+rm(list = ls())
+cat("\014")
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+library(gbm)#bgm
+library(caret)
+library(Metrics) #rmse
+library(randomForest)
+library(gridExtra)
+
+
+site_data =  read.csv("../../Data/CompleteSiteLevelVars.csv")
+site_data = site_data[,-1]
+
+zeta_r = readRDS("../Zeta/zeta_r")
+Site = c(1:103)
+zeta_r = as.data.frame(cbind(Site,zeta_r))
+site_data = inner_join(zeta_r,site_data)
+
+#mean impute the missing PHI
+meanPHI = round(mean(site_data$Pos_Hetero_Index, na.rm = TRUE),2)
+x = site_data$Pos_Hetero_Index
+x[is.na(x)] = meanPHI
+site_data$Pos_Hetero_Index = x
+
+
+subset_all = site_data%>%select("Site","Richness","Area_ha",
+                                "Northing", "Pos_Hetero_Index","Buffer3",
+                                "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
+                                "sd_meandbh","sd_treedensity","area_ratio",
+                                "meandbh","meanph", "meanSOM","meanLBA",
+                                "meantreedensity","zeta_r")
+
+
+
+colnames(subset_all) = c("Site","Richness","Area",
+                         "Northing", "PHI","Buffer",
+                         "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
+                         "sd_meandbh","sd_TD","area_ratio",
+                         "meandbh","meanph", "meanSOM","meanLBA",
+                         "meanTD","zeta_r")
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+subset_sd = subset_all%>%select("Richness",
+                                "PHI","Buffer",
+                               "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
+                               "sd_meandbh","sd_TD","area_ratio","zeta_r")
+
+
+
+subset_mean = subset_all%>%select("Richness",
+                               "PHI",  "meandbh",
+                              "meanph", "Buffer", "meanSOM","meanLBA",
+                              "meanTD","area_ratio", "no_NVC", 
+                              "no_MSG","zeta_r")
+
+```
+
+```{r}
+# make train and test sets
+
+set.seed(1)
+assignment <- sample(1:2, size = nrow(subset_mean), prob = c(0.75,0.25), replace = TRUE)
+
+# Create a train, validation and tests from the original data frame 
+train <- subset_mean[assignment == 1, ]    # subset the grade data frame to training indices only
+test <- subset_mean[assignment == 2, ]  # subset the grade data frame to validation indices only
+
+```
+
+
+```{r}
+#tuning
+
+mtry = seq(2,11,1)
+nodesize = seq(2,10,2)
+sampsize = nrow(train)*c(0.7,0.8)
+
+hyper_grid = expand.grid(mtry = mtry, nodesize = nodesize, sampsize = sampsize)
+
+oob_err = c()
+
+for (i in 1:nrow(hyper_grid)){
+ # browser()
+  model = randomForest(formula = Richness~.,
+                              data = train,
+                              mtry = hyper_grid$mtry[i],
+                              nodesize = hyper_grid$nodesize[i] ,
+                              sampsize = hyper_grid$sampsize[i] )
+  
+  oob_err[i] = model$mse[length(model$mse)]
+  
+ }
+
+ opt_i = which.min(oob_err)
+print(hyper_grid[opt_i,])
+```
+
+
+```{r}
+forest = randomForest(formula = Richness~., data = train,importance = TRUE,
+                      mtry = 4,
+                      nodesize = 10,
+                      sampsize = 61)   
+
+pred= predict(object = forest, newdata = test)
+   
+rmse(actual = test$Richness,
+     predicted = pred)
+
+```
+
+```{r}
+varImpPlot(forest)
+
+```
+
+```{r}
+#removing noMSG
+subset_mean = subset_all%>%select("Richness",
+                               "PHI",  "meandbh",
+                              "meanph", "Buffer", "meanSOM","meanLBA",
+                              "meanTD","area_ratio", "no_NVC", 
+                              "zeta_r")
+                              
+
+```
+
+```{r}
+# make train and test sets
+
+set.seed(1)
+assignment <- sample(1:2, size = nrow(subset_mean), prob = c(0.75,0.25), replace = TRUE)
+
+# Create a train, validation and tests from the original data frame 
+train <- subset_mean[assignment == 1, ]    # subset the grade data frame to training indices only
+test <- subset_mean[assignment == 2, ]  # subset the grade data frame tBo validation indices only
+```
+
+```{r}
+
+mtry = seq(2,11,1)
+nodesize = seq(2,10,2)
+sampsize = nrow(train)*c(0.7,0.8)
+
+hyper_grid = expand.grid(mtry = mtry, nodesize = nodesize, sampsize = sampsize)
+
+oob_err = c()
+
+for (i in 1:nrow(hyper_grid)){
+ # browser()
+  model = randomForest(formula = Richness~.,
+                              data = train,
+                              mtry = hyper_grid$mtry[i],
+                              nodesize = hyper_grid$nodesize[i] ,
+                              sampsize = hyper_grid$sampsize[i] )
+  
+  oob_err[i] = model$mse[length(model$mse)]
+  
+ }
+
+ opt_i = which.min(oob_err)
+print(hyper_grid[opt_i,])
+```
+
+
+```{r}
+forest = randomForest(formula = Richness~., data = train,importance = TRUE,
+                      mtry = 2,
+                      nodesize = 8,
+                      sampsize = 61)   
+
+pred_test= predict(object = forest, newdata = test)
+pred_train = predict(object = forest, newdata = train)
+
+rmse_test = rmse(actual = test$Richness,
+     predicted = pred_test)
+rmse_train = rmse(actual = train$Richness,
+           predicted = pred_train)
+rmse_test
+rmse_train
+
+```
+
+```{r}
+varImpPlot(forest)
+
+```
+
+```{r}
+varimp_o = data.frame(nrow = 8 )
+for (i in 1:100){
+forest = randomForest(formula = Richness~., data = train,importance = TRUE,
+                      mtry = 4,
+                      nodesize = 8,
+                      sampsize = 61)  
+vi = varImp(forest)
+o = order(vi, decreasing = TRUE)
+varimp_o = as.data.frame(cbind(varimp_o,o))
+}
+varimp_o = varimp_o[,-1]
+
+  First = unlist(varimp_o[1,])
+  First_table = table(First)
+    data = as.data.frame(First_table)
+    g1 = ggplot(data = data, aes(x = First, y=Freq))+
+    geom_bar(stat = "identity", width = 0.25)
+    
+  Second = unlist(varimp_o[2,])
+  Second_table = table(Second)
+    data = as.data.frame(Second_table)
+    g2 = ggplot(data = data, aes(x = Second, y=Freq))+
+    geom_bar(stat = "identity",width = 0.25)
+
+  Third = unlist(varimp_o[3,])  
+  Third_table = table(Third)
+    data = as.data.frame(Third_table)
+    g3 = ggplot(data = data, aes(x = Third, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
+    
+  Fourth = unlist(varimp_o[4,])
+  Fourth_table = table(Fourth)
+    data = as.data.frame(Fourth_table)
+    g4 = ggplot(data = data, aes(x = Fourth, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
+    
+  Fifth = unlist(varimp_o[5,])
+  Fifth_table = table(Fifth)
+    data = as.data.frame(Fifth_table)
+    g5 = ggplot(data = data, aes(x = Fifth, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
+    
+ Sixth = unlist(varimp_o[6,])
+  Sixth_table = table(Sixth)
+    data = as.data.frame(Sixth_table)
+    g6 = ggplot(data = data, aes(x = Sixth, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
+    
+  Seventh = unlist(varimp_o[7,])
+  Seventh_table = table(Seventh)
+    data = as.data.frame(Seventh_table)
+    g7 = ggplot(data = data, aes(x = Seventh, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
+    
+  Eighth = unlist(varimp_o[8,])
+  Eighth_table = table(Eighth)
+    data = as.data.frame(Eighth_table)
+    g8 = ggplot(data = data, aes(x = Eighth, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
+
+
+
+
+
+grid.arrange(g1,g2,g3,g4,g5,g6,g7,g8,ncol =2)
+               
+```
+
+
+```{r}
+# make train and test sets
+
+subset_sd = subset_all%>%select ("Richness",
+                               "Northing", "PHI","Buffer",
+                                "no_NVC","sd_pH",
+                               "sd_meandbh","sd_TD","zeta_r")
+#removed sd_SOM and no_MSG cos -ve %IncMSE
+set.seed(1)
+assignment <- sample(1:2, size = nrow(subset_sd), prob = c(0.75,0.25), replace = TRUE)
+
+# Create a train, validation and tests from the original data frame 
+train <- subset_sd[assignment == 1, ]    # subset the grade data frame to training indices only
+test <- subset_sd[assignment == 2, ]  # subset the grade data frame to validation indices only
+```
+
+```{r}
+
+mtry = seq(2,11,1)
+nodesize = seq(2,10,2)
+sampsize = nrow(train)*c(0.7,0.8)
+
+hyper_grid = expand.grid(mtry = mtry, nodesize = nodesize, sampsize = sampsize)
+
+oob_err = c()
+
+for (i in 1:nrow(hyper_grid)){
+ # browser()
+  model = randomForest(formula = Richness~.,
+                              data = train,
+                              mtry = hyper_grid$mtry[i],
+                              nodesize = hyper_grid$nodesize[i] ,
+                              sampsize = hyper_grid$sampsize[i] )
+  
+  oob_err[i] = model$mse[length(model$mse)]
+  
+ }
+
+ opt_i = which.min(oob_err)
+print(hyper_grid[opt_i,])
+```
+
+```{r}
+forest = randomForest(formula = Richness~., data = train,importance = TRUE,
+                      mtry = 6,
+                      nodesize = 8,
+                      sampsize = 61)   
+
+pred= predict(object = forest, newdata = test)
+
+rmse(actual = test$Richness,
+     predicted = pred)
+
+```
+
+```{r}
+varImpPlot(forest)
+
+```
+
+```{r}
+varimp_o = data.frame(nrow = 7 )
+for (i in 1:100){
+forest = randomForest(formula = Richness~., data = train,importance = TRUE,
+                      mtry = 4,
+                      nodesize = 8,
+                      sampsize = 61)  
+vi = varImp(forest)
+o = order(vi, decreasing = TRUE)
+varimp_o = as.data.frame(cbind(varimp_o,o))
+}
+varimp_o = varimp_o[,-1]
+
+  First = unlist(varimp_o[1,])
+  First_table = table(First)
+    data = as.data.frame(First_table)
+    g1 = ggplot(data = data, aes(x = First, y=Freq))+
+    geom_bar(stat = "identity", width = 0.25)
+    
+  Second = unlist(varimp_o[2,])
+  Second_table = table(Second)
+    data = as.data.frame(Second_table)
+    g2 = ggplot(data = data, aes(x = Second, y=Freq))+
+    geom_bar(stat = "identity",width = 0.25)
+
+  Third = unlist(varimp_o[3,])  
+  Third_table = table(Third)
+    data = as.data.frame(Third_table)
+    g3 = ggplot(data = data, aes(x = Third, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
+    
+  Fourth = unlist(varimp_o[4,])
+  Fourth_table = table(Fourth)
+    data = as.data.frame(Fourth_table)
+    g4 = ggplot(data = data, aes(x = Fourth, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
+    
+  Fifth = unlist(varimp_o[5,])
+  Fifth_table = table(Fifth)
+    data = as.data.frame(Fifth_table)
+    g5 = ggplot(data = data, aes(x = Fifth, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
+    
+ Sixth = unlist(varimp_o[6,])
+  Sixth_table = table(Sixth)
+    data = as.data.frame(Sixth_table)
+    g6 = ggplot(data = data, aes(x = Sixth, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
+    
+  Seventh = unlist(varimp_o[7,])
+  Seventh_table = table(Seventh)
+    data = as.data.frame(Seventh_table)
+    g7 = ggplot(data = data, aes(x = Seventh, y=Freq))+
+    geom_bar(stat = "identity",width=0.25)
+    
+
+
+
+grid.arrange(g1,g2,g3,g4,g5,g6,g7,ncol =2)
+        
+```
+
+
+```{r, message=FALSE, warning=FALSE}
+#Some maps like look nice
+#uses good_bad and data
+#ggmap version,  scaled these by diversity with max richess/min richness ####
+library(ggmap)
+
+wood_rich = cbind(woods,d) # just add richness to locations
+
+map<- get_map(location = c(lon = -1.5, lat = 54),
+                         color = "color",
+                         source = "google",
+                         maptype = "satellite",
+                         zoom = 6) 
+#png("../Data/Talk/Map.png") 
+ggmap(map, extent ='device')+
+    geom_point(aes(x = Long, y = Lat, colour = d),data = wood_rich, size = 2, alpha=1)+
+    scale_color_gradient(low = "yellow", high="red")+
+  geom_point(aes(x = Long, y = Lat, colour = d),data = min_max, size = 4, alpha=1)+
+  scale_color_gradient(low = "yellow", high="red")+
+  geom_text_repel(data = good_bad, aes(x = Long, y = Lat,label = d), 
+            size = 3, colour = "white")
+
+##################################
+```

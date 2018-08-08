@@ -1,0 +1,113 @@
+---
+title: "BirdsMarsh"
+author: "PetraGuy"
+date: "26 November 2017"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Clear the console
+```{r}
+rm(list = ls())
+cat("\014")
+
+```
+
+
+Get data from a woodland from Data directory - Birds Marsh Wood
+```{r}
+data = read.csv("../Data/Birds_Marsh.csv")
+
+```
+
+Take out the 2000 data, get a frequency table for species by plot, by nest
+```{r}
+data2001_data = data[data$YR == '2000',]
+species = with(data2001_data, table(data2001_data$PLOT, data2001_data$NEST))
+species = as.data.frame(species)
+colnames(species) = c("Plot","Nest","frequency")
+
+```
+
+Look at the number of species in each nest
+
+```{r}
+library(ggplot2)
+ggplot(species, (aes_string(x='Nest', y='frequency')) )+
+                 geom_boxplot()
+
+```
+
+
+Need cummulative frequency of species for each nest
+
+
+```{r}
+library(dplyr)
+species = mutate(group_by(species,Plot), cumsum = cumsum(frequency))
+colnames(species) = c("Plot","Nest","Freq","CumFreq")
+
+
+```
+
+Plot cumulative species per nest across all plots
+
+```{r}
+library(ggplot2)
+ggplot(species, (aes_string(x='Nest', y='CumFreq')) )+
+                 geom_boxplot()
+
+ggplot(data = species) +  geom_point(aes(x=Nest,y=CumFreq)) 
+
+```
+
+Species area for each plot.
+
+```{r}
+library(ggplot2)
+ggplot(data = species) +  geom_point(aes(x=Nest,y=CumFreq)) +   facet_wrap(~Plot) +
+  theme(axis.ticks = element_blank(), axis.text.x = element_blank())
+```
+
+If plot 2 is removed from the data, is there any difference between nest 1 and cumulative total in nest 5?
+PS, converting nest and plot to numeric for linear model
+
+```{r}
+reduced_species = species[species$Plot != 2,]
+reduced_species$Plot = as.numeric(reduced_species$Plot)
+reduced_species$Nest = as.numeric(reduced_species$Nest)
+
+```
+
+Replot this reduced dataset
+
+```{r}
+library(ggplot2)
+ggplot(reduced_species, (aes_string(x='Nest', y='CumFreq', group = 'Nest')) )+  geom_boxplot()
+ggplot(data = reduced_species) +  geom_point(aes(x=Nest,y=CumFreq)) 
+
+```
+
+Anova on reduced species
+
+```{r}
+ model = lm(CumFreq ~ Nest, data =  reduced_species)
+  ANOVA <- anova(model)
+  print(ANOVA)
+  print(model$coefficients)
+  
+ggplot(reduced_species, aes(x=Nest, y = CumFreq)) + geom_point() + stat_smooth(method = "lm", col = 'red')
+    
+   
+```
+the next bit i will do 
+```{r}
+
+```
+
+

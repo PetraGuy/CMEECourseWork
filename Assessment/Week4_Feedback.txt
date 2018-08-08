@@ -1,0 +1,857 @@
+Starting weekly assessment for Petra, Week4
+
+Current Marks = 100
+
+Note that: 
+(1) Major sections begin with a double "====" line 
+(2) Subsections begin with a single "====" line 
+(3) Code output or text file content are printed within single "*****" lines 
+
+======================================================================
+======================================================================
+Your Git repo size this week is about 61.32 MiB on disk 
+
+PART 1: Checking project workflow...
+
+Found the following directories in parent directory: Week6, Week1, Week7, .idea, Assessment, Week5, Week2, CMEEMainProject, Week4, .git, Week3
+
+Found the following files in parent directory: .gitignore, README
+
+Checking for key files in parent directory...
+
+Found .gitignore in parent directory, great! 
+
+Printing contents of .gitignore:
+**********************************************************************
+*~ 
+*.tmp
+**********************************************************************
+
+Found README in parent directory, named: README
+
+Printing contents of README:
+**********************************************************************
+
+
+Week 5.
+Mapping.
+
+Went through a practical then decided to try mapping the locations of the woodlands that I am studying for my project.
+These were in eastings and northings, and despite following proceedures in QGIS tutorials from various websites, I struggled to get these mapped and projected. I could map them on their own, but I couldnt tie them up with a proper UK map.
+
+Next I decided to try mapping in R, but I couldnt download "gdal" and other libraries that were required.
+
+Next I tried mapping in python - similar story.
+
+The R packages would not work with 3.8.3, they wanted older versions. The python packages had many dependencies that needed to be downloaded from github, and I wasnt sure I was setting up the paths correctly etc. This prompted me to look at my pythin libraries and directory structure and realise that it seems to be a bit mangled.
+
+After 3 days of mapping I had achieved nothing! 
+
+Found/adapted slightly a program to change eastings and northings to OS grid refs
+
+
+
+**********************************************************************
+
+======================================================================
+Looking for the weekly directories...
+
+Found 7 weekly directories: Week1, Week2, Week3, Week4, Week5, Week6, Week7
+
+The Week4 directory will be assessed 
+
+======================================================================
+======================================================================
+PART 2: Checking weekly code and workflow...
+
+======================================================================
+Assessing WEEK4...
+
+Found the following directories: Code, Data, Sandbox, Results
+
+Found the following files: 
+
+Checking for readme file in weekly directory...
+
+README file missing, 1 pt deducted
+
+Current Marks = 99
+
+Found 8 code files: Sparrows3.R, Sparrowslm.R, daphnia1.R, SparrowsAnova.R, Sparrows1.R, timber.R, Sparrows2.R, SparrowsRepeatability.R
+
+Found the following extra files: Rplots.pdf, .Rhistory, .RData
+0.5 pt deducted per extra file
+
+Current Marks = 97.5
+
+======================================================================
+Testing script/code files...
+
+======================================================================
+Inspecting script file Sparrows3.R...
+
+File contents are:
+**********************************************************************
+#!/usr/bin/env Rscript
+
+#Looking at linear plots and residuals - are they normally distributed etc.
+rm(list = ls())
+library(ggplot2)
+library(gridExtra) # for multiple plots
+l
+
+###   Import and normalise Data #####
+SparrowsData = as.data.frame(read.table("../Data/SparrowSize.txt", header = TRUE))
+
+Sparrows2001 = subset(SparrowsData, SparrowsData$Year==2001)
+
+lm_Mass_Bill = lm(Mass ~ Bill, SparrowsData)
+par(mfrow =c(2,2))
+plot(lm_Mass_Bill)
+
+##How many NA in Bill and Mass
+
+Bill_NA = sum(is.na(SparrowsData$Bill))
+Mass_NA = sum(is.na(SparrowsData$Mass))
+
+
+#####################
+
+#A linear model of Mass and Bill
+plot_Mass_Bill = ggplot(data=subset(SparrowsData, !is.na(Bill)), aes(x = Bill, y= Mass))+
+                geom_point()+
+              geom_smooth(method='lm',formula=y~x)
+# Look at some boxplots of mass and bill with sex to see if they have the same mean. If not
+# you might need to separate them in the linear model
+
+Wing_Sex1 = ggplot(data=subset(SparrowsData, !is.na(Mass)), aes(Sex.1, y = Mass))+
+  geom_boxplot()
+
+Wing_Sex2 = ggplot(data=subset(SparrowsData, !is.na(Mass)), aes(Sex.1, y = Mass))+
+  geom_point()
+
+grid.arrange(Wing_Sex1, Wing_Sex2)
+
+#################################
+
+lm_WingSex = lm(Wing ~ as.numeric(Sex), SparrowsData)
+lm_MassSex = lm(Mass ~ as.numeric(Sex), SparrowsData)
+lm_BillSex = lm(Bill ~ as.numeric(Sex), SparrrowsData)
+lm_TarsusSex = lm(Tarsus ~ as.numeric(Sex), SparrowsData)
+#ps. summary(linearmodel) gives you the rsquared etc. 
+# simply plot(linearmodel) plots 4 residual plots
+par(mfrow = c(2,2))
+plot(lm_BillSex, main = "BillSex")
+plot(lm_MassSex, main = "MassSex")
+plot(lm_TarsusSex, main = "TarsusSex")
+plot(lm_WingSex, main = "WingSex")
+**********************************************************************
+
+Testing Sparrows3.R...
+
+Output (only first 500 characters): 
+
+**********************************************************************
+
+**********************************************************************
+
+Encountered error:
+Error: object 'l' not found
+Execution halted
+
+======================================================================
+Inspecting script file Sparrowslm.R...
+
+File contents are:
+**********************************************************************
+
+
+#Sparrows Linear models
+
+library(ggplot2)
+
+SparrowsData = as.data.frame(read.table("../Data/SparrowSize.txt", header = TRUE))
+
+SparrowsData2= subset(SparrowsData, SparrowsData$Tarsus !="NA")
+SparrowsData3<-subset(SparrowsData2,SparrowsData2$Mass !="NA")
+
+
+plot1 = ggplot(SparrowsDataNoNA, aes(x = Tarsus, y = Mass))+
+  geom_point() +
+  geom_line(aes(y = predict(lm_Tarsus_Mass)))
+
+lm_Tarsus_Mass = lm(SparrowsData$Tarsus~SparrowsData$Mass, SparrowsData3)
+y = predict(lm_Tarsus_Mass, !is.na())
+
+plot(SparrowsData3$Tarsus,SparrowsData3$Mass)
+lines(y,SparrowsData3$Mass)
+
+
+length(y)
+length(SparrowsDataNoNA$Mass)
+
+plot1 = ggplot(SparrowsData, aes(x = Tarsus, y = Mass), !is.na(Mass))
+  geom_point() +
+  geom_line(aes(y = predict(lm_Tarsus_Mass)))
+
+
+
+
+
+**********************************************************************
+
+Testing Sparrowslm.R...
+
+Output (only first 500 characters): 
+
+**********************************************************************
+
+**********************************************************************
+
+Encountered error:
+Error in ggplot(SparrowsDataNoNA, aes(x = Tarsus, y = Mass)) : 
+  object 'SparrowsDataNoNA' not found
+Execution halted
+
+======================================================================
+Inspecting script file daphnia1.R...
+
+File contents are:
+**********************************************************************
+# Stats with Sparrows - but daphni
+#Week 4, stats in R
+
+#R Studio Version 1.1.383 ubuntu 16.04 LTS 64bi
+#Author Petra Guy 31st October 2017
+
+library(dplyr)
+rm(list = ls())
+daphnia = read.delim("../Data/daphnia.txt")
+summary(daphnia)
+
+# plots to look at variation
+par(mfrow = c(1,2))
+plot(Growth.rate ~ Detergent, data = daphnia)
+plot(Growth.rate~ Daphnia, data = daphnia)
+
+#pipe into a sumamry of variances.The ratio of variances should be small
+#e.g. less than 4. Thats not the case for clone1 to clone2 and 3
+#as you can guess from the box plot above.
+daphnia %>% group_by(Detergent)%>% summarise(variance=var(Growth.rate))
+daphnia %>% group_by(Daphnia)%>% summarise(variance=var(Growth.rate))
+
+# Need to bear that in mind as it bias bias least sqs estimators
+
+#Looking at distribution of data
+
+hist(daphnia$Growth.rate)
+# regression assumes that variation in obs for each x is normal
+# the residuaks, not the data
+
+seFun = function(x){
+  sqrt(var(x)/length(x))
+}
+
+detergentMean = with(daphnia, tapply(Growth.rate, INDEX = Detergent, FUN = mean))
+detergentSEM = with(daphnia, tapply(Growth.rate, INDEX = Detergent, FUN = seFun))
+cloneMean = with(daphnia, tapply(Growth.rate, INDEX = Daphnia, FUN = mean))
+cloneSEM = with(daphnia, tapply(Growth.rate, INDEX = Daphnia, FUN = seFun))
+
+par(mfrow = c(2,1), mar = c(4,4,1,1))
+barMids = barplot(detergentMean, xlab = "Detergent Type", ylab = "Population growth rate", ylim = c(0,5))
+arrows(barMids, detergentMean - detergentSEM, barMids, detergentMean + detergentSEM, code = 3, angle = 90)
+barMids = barplot(cloneMean, xlab = "Daphnia clone", ylab = "Population growth rate",ylim = c(0,5) )
+arrows(barMids, cloneMean - cloneSEM, barMids, cloneMean + cloneSEM, code = 3, angle = 90)
+
+# the above plots the means for each group as a bar, with the variance of the mean.
+#then you can look to see how df=ifferent each mean really is. run a lm with
+#Detergent and Daphnia and look at ANOVA
+
+daphniaMod = lm(Growth.rate ~ Detergent + Daphnia, data = daphnia)
+anova(daphniaMod)
+
+# The meansq detergent is small with large p - so not doing much explaining and not significant
+#Sp the Daphnia variable is the important one. 
+
+summary(daphniaMod)
+
+# this shows that the means of the detergents are not very different (col 1)
+
+# use the Tukey HSD test to look at all pairwise differences
+
+daphniaAnovaMod = aov(Growth.rate ~ Detergent + Daphnia, data = daphnia)
+summary(daphniaAnovaMod)
+daphniaModHSD = TukeyHSD(daphniaAnovaMod)
+
+par(mfrow = c(2,1), mar = c(10,10,2,2))
+plot(daphniaModHSD)
+
+par(mfrow = c(2,2))
+plot(daphniaMod)
+
+### from Intro to Statistics booklet. Look at scatterplots
+
+plot(Growth.rate ~ Daphnia, data = daphnia)
+
+**********************************************************************
+
+Testing daphnia1.R...
+
+Output (only first 500 characters): 
+
+**********************************************************************
+  Growth.rate     Water     Detergent    Daphnia  
+ Min.   :1.762   Tyne:36   BrandA:18   Clone1:24  
+ 1st Qu.:2.797   Wear:36   BrandB:18   Clone2:24  
+ Median :3.788             BrandC:18   Clone3:24  
+ Mean   :3.852             BrandD:18              
+ 3rd Qu.:4.807                                    
+ Max.   :6.918                                    
+# A tibble: 4 × 2
+  Detergent variance
+     <fctr>    <dbl>
+1    BrandA 1.511245
+2    BrandB 1.089727
+3    BrandC 1.779843
+4    BrandD 2.380693
+**********************************************************************
+
+Encountered error:
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+
+======================================================================
+Inspecting script file SparrowsAnova.R...
+
+File contents are:
+**********************************************************************
+
+#Sparrows ANOVA
+
+SparrowsData = as.data.frame(read.table("../Data/SparrowSize.txt", header = TRUE))
+
+# run a lm on wing and sex
+
+Wing_lm = lm(Wing ~ as.numeric(Sex), SparrowsData)
+Summary(Wing_lm) # gives the R2 and F stats etc
+anova(Wing_lm) # as summary but only shows Sum Sq and df for residuals and expl var
+#For this model R2  0.27, p = 2.26E-16, i.e not much variance explained and means equal 
+t.test(SparrowsData$Wing~SparrowsData$Sex)
+# t test shows that means also same, because CI overlaps the difference in means - confirms above ANOVA
+
+# what about different birds - bird ID is the treatment/expl var
+
+Wing_lm2 = lm(Wing ~ as.factor(BirdID), SparrowsData)
+summary(Wing_lm2)
+anova(Wing_lm2) 
+
+
+length(unique(SparrowsData$BirdID)) # there are lots of birdID, so lots of groups, but some only have 1 bird
+# So not sure how weird this makes anova?
+
+
+plot_Mass_Year = ggplot(data=subset(SparrowsData, !is.na(Mass)), aes(as.factor(Year), Mass), SparrowsData)+
+  geom_boxplot()
+ # ps need as.factor year coz year is continuous var. 
+#now use anova to see if there's any differences in mass between years
+
+lm_Year_Mass = lm(Mass~as.factor(Year), SparrowsData)
+summary(lm_Year_Mass)
+anova(lm_Year_Mass)
+# ss between years less than ss in each year. R2 small p small, so there is a difference, but lots of variation
+
+#Exercies - run a lm excluding year 2000, because ALL other years are ~ 2000 -1, some error in 2000?
+
+Sparrow_2000 = subset(SparrowsData, Year != 2000)
+lm_SparrowMass_2000 = lm(Mass~ as.factor(Year), Sparrow_2000)
+summary(lm_SparrowMass_2000)
+anova(lm_SparrowMass_2000)
+
+# now the p value is huge and the R2 small, so no difference
+
+  
+
+                             **********************************************************************
+
+Testing SparrowsAnova.R...
+
+Output (only first 500 characters): 
+
+**********************************************************************
+
+**********************************************************************
+
+Encountered error:
+Error: could not find function "Summary"
+Execution halted
+
+======================================================================
+Inspecting script file Sparrows1.R...
+
+File contents are:
+**********************************************************************
+
+# Stats with Sparrows SW2, Exercise 1
+library(ggplot2)
+library(gridExtra)
+library(dplyr)
+library(moments) # for skewness
+SparrowsData = read.table("../Data/SparrowSize.txt", header = TRUE)
+
+dev.off()
+
+
+
+plot1 <- ggplot(data=subset(SparrowsData, !is.na(Wing)), aes(Wing))+
+  geom_histogram(bins = 25)+
+  geom_vline(data=SparrowsData, aes(xintercept =  Means[[2]]))+
+  geom_density()+
+  stat_function(fun = dnorm, args = list(mean = 77.4 , sd = 2.42))
+  
+
+  
+plot1a <- ggplot(data=subset(SparrowsData, !is.na(Wing)), aes(x=1, y = Wing))+
+  geom_boxplot()+
+  coord_flip()
+
+plot2 <- ggplot(data = subset(SparrowsData, !is.na(Mass)) , aes(Mass))+
+  geom_histogram(bins = 25)+
+  geom_vline(data=SparrowsData, aes(xintercept =  Means[[3]]))
+  geom_density()
+
+plot2a <- ggplot(data=subset(SparrowsData, !is.na(Mass)), aes(x=1, y = Mass))+
+  geom_boxplot()+
+  coord_flip()
+
+plot3 <- ggplot(data=subset(SparrowsData, !is.na(Bill)), aes(Bill))+
+  geom_histogram(bins = 25)+
+  geom_vline(data=SparrowsData, aes(xintercept =  Means[[1]]))
+  geom_density()
+  
+plot3a <-   ggplot(data=subset(SparrowsData, !is.na(Bill)), aes(x=1, y = Bill))+
+  geom_boxplot()+
+  coord_flip()
+grid.arrange(plot1,plot1a, plot2,plot2a, plot3, plot3a)
+
+
+dev.off()
+
+######## Statistics#########
+# Doing whole lot in one go
+SparrowMeans = round(colMeans(as.data.frame(SparrowsData[,4:6]), na.rm = TRUE), digits = 2)
+
+
+# There isnt a colVar function so remove non numeric cols otherwise goes mental
+NumericCols = sapply(SparrowsData, is.numeric)
+
+Variances =  sapply(SparrowsData[,NumericCols], var, na.rm = TRUE)
+SparrowVars = round(Variances, digits = 2)[4:6]
+
+Sparrowsd = round(sqrt(Variances[4:6]), digits = 2)
+
+Skews = sapply(SparrowsData[,NumericCols], skewness, na.rm = TRUE)
+
+SparrowSkews = round(Skews[4:6], digits = 2)
+
+
+SparrowStats = rbind(SparrowMeans, SparrowVars, Sparrowsd, SparrowSkews)
+colnames(SparrowStats) = c("Bill", "Wing", "Mass")
+rownames(SparrowStats) = c("Mean", "Variance", "StandDev", "Skewness")
+##############################"
+
+estimate_mode <- function(x) {
+  
+  d <- density(x, na.rm = TRUE)
+  d$x[which.max(d$y)]
+}
+
+
+
+
+**********************************************************************
+
+Testing Sparrows1.R...
+
+Output (only first 500 characters): 
+
+**********************************************************************
+
+**********************************************************************
+
+Encountered error:
+
+Attaching package: ‘dplyr’
+
+The following object is masked from ‘package:gridExtra’:
+
+    combine
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+Error in library(moments) : there is no package called ‘moments’
+Execution halted
+
+======================================================================
+Inspecting script file timber.R...
+
+File contents are:
+**********************************************************************
+# Stats with Sparrows - but timber
+#Week 4, stats in R
+
+#R Studio Version 1.1.383 ubuntu 16.04 LTS 64bi
+#Author Petra Guy 31st October 2017
+
+rm(list = ls())
+timber = read.delim("../Data/timber.txt")
+summary(timber)
+
+par(mfrow =c(2,2))
+boxplot(timber$volume)
+boxplot(timber$girth)
+boxplot(timber$height)
+
+var(timber$volume)
+var(timber$girth)
+var(timber$height)
+
+t2 = as.data.frame(subset(timber, timber$volume!="NA"))
+t2$z.girth = scale(timber$girth)
+t2$z.height = scale(timber$height)
+
+par(mfrow = c(2,2))
+hist(t2$volume)
+hist(t2$girth)
+hist(t2$height)
+
+pairs(timber) # plot the variates next to each other to examine colinearity
+
+cor(timber) #this gives the correlation
+
+# Look at the Variance Inflation Factor. If one covariate is set as the
+#y and the others are modelled against it...
+
+s = summary(lm(girth ~ height, data = timber))
+model = lm(girth ~ height, data = timber)
+VIF = 1/(1-(s$r.squared^2))
+
+timberMod = lm(volume ~ girth + height, data = timber)
+anova(timberMod) # apparently this shows height is needed, but I'm not sure why
+
+#I want to look at differet linear models
+
+mod1 = lm(volume~girth, data = timber)
+mod2 = lm(volume~height, data = timber)
+anova(mod1)
+anova(mod2)
+
+#I dont understand the statement in the handout that ht and girth are needed. The lm for
+#vol ~ girth is same as vol~ht+girth, so why put the ht in?
+
+plot(timberMod)
+timberplot  = ggplot(timber, aes(x = girth, y = volume))+
+  geom_smooth()+
+  geom_point()
+
+#1. Remove the point with high leverage - no.31
+
+timberNew = timber[-31,]
+
+timberNewMod = lm(volume~girth, data = timberNew)
+timberplot  = ggplot(timberNew, aes(x = girth, y = volume))+
+  geom_smooth()+
+  geom_point()+
+  geom_abline(slope =  0.04321, intercept = -2.41213)
+              
+anova(timberNewMod)
+
+# This doesnt look a lot better - but the data does look exponetiol. lets try log plot
+
+timberlogMod = lm(log(volume)~girth, data = timberNew)
+plot(timberlogMod)
+anova(timberlogMod)
+ggplot(timberNew, aes(x = girth, y = log(volume)))+
+  geom_smooth()+
+  geom_point()
+
+# add an interaction term
+timberMod2 = lm(volume ~ girth + height*girth, data = timberNew)
+anova(timberMod2)
+timberMod2
+anova(timberMod)
+
+# nope - the best model is just Vol~ height**********************************************************************
+
+Testing timber.R...
+
+Output (only first 500 characters): 
+
+**********************************************************************
+     volume           girth            height    
+ Min.   :0.7386   Min.   : 66.23   Min.   :18.9  
+ 1st Qu.:1.4048   1st Qu.: 88.17   1st Qu.:21.6  
+ Median :1.7524   Median :102.94   Median :22.8  
+ Mean   :2.1847   Mean   :105.72   Mean   :22.8  
+ 3rd Qu.:2.7010   3rd Qu.:121.69   3rd Qu.:24.0  
+ Max.   :5.5757   Max.   :164.38   Max.   :26.1  
+[1] 1.416803
+[1] 627.0461
+[1] 3.654
+          volume     girth    height
+volume 1.0000000 0.9671176 0.5982517
+girth  0.9671176 1.0000000 0.5192873
+heig
+**********************************************************************
+
+Encountered error:
+Error: could not find function "ggplot"
+Execution halted
+
+======================================================================
+Inspecting script file Sparrows2.R...
+
+File contents are:
+**********************************************************************
+#!/usr/bin/env Rscript
+
+# Starting again with Sparrows in a more logical order
+rm(list = ls())
+library(ggplot2)
+library(gridExtra) # for multiple plots
+library(dplyr) #not used yet
+library(moments) # for skewness
+library(MASS)
+
+###   Import and normalise Data #####
+SparrowsData = as.data.frame(read.table("../Data/SparrowSize.txt", header = TRUE))
+NumericCols = sapply(SparrowsData, is.numeric)
+ScaledData = sapply(SparrowsData[,3:6], scale)
+SparrowsNormalised = cbind(SparrowsData[,1:2], ScaledData, SparrowsData[,7:8])
+
+### function to calcualte the mode ####
+estimate_mode <- function(x) {
+  
+  d <- density(x, na.rm = TRUE)
+  d$x[which.max(d$y)]
+}
+#Fuction to caluclate the standard error
+
+StandError =  function(data){
+  data = na.omit(data)
+  SE = sd(data, na.rm = TRUE)/sqrt(length(data))
+}
+
+###     Sats for unnormalised data   ####
+
+SparrowMeans = round(colMeans(as.data.frame(SparrowsData[,4:6]), na.rm = TRUE), digits = 2)
+
+
+Variances =  sapply(SparrowsData[,NumericCols], var, na.rm = TRUE)
+SparrowVars = round(Variances, digits = 2)[4:6]
+
+Sparrowsd = round(sqrt(Variances[4:6]), digits = 2)
+
+SparrowMedians = sapply(SparrowsData[,4:6], median, na.rm = TRUE)
+
+SparrowModes = sapply(SparrowsData[,4:6], estimate_mode)
+ 
+Skews = sapply(SparrowsData[,NumericCols], skewness, na.rm = TRUE)
+
+SparrowSkews = round(Skews[4:6], digits = 2)
+
+
+  
+SparrowBillSE = round(with(SparrowsData, tapply(Bill, Year, StandError)), digits = 2)
+SparrowWingSE = round(with(SparrowsData, tapply(Wing, Year, StandError)), digits =2)
+SparrowMassSE = round(with(SparrowsData, tapply(Mass, Year, StandError)), digits = 2)
+SparrowSE = rbind(SparrowBillSE,SparrowWingSE,SparrowMassSE)
+rownames(SparrowSE) = c("Bill", "Wing", "Mass")
+
+NormTests = sapply(SparrowsData[,4:6], shapiro.test)
+
+SparrowStats = rbind(SparrowMeans, SparrowMedians, SparrowModes, SparrowVars, Sparrowsd, SparrowSkews, NormTests)
+                 
+colnames(SparrowStats) = c("Bill", "Wing", "Mass")
+#rownames(SparrowStats) = c("Mean", "Variance", "StandDev", "Skewness")
+
+###### Plots for un normalised data  ########################
+dev.off()
+plot1 <- ggplot(data=subset(SparrowsData, !is.na(Wing)), aes(Wing))+
+  geom_histogram(bins = 25)+
+  geom_vline(data=SparrowsData, aes(xintercept =  SparrowMeans[[2]]))+
+  geom_density()
+  
+plot1a <- ggplot(data=subset(SparrowsData, !is.na(Wing)), aes(x=1, y = Wing))+
+  geom_boxplot()+
+  coord_flip()
+
+plot2 <- ggplot(data = subset(SparrowsData, !is.na(Mass)) , aes(Mass))+
+  geom_histogram(bins = 25)+
+  geom_vline(data=SparrowsData, aes(xintercept =  SparrowMeans[[3]]))
+geom_density()
+
+plot2a <- ggplot(data=subset(SparrowsData, !is.na(Mass)), aes(x=1, y = Mass))+
+  geom_boxplot()+
+  coord_flip()
+
+plot3 <- ggplot(data=subset(SparrowsData, !is.na(Bill)), aes(Bill))+
+  geom_histogram(bins = 25)+
+  geom_vline(data=SparrowsData, aes(xintercept =  SparrowMeans[[1]]))
+geom_density()
+
+plot3a <-   ggplot(data=subset(SparrowsData, !is.na(Bill)), aes(x=1, y = Bill))+
+  geom_boxplot()+
+  coord_flip()
+grid.arrange(plot1,plot1a, plot2,plot2a, plot3, plot3a)
+
+
+### More plots to examine fits etc ####
+
+
+Wing_Sex1 = ggplot(data=subset(SparrowsData, !is.na(Wing)), aes(Sex.1, y = Wing))+
+  geom_boxplot()
+
+Wing_Sex2 = ggplot(data=subset(SparrowsData, !is.na(Wing)), aes(Sex.1, y = Wing))+
+  geom_smooth()
+
+
+
+
+print(SparrowStats)
+
+#gives max-liklihod estimtors
+
+fitdistr(c(na.exclude(SparrowsData$Bill)), "normal")
+
+#### t tests. using var1~var2 in t.test takes mean of each and performs test
+
+ttest = t.test(SparrowsData$Mass~ SparrowsData$Sex.1)
+Sparrows2001 =  subset(SparrowsData, Year == 2001)    #2001 only
+t.test2001 = t.test(Sparrows2001$Wing~Sparrows2001$Sex.1) # calcs mean of wing for make and female and does t test
+
+
+**********************************************************************
+
+Testing Sparrows2.R...
+
+Output (only first 500 characters): 
+
+**********************************************************************
+
+**********************************************************************
+
+Encountered error:
+
+Attaching package: ‘dplyr’
+
+The following object is masked from ‘package:gridExtra’:
+
+    combine
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+Error in library(moments) : there is no package called ‘moments’
+Execution halted
+
+======================================================================
+Inspecting script file SparrowsRepeatability.R...
+
+File contents are:
+**********************************************************************
+
+#Sparrows, repeatability, pdf14
+library(plyr)
+# for repeatability need means sum squares bewtween and mean sum squares between and number of things in each group.
+
+# to caculate number of things in each group - e.g. how many birds of same ID were repeatably measured.
+
+#we know
+unique = length(unique(SparrowsData$BirdID)) # = 636. # but how many of sparrow no1, no2 are there?
+
+BirdID_freq =  count (SparrowsData$BirdID) # this gives frequency table for each id
+
+# need to square and sum each frequcency
+sqsum = 0
+for (i in 1:unique){
+  sq = (BirdID_freq[i,2])^2 
+  sqsum = sqsum + sq
+}
+
+# total number of things measured
+tot = length(SparrowsData$BirdID)
+
+# next term in calculation of no
+
+term = tot - sqsum/tot
+
+#finally divide by no.group1 -1 = unique
+
+n0 = term/unique
+
+#now to get repeatability, which needs n0
+
+#say you were lookinhg at wing of different birds, Wing_lm2 was Wing ~ BirdID
+#anova(Wing_lm2) give MeanWSq Bird = 13.207, MeanSq Residuals = 1.6156
+anova_Wing_lm2 = anova(Wing_lm2)
+
+MSamoung = anova_Wing_lm2$`Mean Sq`[1] # amoung birds of different groups
+MSwithin = anova_Wing_lm2$`Mean Sq`[2] # within each group - residuals
+
+Sa2 = (MSamoung - MSwithin)/n0
+Sw2 = MSwithin
+
+r = Sa2/(Sw2 + Sa2) # r = 0.72, 72% of winglength variation is due to between individual bird differences. 
+# not within each bird - i.e. same bird has same wing length, does not vary and is repeatibly measured.
+# different birds are more different than individual birds.
+
+
+
+**********************************************************************
+
+Testing SparrowsRepeatability.R...
+
+Output (only first 500 characters): 
+
+**********************************************************************
+
+**********************************************************************
+
+Encountered error:
+Error in unique(SparrowsData$BirdID) : object 'SparrowsData' not found
+Execution halted
+
+======================================================================
+======================================================================
+Finished running scripts
+
+Ran into 8 errors
+
+======================================================================
+======================================================================
+
+FINISHED WEEKLY ASSESSMENT
+
+Current Marks for the Week = 97.5
+
+NOTE THAT THESE ARE NOT THE FINAL MARKS FOR THE WEEK, BUT AN UPPER BOUND ON THE MARKS!

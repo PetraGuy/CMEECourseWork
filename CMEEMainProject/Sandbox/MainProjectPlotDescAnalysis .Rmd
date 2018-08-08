@@ -1,0 +1,113 @@
+---
+title: "MainProjPlotDescriptorAnalysis"
+author: "PetraGuy"
+date: "8 January 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+```
+
+This analysis is to examine  plot descriptors, to get a feel for which ones are used and how they might be used as part of a "heterogenity" index or whether they need to be part of any other covariates important for the analysis of species richness and species area relationships.
+
+```{r,}
+#clear the workspace
+rm(list = ls())
+cat("\014")
+```
+
+```{r}
+#Get the data , enter input CSV file name here, for data in data directory
+inputfile = 'LookUpPlotDescriptorCodes.csv'
+fullfile = paste("../Data",inputfile, sep = "/")
+LookUpPlot = as.tbl(read.csv(fullfile))
+
+
+inputfile = 'Plot_descriptors00-03.csv'
+fullfile = paste("../Data",inputfile, sep = "/")
+PlotDescriptorsYr2 = as.tbl(read.csv(fullfile))
+
+```
+
+
+Codes have been selected that relate to open areas, large ponds, rivers, moorland, rough pasture etc. The ponds and rivers were selected, not because they represent a different habitat, but because they are likely to imply open ground around them. 
+
+```{r}
+OpenCodesPlots = c(7,8,9,64,65,66,67,70,71,72,79,80,81,82,102)
+OpenPlots = PlotDescriptorsYr2 %>% select(SITE,PLOT, PD_code)%>% filter(PD_code %in% OpenCodesPlots)
+OpenPlots
+
+```
+
+
+```{r}
+ggplot(OpenPlots, aes(x = PD_code)) +
+         geom_histogram(breaks = seq(1,150, by = 10), col = "black", fill = "green")+
+                        labs(title = "Histogram of openness PD codes", x = "PD code")
+```
+The histogram shows that there are many records that could be considered as contributing toward open areas in woodlands, the 0-10 codes are for coppicing, 60 -70 are ponds and streams, 75 - 82 are rides and glades.  The records above 100 are grass banks
+Plot below shows the frequency of all the PD codes for comparison. But it would be nice to see what was happening in each site. 
+This needs to be opened in a separate window, on a large screen!
+
+```{r}
+
+ggplot(data = OpenPlots, aes(x = PD_code)) +
+         geom_histogram(breaks = seq(1,150, by = 10), col = "black", fill = "green") +
+        facet_wrap(~SITE)+
+  theme(axis.ticks = element_blank(), axis.text.x = element_blank())
+```
+
+```{r}
+ggplot(PlotDescriptorsYr2, aes(PlotDescriptorsYr2$PD_code)) +
+         geom_histogram(breaks = seq(1,150, by = 10), col = "black", fill = "green")+
+                        labs(title = "Histogram of entered PD codes", x = "PD code")
+```
+
+The historgam shows that many codes refer to stumps and live and decaying wood items such as bryophyte covered trunks(40 - 50). The next highest categoies are for plants, (15 - 40)
+
+
+
+ ---  Might come back to this bit later, do we want to consider "negative" codes. Not sure where this ends - if there is lots of decaying wood, is the wood healthier and therefore richer etc etc..---------------
+What about potential for codes which may have a negative association woth diversity; planted conifers, rhododendron, bracken, nettle clump, (maybe road or buildings??)
+
+```{r}
+NegativeCodesPlots = c(27,93,94,95,99)
+NegativePlots = PlotDescriptorsYr2 %>% select(SITE, PD_code)%>% filter(PD_code %in% NegativeCodesPlots)
+NegativePlots
+```
+
+
+```{r}
+ggplot(NegativePlots, aes(x = PD_code)) +
+         geom_histogram(breaks = seq(1,160, by = 10), col = "black", fill = "green")+
+                        labs(title = "Histogram of negative PD codes", x = "PD code")
+```
+There are over 500 entries for rhodo thickets, bracken, nettles and brambles. 
+
+-----------------------------------
+
+These are the PD codes which I think should be used to contribute to (or form on their own) heterogenity index - which is linked to openness of habitat - it does not imply different habitats, such as rotting wood, aquatics. So marsh is included because it would imply open ground.
+
+7/8/9, coppice stool, single coppice, recently cut coppice.
+64/65 Pool > 1m2 (85, pool <1m2 excluded)
+66/67 Streamsand rivers > 1m across ( streams < 1m across excluded)
+70 Bog
+75/76 glades
+79/80/81/82 paths > 1m
+102 Grass bank
+
+The index woul then be sum of number of features per plot in each site
+
+```{r}
+ScorePlots = table(OpenPlots$SITE, OpenPlots$PLOT)
+ScorePlots
+#or equivalently
+ScoresPlots = xtabs(~ SITE + PLOT, OpenPlots)
+```
+
+The rows of values from the ScorePlots table could be added as an additional column in the Plot dataframe. The values are all very low and do not vary much across the site, I'm not sure therefore that this index is much use - unless thes codes were maybe combined with the site index and added to that index. 
+
+

@@ -1,0 +1,462 @@
+---
+title: "Modelling richness with a regression tree"
+author: "Petra Guy"
+date: "15 May 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+rm(list = ls())
+cat("\014")
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+site_data =  read.csv("../../Data/CompleteSiteLevelVars.csv")
+site_data = site_data[,-1]
+#mean impute the missing PHI
+meanPHI = round(mean(site_data$Pos_Hetero_Index, na.rm = TRUE),2)
+x = site_data$Pos_Hetero_Index
+x[is.na(x)] = meanPHI
+site_data$Pos_Hetero_Index = x
+
+subset_all = site_data%>%select("Site","Richness","Area_ha",
+                                "Northing", "Pos_Hetero_Index","Buffer3",
+                                "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
+                                "sd_meandbh","sd_treedensity","area_ratio",
+                                "meandbh","meanph", "meanSOM","meanLBA",
+                                "meantreedensity")
+
+
+
+colnames(subset_all) = c("Site","Richness","Area",
+                         "Northing", "PHI","Buffer",
+                         "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
+                         "sd_meandbh","sd_TD","area_ratio",
+                         "meandbh","meanph", "meanSOM","meanLBA",
+                         "meanTD")
+```
+
+Outlier in area was removed
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#remove the wood with the largest area
+largest_area = as.numeric(subset_all%>%filter(Area == max(Area))%>%select(Site))
+site_data_outlier = subset_all%>%filter(Site!=largest_area)
+site_data_outlier = site_data_outlier[,-3] # remove area column now
+
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+subset_sd = site_data_outlier%>%select("Site","Richness",
+                               "Northing", "PHI","Buffer",
+                               "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
+                               "sd_meandbh","sd_TD","area_ratio")
+
+subset_sd = subset_sd[,-1] # remove site column
+
+subset_mean = site_data_outlier%>%select("Site","Richness",
+                              "Northing", "PHI",  "meandbh",
+                              "meanph", "Buffer", "meanSOM","meanLBA",
+                              "meanTD","area_ratio", "no_NVC", 
+                              "no_MSG")
+subset_mean = subset_mean[,-1] # remove site column
+
+```
+
+Train, test and validation sets in ratio 0.7, 0.15.0.15 were created.
+Simple rpart regression tree no pruning, no tuning.
+```{r}
+#make 3 datasets, test, train and validate
+
+set.seed(1)
+assignment <- sample(1:3, size = nrow(subset_mean), prob = c(0.7,0.15,0.15), replace = TRUE)
+
+# Create a train, validation and tests from the original data frame 
+rich_train <- subset_mean[assignment == 1, ]    # subset the grade data frame to training indices only
+rich_valid <- subset_mean[assignment == 2, ]  # subset the grade data frame to validation indices only
+rich_test <- subset_mean[assignment == 3, ]   # subset the grade data frame to test indices only
+
+#look at the model
+
+rich_model <- rpart(formula = Richness ~ ., 
+                     data = rich_train, 
+                     method = "anova")
+
+# Look at the model output                      
+print(rich_model)
+```
+
+```{r}
+# Plot the tree model
+rpart.plot(x = rich_model, yesno = 2, type = 0, extra = 0)
+```
+
+Mean LBA is first split of the data, the further splits all depend on meanpH.
+Plot shows that of meanLBA > 0.74 richness expected to be 101. Lowest richness occurs for meanLBA < 0.74 (bit weird?) meanpH> 4.5 (OK) and buffer < 13 (weird)
+
+```{r}
+library(Metrics)
+pred = predict(object = rich_model,
+               newdata = rich_test)
+
+rmse(actual = rich_test$Richness,
+            predicted = pred)
+
+```
+RMSE error is 22 - quite high, since richest wood is only 150, i.e. 13%.
+#Tuning
+in rpart cp, minplit and maxdepth are tuned.
+cp can be tuned on its own first.
+```{r}
+plotcp(rich_model)
+```
+```{r}
+print(rich_model$cptable)
+```
+
+```{r}
+opt_index = which.min(rich_model$cptable[,"xerror"])
+cp_opt = rich_model$cptable[opt_index,"CP"]
+
+model_opt1 = prune(tree = rich_model, cp = cp_opt)
+pred = predict(object = model_opt1,
+               newdata = rich_test)
+
+rmse(actual = rich_test$Richness,
+            predicted = pred)
+```
+Doesn't improove RMSE though
+Now tune minsplit and max depth with a hyper parameter tuning grid using minsplit c(2,4,6,8,10) and max depth c(1:11)  
+ 
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+#create a hyperparameter tuning grid
+#first look at split parameter
+minsplit = seq(2,10,2)
+maxdepth = seq(1,11,1)
+hyper_grid = expand.grid(minsplit = minsplit, maxdepth = maxdepth)
+
+num_models = nrow(hyper_grid)
+
+rich_models = list()
+
+for (i in 1:num_models){
+  minsplit = hyper_grid$minsplit[i]
+  maxdepth = hyper_grid$maxdepth[i]
+  rich_models[[i]] = rpart(formula = Richness ~ ., 
+                     data = rich_train, 
+                     method = "anova",
+                     minsplit = minsplit,
+                     maxdepth = maxdepth)
+}
+
+rmses = c()
+
+for (i in 1:num_models){
+  model = rich_models[[i]]
+  pred = predict(object = model,
+                 newdata = rich_valid)
+  rmses[i] = rmse(actual = rich_valid$Richness,
+                  predicted = pred)
+}
+
+best_model = rich_models[[which.min(rmses)]]
+
+best_model$control
+
+pred = predict(object = best_model,
+               newdata = rich_test)
+rmse(actual = rich_test$Richness,
+     predicted = pred)
+```
+Slight improvement to rmse
+
+#Bagged trees
+
+```{r}
+#bagged trees
+library(ipred)
+set.seed(123)
+rich_model = bagging(formula = Richness~.,
+                     data = rich_train,
+                     coob = TRUE)
+print(rich_model)
+```
+
+```{r}
+pred = predict(object = rich_model,
+               newdata = rich_test)
+rmse(actual = rich_test$Richness,
+     predicted = pred)
+
+```
+Bagged tree gives little bit more improvement  
+
+```{r}
+# redo this with K fold cross validation for model performance metricss
+library(caret)
+library(randomForest)
+
+ctrl = trainControl(method = "cv",
+                    number = 5,
+                    classProbs = FALSE)
+                    
+
+set.seed(1)
+rich_model = train(Richness~.,
+                   data = rich_train,
+                   method = "treebag",
+                   metric = "RMSE",
+                   trControl = ctrl)
+                   
+
+pred = predict(object = rich_model, 
+               newdata = rich_test)
+rmse(actual = rich_test$Richness,
+     predicted = pred)
+
+```
+
+5 fold cross validation doesnt improve on bagging. 
+```{r}
+library(randomForest)
+# redo train and test because dont need validation
+set.seed(1)
+assignment <- sample(1:2, size = nrow(subset_mean), prob = c(0.7,0.3), replace = TRUE)
+
+# Create a train, validation and tests from the original data frame 
+forest_train <- subset_mean[assignment == 1, ]    # subset the grade data frame to training indices only
+forest_test <- subset_mean[assignment == 2, ]  # subset the grade data frame to validation indices only
+
+
+forest = randomForest(formula = Richness~., data = rich_train)
+pred= predict(object = forest, newdata = rich_test)
+rmse(actual = rich_test$Richness,
+     predicted = pred)
+
+
+```
+#Random forest
+Tuning first
+```{r}
+#tuning
+set.seed(1)
+res = tuneRF(x =subset(forest_train, select = -Richness),
+             y = forest_train$Richness,
+             ntreeTry = 500)
+print(res)
+
+```
+Looks like mtry needs to be small, but set up tuning grid using mtry between 2 and total number of variables (11), nodesize c(2,4,6,8,10), sampsize 0.7 and 0.8
+```{r}
+#tuning
+mtry = seq(2,11,1)
+nodesize = seq(2,10,2)
+sampsize = nrow(forest_train)*c(0.7,0.8)
+
+hyper_grid = expand.grid(mtry = mtry, nodesize = nodesize, sampsize = sampsize)
+
+oob_err = c()
+
+for (i in 1:nrow(hyper_grid)){
+ # browser()
+  forest_model = randomForest(formula = Richness~.,
+                              data = forest_train,
+                              mtry = hyper_grid$mtry[i],
+                              nodesize = hyper_grid$nodesize[i] ,
+                              sampsize = hyper_grid$sampsize[i] )
+  
+  oob_err[i] = forest_model$mse[length(forest_model$mse)]
+  
+ }
+
+ opt_i = which.min(oob_err)
+print(hyper_grid[opt_i,])
+```
+Values giving smallest OOB show above.
+
+```{r}
+forest = randomForest(formula = Richness~., data = forest_train,importance = TRUE,
+                      mtry = 4,
+                      nodesize = 8,
+                      sampsize = 56)   
+
+pred= predict(object = forest, newdata = rich_test)
+
+rmse(actual = rich_test$Richness,
+     predicted = pred)
+
+```
+RMSE of random forest using tuned values - not much better. Removing noMSG and area ration because had -ve MSE - i.e. not important
+```{r}
+#remove number of noMSG and area_ratio coz -ve MSE
+subset_mean = site_data_outlier%>%select("Richness",
+                              "Northing", "PHI",  "meandbh",
+                              "meanph", "Buffer", "meanSOM","meanLBA",
+                              "meanTD","no_NVC")
+set.seed(1)
+assignment <- sample(1:2, size = nrow(subset_mean), prob = c(0.7,0.3), replace = TRUE)
+
+# Create a train, validation and tests from the original data frame 
+forest_train <- subset_mean[assignment == 1, ]    # subset the grade data frame to training indices only
+forest_test <- subset_mean[assignment == 2, ] 
+#tuning
+mtry = seq(2,9,1)
+nodesize = seq(2,10,2)
+sampsize = nrow(forest_train)*c(0.7,0.8)
+
+hyper_grid = expand.grid(mtry = mtry, nodesize = nodesize, sampsize = sampsize)
+
+oob_err = c()
+
+for (i in 1:nrow(hyper_grid)){
+ # browser()
+  forest_model = randomForest(formula = Richness~.,
+                              data = forest_train,
+                              mtry = hyper_grid$mtry[i],
+                              nodesize = hyper_grid$nodesize[i] ,
+                              sampsize = hyper_grid$sampsize[i],
+                              ntree=1000)
+  
+  oob_err[i] = forest_model$mse[length(forest_model$mse)]
+  
+ }
+
+ opt_i = which.min(oob_err)
+print(hyper_grid[opt_i,])
+```
+New maximized values
+```{r}
+forest = randomForest(formula = Richness~., data = forest_train,importance = TRUE,
+                      mtry = 1,
+                      nodesize = 4,
+                      sampsize = 49,
+                      ntree=1000)   
+
+pred= predict(object = forest, newdata = forest_test)
+
+rmse(actual = forest_test$Richness,
+     predicted = pred)
+
+```
+RMSE worse!
+```{r}
+importance(forest)
+```
+
+
+```{r}
+varImpPlot(forest)
+```
+,eanPH, noNVC and buffer most important variables, mena LBA not important
+
+```{r}
+resid = pred - forest_test$Richness
+plot(resid,pred)
+
+```
+
+#Boosted tree
+
+```{r}
+#boosted tree
+library(gbm)
+boosted_model_cv = gbm(Richness~.,
+                   distribution = "gaussian",
+                   data = forest_train,
+                   n.trees = 10000,
+                   cv.folds = 3)
+boosted_model = gbm(Richness~.,
+                   distribution = "gaussian",
+                   data = forest_train,
+                   n.trees = 10000)
+
+summary(boosted_model)
+```
+
+meanpH bufferand NVC important
+```{r}
+pred = predict(boosted_model, forest_test, n.trees = 10000)
+rmse(actual = forest_test$Richness,
+     predicted = pred)
+```
+
+RMSE same-ish
+
+#Tuning
+
+```{r}
+#tuning
+ntree_opt_cv =gbm.perf(boosted_model, method = "cv")
+ntree_opt_cv
+```
+
+```{r}
+ntree_opt =gbm.perf(boosted_model, method = "OOB")
+ntree_opt
+
+```
+
+```{r}
+
+mininnodes  = seq(2,4,2)
+ bag.fraction = nrow(forest_train)*c(0.3,0.4,0.5)
+idepth = c(1,2)
+hyper_grid = expand.grid(mininnodes = mininnodes, bag.size = bag.size, idepth = idepth)
+
+oob_err = c()
+
+for (i in 1:nrow(hyper_grid)){
+ # browser()
+  boosted_model = gbm(formula = Richness~.,
+                              data = forest_train,
+                              n.minobsinnode = 10,
+                               bag.fraction = 0.5 ,
+                              interaction.depth =2,
+                              n.trees = 6000,
+                              distribution = "gaussian",
+                              cv.folds =3)
+  
+  oob_err[i] = boosted_model$train.error[length(boosted_model$train.error)]
+  
+ }
+
+ opt_i = which.min(oob_err)
+print(hyper_grid[opt_i,])
+```
+
+```{r}
+best.iter = best.iter <- gbm.perf(boosted_model,method="cv")
+print(best.iter)
+```
+
+
+
+```{r}
+summary(boosted_model,n.trees=1) 
+```
+
+```{r}
+summary(boosted_model,n.trees=best.iter)
+
+```
+
+```{r}
+
+print(pretty.gbm.tree(boosted_model,1))
+print(pretty.gbm.tree(boosted_model,boosted_model$n.trees))
+```
+
+```{r}
+pred <- predict(boosted_model,forest_test,6000)
+rmse(actual = forest_test$Richness,
+     predicted = pred)
+```
+
+
+
+
+
+
