@@ -6,9 +6,9 @@ library(dplyr) # everything
 library(ggplot2)
 library(gridExtra)
 
-zeta_r = readRDS("../Zeta/zeta_r")
+zeta_r = readRDS("Zeta/zeta_r")
 # get the data
-site_data =  read.csv("../../Data/CompleteSiteLevelVars.csv")
+site_data =  read.csv("../Data/CompleteSiteLevelVars.csv")
 site_data = site_data[,-1]
 
 
@@ -41,6 +41,7 @@ colnames(subset_all) = c("Site","Richness","Area",
                          "meandbh","meanph", "meanSOM","meanLBA",
                          "meanTD","zeta_r")
 
+
 largest_area = as.numeric(subset_all%>%filter(Area == max(Area))%>%select(Site))
 site_data_outlier = subset_all%>%filter(Site!=largest_area)
 site_data_outlier = site_data_outlier[,-3] # remove area column now
@@ -52,4 +53,10 @@ g3 =g2 = ggplot(site_data_outlier, aes(x=Buffer, y=Northing))+ geom_point()+geom
 
 grid.arrange(g1,g2, ncol = 2)
 
+g1 = ggplot(site_data, aes(x=Buffer1, y=meanSOM))+ geom_point()+geom_smooth(method = "lm")+
+  xlab("Buffer")
 
+g2 = ggplot(site_data, aes(x=Buffer1, y=mean_N))+ geom_point()+geom_smooth(method = "lm")+
+  xlab("Buffer")
+
+grid.arrange(g1,g2,ncol = 2)

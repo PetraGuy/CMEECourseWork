@@ -2,7 +2,7 @@
 library(dplyr)
 library(ggplot2)
 library(gridExtra)
-
+library(reshape)
 rm(list = ls())
 cat("\014")
 plotdata = read.csv("../Data/AllPlotsVarsRichness.csv")
@@ -82,5 +82,56 @@ g2 = ggplot(Scotland80df, aes(x = reorder(NVCcode,-normFS), y = normFS))+
 
 grid.arrange(g1,g2, ncol = 2)
 
- 
+ ######
+#W10 scotland vs W10 england
 
+W10scots = allplotdata_scots%>%filter(ShortNVC == "W10")%>%select(plot_richness)
+
+W10england = as.vector(allplotdatae_england%>%filter(ShortNVC == "W10")%>%select(plot_richness))
+
+df = as.data.frame(cbind(W10england$plot_richness,W10scots$plot_richness))
+colnames(df) = c("England/Wales","Scotland")
+melted = melt(df)
+
+g1 = ggplot(melted, aes(x = value, fill=variable))+
+  geom_density(alpha=0.25,adjust = 1, show.legend = FALSE)+
+  scale_x_continuous(limits = c(-10,60))+
+  annotate("label", x = 0, y = 0.042, 
+           label = "Density of plot richnesses in W10 plots")+
+  theme(legend.position = c(0.8, 0.2))+
+  xlab("plot richness")
+#####
+
+OV27scots = allplotdata_scots%>%filter(ShortNVC == "OV27")%>%select(plot_richness)
+
+OV27england = as.vector(allplotdatae_england%>%filter(ShortNVC == "OV27")%>%select(plot_richness))
+
+df = as.data.frame(cbind(OV27england$plot_richness,OV27scots$plot_richness))
+colnames(df) = c("England/Wales","Scotland")
+melted = melt(df)
+
+g2 = ggplot(melted, aes(x = value, fill=variable))+
+  geom_density(alpha=0.25,adjust = 1, show.legend = FALSE)+
+  scale_x_continuous(limits = c(-10,60))+
+  annotate("label", x = 0, y = 0.042, 
+           label = "Density of plot richnesses in OV27 plots")+
+  theme(legend.position = c(0.8, 0.2))+
+  xlab("plot richness")
+####
+W8scots = allplotdata_scots%>%filter(ShortNVC == "W8")%>%select(plot_richness)
+
+W8england = as.vector(allplotdatae_england%>%filter(ShortNVC == "W8")%>%select(plot_richness))
+
+df = as.data.frame(cbind(W8england$plot_richness,W8scots$plot_richness))
+colnames(df) = c("England/Wales","Scotland")
+melted = melt(df)
+
+g3 = ggplot(melted, aes(x = value, fill=variable))+
+  geom_density(alpha=0.25,adjust = 1)+
+  scale_x_continuous(limits = c(-10,60))+
+  annotate("label", x = 0, y = 0.042, 
+           label = "Density of plot richnesses in W8 plots")+
+  theme(legend.position = c(0.9, 0.4))+
+  xlab("plot richness")
+
+grid.arrange(g1,g2,g3, nrow =3)

@@ -284,8 +284,9 @@ ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
   stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
   geom_abline(intercept = 0, slope = 0)+
   labs(y = "Effect size and 95%CI",x = "Parameter")+ 
-  labs(title = "MEAN dataset. Model averaged results for delta <2",
-       subtitle = "Numbers in red are importance")
+  labs(title = "MEAN dataset" )+
+  theme(axis.text.x = element_text(angle=45, hjust=1))+
+theme(text = element_text(size = 14, face = "bold"))
 
 
 ```
@@ -342,9 +343,10 @@ ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
   stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7)+
   stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
   geom_abline(intercept = 0, slope = 0)+
-  labs(y = "Effect size and 95%CI",x = "Parameter")+ 
-  labs(title = "STANDARD DEVIATION dataset. Model averaged results for delta <2",
-       subtitle = "Numbers in red are importance")
+  labs(y = "Effect size and 95%CI",x = "Parameter", face = "bold")+ 
+  labs(title = "STANDARD DEVIATION dataset" )+
+  theme(axis.text.x = element_text(angle=45, hjust=1))+
+theme(text = element_text(size = 14, face = "bold"))
 
 
 ```
@@ -353,7 +355,7 @@ ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
 ##Using the model for prediction
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 #extract model averaged parameter estimates
-
+library(Metrics)
 predicted_richness = predict(mean_avg_models, full = TRUE)
 empirical_richness =  site_data_outlier$Richness
 fit = lm(empirical_richness ~ predicted_richness)

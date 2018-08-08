@@ -304,7 +304,7 @@ ggplot(data, aes(x = predicted_Z, y = empirical_Z))+
 #extract model averaged parameter estimates
 
 predicted_Z = predict(sd_avg_models, full = TRUE)
-empirical_Z =  site_data_outlier3$nestZ
+empirical_Z =  site_data_outlier3$nestZ 
 fit = lm(empirical_Z ~ predicted_Z)
 R2 = round(summary(fit)$r.squared,2)
 f = summary(fit)$fstatistic

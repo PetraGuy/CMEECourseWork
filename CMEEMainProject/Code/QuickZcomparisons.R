@@ -3,8 +3,9 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(scales)
-nestZsdf = readRDS("../nest_mixed_model_fits.RDS")
-plotZsdf = exp_zs = read.csv("../../Data/zexp.csv")
+
+nestZsdf = readRDS("nest_mixed_model_fits.RDS")
+plotZsdf = exp_zs = read.csv("../Data/zexp.csv")
 
 nestZs = nestZsdf$slope
 plotZs = plotZsdf$x

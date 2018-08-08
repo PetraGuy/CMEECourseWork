@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 )
 rm(list = ls())
 cat("\014")
-library(dplyr) 
+library(dplyr)
 library(visreg) # for visreg plots 
 library(ggplot2)
 library(GGally) # for ggpairs
@@ -29,7 +29,7 @@ library(corrplot)
 
 
 ```{r}
-sitevars =  read.csv("../Data/SiteVars.csv")
+sitevars =  read.csv("../Data/SiteLevelVars.csv")
 ```
 Several approaches will be used to examine the colinearity of the variates used in the to explain he richness of the 16 plots in each site, and the response of the richness to the variates will be considered,
 

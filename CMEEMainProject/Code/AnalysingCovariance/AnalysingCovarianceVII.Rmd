@@ -271,9 +271,9 @@ g7 = ggplot(data, aes(x= meanTD, y = Northing))+
   geom_point()+
  geom_smooth(method = lm)
 
-data = as.data.frame(cbind(sitevars$Buffer3, sitevars$Northing))
-colnames(data) =cbind("Buffer","Northing")
-g8 = ggplot(data, aes(x= Buffer, y = Northing))+
+data = as.data.frame(cbind(sitevars$BufferI, sitevars$Northing))
+colnames(data) =cbind("BufferI","Northing")
+g8 = ggplot(data, aes(x= BufferI, y = Northing))+
   geom_point()+
  geom_smooth(method = lm)
 
@@ -286,13 +286,7 @@ g8 = ggplot(data, aes(x= Buffer, y = Northing))+
  g11 = ggplot(sitevars, aes(x = mean_L, y = Richness ))+ geom_smooth(method = lm)
 
 
- g12 = ggplot(data = sitevars, aes(x = mean_L, y = Richness))+
-  geom_point()+
-  geom_smooth(method = lm)+
-  ggtitle("Richness with mean_L")+
-ylab("Richness")
- 
-grid.arrange(g7,g8,g9,g10,g12 , nrow = 2)
+grid.arrange(g7,g8,g9,g10, nrow = 2)
 #grid.arrange(g1,g2,g3,g4,g5,g6,g7, nrow =2)
 ```
 
@@ -506,7 +500,7 @@ grid.arrange(g1,g2,g3,g4)
 Is a correlation of -0.44 OK? 
 
 The graphs above suggest that meanTD is important. As the meanTD reduces, the mean Ellenberg L increases. This is not the case for mean dbh. And as mean Ellenberg L increases, richness increases.
-We can also see that as meanTD decreases, meandbh increases - as you would expect, you are getting high density for smaller trees, low density for larger trees. Looking at these plots I would be tempted to drop meandbh - but the reduction in significance when they are both included is a bit confusing -(edit - no, its because they are onfounded?)
+We can also see that as meanTD decreases, meandbh increases - as you would expect, you are getting high density for smaller trees, low density for larger trees. Looking at these plots I would be tempted to drop meandbh - but the reduction in significance when they are both included is a bit confusing. 
 
 
 
@@ -517,16 +511,8 @@ The following plot made me want to include it.
 allplotvars = read.csv("../../Data/AllPlotsVarsRichness.csv")
 y = allplotvars$plot_richness
 x = as.factor(allplotvars$ShortNVC)
-fill = allplotvars$SOMYr2
-data = as.data.frame(cbind(as.factor(x),y,fill))
-colnames(data) = c("NVCcode", "Richness","SOMYr2")
-
-ggplot(data, aes(x = reorder(NVCcode, Richness, FUN=median), y = Richness) ) +
-  geom_boxplot(aes(fill = SOMYr2)) +
-  scale_fill_continuous(low = "white", high = "blue")+
-  theme(axis.text.x = element_text(angle = 90))+
-  xlab("NVC Code")
-
+data = as.data.frame(cbind(as.factor(x),y))
+colnames(data) = c("NVC code", "Richness")
 ggplot(data, aes(x = x, y = y))+
   geom_boxplot()+
   xlab("NVC Code")+
@@ -562,47 +548,7 @@ PHI
 
 ```
 
-```{r}
-allplotvars = read.csv("../../Data/AllPlotsVarsRichness.csv")
-y = allplotvars$SOMYr2
-x = as.factor(allplotvars$ShortNVC)
-data = as.data.frame(cbind(as.factor(x),y))
-colnames(data) = c("NVC code", "Richness")
-ggplot(data, aes(x = x, y = y))+
-  geom_boxplot()+
-  xlab("NVC Code")+
-  ggtitle("range of SOM aross all plots with NVC code")+
-  theme(axis.text.x = element_text(angle = 90))+
-  geom_abline(slope = 0, intercept = 20)
 
 
-```
-
-```{r}
-
-ggplot(mtcars %>% group_by(carb) %>%
-         mutate(medMPG = median(mpg)), 
-       aes(x = reorder(carb, mpg, FUN=median), y = mpg)) +
-  geom_boxplot(aes(fill=medMPG)) +
-  stat_summary(fun.y=mean, colour="darkred", geom="point") +
-  scale_fill_gradient(low=hcl(15,100,75), high=hcl(195,100,75))
-```
-```{r}
-
-ggplot(allplotvars %>% group_by(ShortNVC) %>%
-         mutate(medSOM = median(SOMYr2)), 
-       aes(x = reorder(ShortNVC, plot_richness, FUN=median), y = plot_richness)) +
-  geom_boxplot(aes(fill=medSOM)) +
-  stat_summary(fun.y=mean, colour="darkred", geom="point") +
-  scale_fill_gradient(low=hcl(15,100,75), high=hcl(195,100,75))
-```
-
-```{r}
-ggplot(data = sitedata, aes(x = cut(meanSOM, breaks = 10), y = Richness))+
-  geom_boxplot(varwidth = TRUE)+
-  xlab("mean soil organic matter")+ggtitle("Site richness with grouped meanSOM content")
-
-
-```
 
 
