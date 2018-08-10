@@ -50,12 +50,12 @@ site_data$Pos_Hetero_Index = x
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # slect only required variables
-subset_all = site_data%>%select("Site","Richness","Area_ha",
-                                "Northing", "Pos_Hetero_Index","Buffer3",
-                                "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
-                                "sd_meandbh","sd_treedensity","area_ratio",
-                                "meandbh","meanph", "meanSOM","meanLBA",
-                                "meantreedensity","zeta_r")
+subset_all = site_data%>%select(Site,Richness,Area_ha,
+                                Northing, Pos_Hetero_Index,Buffer3,
+                                no_MSG, no_NVC,sd_pH,sd_SOM,sd_LBA,
+                                sd_meandbh,sd_treedensity,area_ratio,
+                                meandbh,meanph, meanSOM,meanLBA,
+                                meantreedensity,zeta_r)
 
 
 
@@ -79,19 +79,18 @@ site_data_outlier = site_data_outlier[,-3] # remove area column now
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-subset_sd = site_data_outlier%>%select("Site","Richness",
-                                "PHI","Buffer","Northing",
-                               "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
-                               "sd_meandbh","sd_TD","area_ratio","zeta_r")
+subset_sd = site_data_outlier%>%select(Site,Richness,
+                                PHI,Buffer,Northing,
+                               no_MSG, no_NVC,sd_pH,sd_SOM,sd_LBA,
+                               sd_meandbh,sd_TD,area_ratio,zeta_r)
 
 #,
 
 
-subset_mean = site_data_outlier%>%select("Site","Richness",
-                               "PHI", "Northing", "meandbh","Buffer",
-                              "meanph",  "meanSOM","meanLBA",
-                              "meanTD","area_ratio", "no_NVC", 
-                              "no_MSG","zeta_r")
+subset_mean = site_data_outlier%>%select(Site,Richness,
+                               PHI, Northing, meandbh,Buffer,
+                              meanph,  meanSOM,meanTD,meanLBA, area_ratio,no_NVC, 
+                              no_MSG,zeta_r)
 #,
 ```
 
@@ -284,7 +283,7 @@ ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
   stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
   geom_abline(intercept = 0, slope = 0)+
   labs(y = "Effect size and 95%CI",x = "Parameter")+ 
-  labs(title = "MEAN dataset" )+
+  labs(title = "MEAN dataset")+
   theme(axis.text.x = element_text(angle=45, hjust=1))+
 theme(text = element_text(size = 14, face = "bold"))
 

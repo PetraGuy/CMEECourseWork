@@ -24,12 +24,12 @@ x = site_data$Pos_Hetero_Index
 x[is.na(x)] = meanPHI
 site_data$Pos_Hetero_Index = x
 
-subset_all = site_data%>%select("Site","Richness","Area_ha",
-                                "Northing", "Pos_Hetero_Index","Buffer3",
-                                "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
-                                "sd_meandbh","sd_treedensity","area_ratio",
-                                "meandbh","meanph", "meanSOM","meanLBA",
-                                "meantreedensity","zeta_r")
+subset_all = site_data%>%select(Site,Richness,Area_ha,
+                                Northing, Pos_Hetero_Index,Buffer3,
+                                no_MSG, no_NVC,sd_pH,sd_SOM,sd_LBA,
+                                sd_meandbh,sd_treedensity,area_ratio,
+                                meandbh,meanph, meanSOM,meanLBA,
+                                meantreedensity,zeta_r)
 
 
 
@@ -41,19 +41,17 @@ colnames(subset_all) = c("Site","Richness","Area",
                          "meanTD","zeta_r")
 
 
-subset_sd = subset_all%>%select("Richness",
-                                "Northing", "PHI","Buffer",
-                                "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
-                                "sd_meandbh","sd_TD","area_ratio",
-                                "zeta_r")
+subset_sd = subset_all%>%select(Site,Richness,
+                                       PHI,Buffer,Northing,
+                                       no_MSG, no_NVC,sd_pH,sd_SOM,sd_LBA,
+                                       sd_meandbh,sd_TD,area_ratio,zeta_r)
 
 
 
-subset_mean = subset_all%>%select("Richness",
-                                  "Northing", "PHI","Buffer",
-                                  "no_MSG", "no_NVC","area_ratio",
-                                  "meandbh","meanph", "meanSOM","meanLBA",
-                                  "meanTD","zeta_r")
+subset_mean = subset_all%>%select(Site,Richness,
+                                  PHI, Northing, meandbh,Buffer,
+                                  meanph,  meanSOM,meanTD,meanLBA, area_ratio,no_NVC, 
+                                  no_MSG,zeta_r)
 
 
 
@@ -130,13 +128,20 @@ add_list_elements = function(list1,list2){
 
 ##############################
 
+## SOmehting has changed here - check the dataframe creations, orders etc, 
+##this code is no loner correct
+
+dataset = subset_mean
+dataset = dataset[,-1] # remove site col
+
+
 run_boosted_bootstrap = function(dataset){
   #browser()
   # initialise 
   data = list()
-  rmse_list = list()
-  rmse_list[[1]] = 0
-  rmse_list[[2]] = 0
+ # rmse_list = list()
+  #rmse_list[[1]] = 0
+ # rmse_list[[2]] = 0
   
   
   #initalise a list for rel imp
@@ -145,52 +150,67 @@ run_boosted_bootstrap = function(dataset){
     rel_infl_list[i] = 0
   }
   
+  
+  
   for (i in 1:100){
-   
+  
   data = get_traintest(dataset)
   model = get_model(data)
-  rmse_train = get_rmse(model,data)[[1]]
-  rmse_test = get_rmse(model,data)[[2]]
-  rmse_list[[1]] = rmse_list[[1]] + rmse_train
-  rmse_list[[2]] = rmse_list[[2]] + rmse_test
+  #rmse_train = get_rmse(model,data)[[1]]
+  #rmse_test = get_rmse(model,data)[[2]]
+ # rmse_list[[1]] = rmse_list[[1]] + rmse_train
+  #rmse_list[[2]] = rmse_list[[2]] + rmse_test
         
   rel_infl = get_rel_infl(model)
   rel_infl_ordered = get_influence(dataset,rel_infl)
   rel_infl_list = add_list_elements(rel_infl_list,rel_infl_ordered)
           
-}
+  }
 
+ 
 variables = colnames(dataset[-1])
-
-relinlf_df = data.frame(rel_influence = length(variables))
-
-for (i in 1:ncol(dataset[-1])){
-  relinlf_df[i,1] = rel_infl_list[[i]]/100
+relinlf_vec = vector()
+for (i in 1:12){
+  relinlf_vec[i] = as.numeric(rel_infl_list[[i]]/100)
+  
 }
 
-relinlf_df = as.data.frame(cbind(variables,relinlf_df))
+#relinlf_df = data.frame(rel_influence = length(variables))
 
-rmse_train_set = round(rmse_list[[1]]/100,2)
-rmse_test_set = round(rmse_list[[2]]/100,2)
+#for (i in 1:ncol(dataset[-1])){
+ # relinlf_df[i,1] = rel_infl_list[[i]]/100
+#}
 
-ggplot(data = relinlf_df , aes(x = reorder(variables, -rel_influence), y = rel_influence)) +  
+relinlf_df = as.data.frame(cbind(variables,relinlf_vec))
+relinlf_df$relinlf_vec = as.numeric(relinlf_df$relinlf_vec)
+
+#rmse_train_set = round(rmse_list[[1]]/100,2)
+#rmse_test_set = round(rmse_list[[2]]/100,2)
+
+ggplot(data = relinlf_df , aes(x = reorder(variables, -relinlf_vec), y = relinlf_vec)) +  
   geom_bar(stat = "identity")+
   ylab("relative influence")+
   xlab("")+
+  labs(title = "MEAN dataset")+
   theme(axis.text.x=element_text(angle = 45, hjust = 1))+
-  ggtitle("Relative Influence for 100 bootstrapped GBMs")+
-  annotate("text", x = 10, y = 15, label = paste("rmse train set = ", rmse_train_set))+
-  annotate("text", x = 10, y = 14, label = paste("rmse test set = ", rmse_test_set))
+  #ggtitle("Relative Influence for 100 bootstrapped GBMs")+
+  #annotate("text", x = 10, y = 15, label = paste("rmse train set = ", rmse_train_set))+
+  #annotate("text", x = 10, y = 14, label = paste("rmse test set = ", rmse_test_set))+
+  theme(text = element_text(size = 14, face = "bold"))
 
-}
+ }
   
+mean = run_boosted_bootstrap(subset_mean)
+mean_data = relinlf_df
+saveRDS(mean_data,"/gbm_mean_dataset")
 
+dataset = subset_sd
 
+sd_data = relinlf_df
 
+saveRDS(sd_data,"/gbm_sd_dataset")
 
-
-
-
-
-
+relinlf_df = mean_data
+mean_data = readRDS("/gbm_mean_dataset")
+sd_data = readRDS("/gbm_sd_dataset")
 

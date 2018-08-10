@@ -125,9 +125,11 @@ dev.off()
 #################################
 
 
+data = as.data.frame(cbind(as.factor(x2),y))
 
-
-
+ggplot(data, aes(x = x2, y = y))+geom_boxplot()+
+  xlab("plot pH")+ylab("plot richness")+
+  theme(text = element_text(size = 14, face = "bold"))
 
 
 
