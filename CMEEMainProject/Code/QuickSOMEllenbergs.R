@@ -68,93 +68,102 @@ get_p = function(data){
 }
 ###############
 w10vals = get_som_ellens("W10")
-melted = melt(w10vals, id.vars = "SOM")
+w10pH = w10vals%>%select(SOM,pH) # just want pH for talk
+melted = melt(w10pH, id.vars = "SOM")
 ps = get_p(w10vals)
 pvals = paste("p ave N =",round(ps[1],2),
               ", p ave R =",round(ps[2],2),
               ", p pH =",round(ps[3],2))
 
- w10plot = ggplot(melted, aes(x = SOM, y = value, colour = variable))+
+ w10plot = ggplot(melted, aes(x = SOM, y = value))+
     geom_point()+
    geom_smooth(method = "lm")+
-  ylab("Average Ellenberg for plot")+
+  ylab("Plot pH")+
    annotate("text", x = 80, y = 9, label = "W10")
    #annotate("text", x = 40, y = 3, label = pvals)
 ###############
  w8vals = get_som_ellens("W8")
- melted = melt(w8vals, id.vars = "SOM")
+ w8pH = w8vals%>%select(SOM,pH) # just want pH for talk
+ 
+ melted = melt(w8pH, id.vars = "SOM")
  ps = get_p(w8vals)
  pvals = paste("p ave N =",round(ps[1],2),
                ", p ave R =",round(ps[2],2),
                ", p pH =",round(ps[3],2))
  
- w8plot = ggplot(melted, aes(x = SOM, y = value, colour = variable))+
+ w8plot = ggplot(melted, aes(x = SOM, y = value))+
    geom_point()+
    geom_smooth(method = "lm",linetype="dashed")+
-   ylab("Average Ellenberg for plot")+
+   ylab("Plot pH")+
    annotate("text", x = 80, y = 9, label = "W8")
   # annotate("text", x = 40, y = 3, label = pvals)
 ###########
  
  w6vals = get_som_ellens("W6")
- melted = melt(w6vals, id.vars = "SOM")
+ w6pH = w6vals%>%select(SOM,pH) # just want pH for talk
+ 
+ melted = melt(w6pH, id.vars = "SOM")
  ps = get_p(w6vals)
  pvals = paste("p ave N =",round(ps[1],2),
                ", p ave R =",round(ps[2],2),
                ", p pH =",round(ps[3],2))
  
- w6plot = ggplot(melted, aes(x = SOM, y = value, colour = variable))+
+ w6plot = ggplot(melted, aes(x = SOM, y = value))+
    geom_point()+
    geom_smooth(method = "lm", linetype="dashed")+
-   ylab("Average Ellenberg for plot")+
+   ylab("Plot pH")+
    annotate("text", x = 80, y = 9, label = "W6")
    #annotate("text", x = 40, y = 3, label = pvals)
  
 #############
  
  w16vals = get_som_ellens("W16")
- melted = melt(w16vals, id.vars = "SOM")
+ w16pH = w16vals%>%select(SOM,pH)
+ melted = melt(w16pH, id.vars = "SOM")
  ps = get_p(w16vals)
  pvals = paste("p ave N =",round(ps[1],2),
                ", p ave R =",round(ps[2],2),
                ", p pH =",round(ps[3],2))
  
- w16plot = ggplot(melted, aes(x = SOM, y = value, colour = variable))+
+ w16plot = ggplot(melted, aes(x = SOM, y = value))+
    geom_point()+
    geom_smooth(method = "lm")+
-   ylab("Average Ellenberg for plot")+
+   ylab("Plot pH")+
    annotate("text", x = 80, y = 9, label = "W16")
    #annotate("text", x = 40, y = 3, label = pvals)
  
 ###########
 
  w21vals = get_som_ellens("W21")
- melted = melt(w21vals, id.vars = "SOM")
+ w12pH = w12vals%>%select(SOM,pH)
+ melted = melt(w12pH, id.vars = "SOM")
  ps = get_p(w21vals)
  pvals = paste("p ave N =",round(ps[1],2),
                ", p ave R =",round(ps[2],2),
                ", p pH =",round(ps[3],2))
  
- w21plot = ggplot(melted, aes(x = SOM, y = value, colour = variable))+
+ w21plot = ggplot(melted, aes(x = SOM, y = value))+
    geom_point()+
    geom_smooth(method = "lm",linetype="dashed")+
-   ylab("Average Ellenberg for plot")+
+   ylab("Plot pH")+
    annotate("text", x = 80, y = 9, label = "W21")
    #annotate("text", x = 40, y = 3, label = pvals)
  
 ######
  
  ov27vals = get_som_ellens("W8")
- melted = melt(ov27vals, id.vars = "SOM")
+ ov27pH = ov27vals%>%select(SOM,pH)
+ 
+ melted = melt(ov27pH, id.vars = "SOM")
  ps = get_p(ov27vals)
  pvals = paste("p ave N =",round(ps[1],2),
                ", p ave R =",round(ps[2],2),
                ", p pH =",round(ps[3],2))
  
- ov27plot = ggplot(melted, aes(x = SOM, y = value, colour = variable))+
+ ov27plot = ggplot(melted, aes(x = SOM, y = value))+
    geom_point()+
    geom_smooth(method = "lm",linetype="dashed")+
-   ylab("Average Ellenberg for plot")+
+   ylab("Plot pH")+
    annotate("text", x = 80, y = 9, label = "OV27")
    #annotate("text", x = 40, y = 3, label = pvals)
  
@@ -164,6 +173,6 @@ pvals = paste("p ave N =",round(ps[1],2),
  
  ######
  
- 
+
  
   

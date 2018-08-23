@@ -56,21 +56,25 @@ colnames(exp_zs) = c("Site","expz")
 site_data_zs_zr=inner_join(site_data_zs,rand_zs)
 site_data_allzs = inner_join(site_data_zs_zr,exp_zs)
 
+veganz = readRDS("../veganzs.RDS")
+veganz = as.data.frame(cbind(Site,veganz))
+colnames(veganz) = c("Site","veganzs")
 
+site_data_allzs_vegan = inner_join(site_data_allzs,veganz)
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-# slect only required variables
+# select only required variables
 #change to either slope or zr or zexp if you want minmax , 1000 random paths or expectation 
 
-subset_all = site_data_allzs%>%select("Site","expz","Area_ha",
-                                "Northing", "Pos_Hetero_Index","Buffer3",
-                                "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
-                                "sd_meandbh","sd_treedensity","area_ratio",
-                                "meandbh","meanph", "meanSOM","meanLBA",
-                                "meantreedensity","zeta_r")
+subset_all = site_data_allzs_vegan%>%select(Site,veganzs,Area_ha,
+                                Northing, Pos_Hetero_Index,Buffer3,
+                                no_MSG, no_NVC,sd_pH,sd_SOM,sd_LBA,
+                                sd_meandbh,sd_treedensity,area_ratio,
+                                meandbh,meanph, meanSOM,meanLBA,
+                                meantreedensity,zeta_r)
 
-
+#zeta_r"
 
 colnames(subset_all) = c("Site","z","Area",
                          "Northing", "PHI","Buffer",
@@ -78,6 +82,7 @@ colnames(subset_all) = c("Site","z","Area",
                          "sd_meandbh","sd_TD","area_ratio",
                          "meandbh","meanph", "meanSOM","meanLBA",
                          "meanTD","zeta_r")
+#,"zeta_r"
 ```
 
 
@@ -99,18 +104,19 @@ site_data_outlier3 = site_data_outlier2%>%filter(Site!=largest_PHI)
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-subset_sd = site_data_outlier3%>%select("Site","z",
-                               "Northing", "PHI","Buffer",
-                               "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
-                               "sd_meandbh","sd_TD","area_ratio","zeta_r")
+subset_sd = site_data_outlier3%>%select(Site,z,
+                               Northing, PHI,Buffer,
+                               no_MSG, no_NVC,sd_pH,sd_SOM,sd_LBA,
+                               sd_meandbh,sd_TD,area_ratio,zeta_r)
 
+#,"zeta_r"
 
-
-subset_mean = site_data_outlier3%>%select("Site","z",
-                              "Northing", "PHI",  "meandbh",
-                              "meanph", "Buffer", "meanSOM","meanLBA",
-                              "meanTD","area_ratio", "no_NVC", 
-                              "no_MSG","zeta_r")
+subset_mean = site_data_outlier3%>%select(Site,z,
+                              Northing, PHI,meandbh,
+                              meanph, Buffer, meanSOM,meanLBA,
+                              meanTD,area_ratio, no_NVC, 
+                              no_MSG,zeta_r)
+#,"zeta_r"
 
 ```
 
@@ -122,7 +128,7 @@ subset_mean = site_data_outlier3%>%select("Site","z",
 # we know richness vs ph usually unimodal around .5, therefore fit to meanpH^2
 data = subset_mean[,-1]
 z = subset_mean[,2]
-data$meanph = (data$meanph)^2
+#data$meanph = (data$meanph)^2
 
 #rescale the data
 library(arm) #for standarize
@@ -186,7 +192,7 @@ The models which had a delta <2 were selected from the MuMin dredge funtion as t
 library(MuMIn) #dredge and avg
  #get top models
 models = dredge(mod_mean)
-model_set = get.models(models, subset = delta<1.5)
+model_set = get.models(models, subset = delta<0.8)
 
 
 #do model averaging, subset means zero method
@@ -244,7 +250,7 @@ The graph shows the averaged effect sizes of the model with delta < 2. Number of
 library(MuMIn) #dredge and avg
  #get top models
 models = dredge(mod_sd)
-model_set = get.models(models, subset = delta<1.5)
+model_set = get.models(models, subset = delta<1)
 
 
 #do model averaging, subset means zero method
@@ -349,7 +355,22 @@ ggplot(df,aes(value, fill=key))+
   #scale_fill_manual(values = c(x="red",y="blue"))
 ```
 
-                         
+```{r}
+#look at zs
+library(corrplot)
+zs_df = as.data.frame(cbind(site_data_allzs_vegan$veganzs,
+                            site_data_allzs_vegan$expz,
+                            site_data_allzs_vegan$slope))
+
+colnames(zs_df) = c("vegest","meest","minmax")
+mcor = round(cor(zs_df, method = "spearman", use = "na.or.complete"),2)
+
+corrplot(mcor, type = "upper", tl.pos = "td",
+         method = "number", tl.cex = 0.5, tl.col = 'black',tl.srt=45,
+         order = "hclust", diag = FALSE,
+         title = "spearman correlation",
+         mar=c(0,0,1,0))
+```
                          
                          
                          

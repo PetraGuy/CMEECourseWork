@@ -46,21 +46,22 @@ site_data_zs = inner_join(site_data,Zs)
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # slect only required variables
-subset_all = site_data_zs%>%select("Site","slope","Area_ha",
-                                "Northing", "Pos_Hetero_Index","Buffer3",
-                                "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
-                                "sd_meandbh","sd_treedensity","area_ratio",
-                                "meandbh","meanph", "meanSOM","meanLBA",
-                                "meantreedensity","zeta_r")
+subset_all = site_data_zs%>%select(Site,slope,Area_ha,
+                                Northing, Pos_Hetero_Index,Buffer3,
+                                no_MSG, no_NVC,sd_pH,sd_SOM,sd_LBA,
+                                sd_meandbh,sd_treedensity,area_ratio,
+                                meandbh,meanph,meanSOM,meanLBA,
+                                meantreedensity)
 
-
+#,"zeta_r"
 
 colnames(subset_all) = c("Site","nestZ","Area",
                          "Northing", "PHI","Buffer",
                          "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
                          "sd_meandbh","sd_TD","area_ratio",
                          "meandbh","meanph", "meanSOM","meanLBA",
-                         "meanTD","zeta_r")
+                         "meanTD")
+#,"zeta_r"
 ```
 
 
@@ -82,19 +83,19 @@ site_data_outlier3 = site_data_outlier2%>%filter(Site!=largest_PHI)
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-subset_sd = site_data_outlier3%>%select("Site","nestZ",
-                               "Northing", "PHI","Buffer",
-                               "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
-                               "sd_meandbh","sd_TD","area_ratio","zeta_r")
+subset_sd = site_data_outlier3%>%select(Site,nestZ,
+                               Northing, PHI,Buffer,
+                               no_MSG, no_NVC,sd_pH,sd_SOM,sd_LBA,
+                               sd_meandbh,sd_TD,area_ratio)
 
+#,"zeta_r"
 
-
-subset_mean = site_data_outlier3%>%select("Site","nestZ",
-                              "Northing", "PHI",  "meandbh",
-                              "meanph", "Buffer", "meanSOM","meanLBA",
-                              "meanTD","area_ratio", "no_NVC", 
-                              "no_MSG","zeta_r")
-
+subset_mean = site_data_outlier3%>%select(Site,nestZ,
+                              Northing, PHI,  meandbh,
+                              meanph, Buffer, meanSOM,meanLBA,
+                              meanTD,area_ratio, no_NVC, 
+                              no_MSG)
+#,"zeta_r"
 ```
 
 
@@ -105,7 +106,7 @@ subset_mean = site_data_outlier3%>%select("Site","nestZ",
 # we know richness vs ph usually unimodal around .5, therefore fit to meanpH^2
 data = subset_mean[,-1]
 nestZ = subset_mean[,2]
-data$meanph = (data$meanph)^2
+#data$meanph = (data$meanph)^2
 
 #rescale the data
 library(arm) #for standarize
@@ -168,7 +169,7 @@ The models with a delta <2 were selected from the MuMin dredge funtion as the to
 library(MuMIn) #dredge and avg
  #get top models
 models = dredge(mod_mean)
-model_set = get.models(models, subset = delta<2)
+model_set = get.models(models, subset = delta<1.5)
 
 
 #do model averaging, subset means zero method
@@ -226,7 +227,7 @@ The graph shows the averaged effect sizes of the model with delta < 2. PHI and s
 library(MuMIn) #dredge and avg
  #get top models
 models = dredge(mod_sd)
-model_set = get.models(models, subset = delta<2)
+model_set = get.models(models, subset = delta<1.5)
 
 
 #do model averaging, subset means zero method

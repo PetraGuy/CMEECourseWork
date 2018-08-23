@@ -109,6 +109,9 @@ saveRDS(sac_max,"sac_max.RDS")
 # We have the cumsums in sac_max for the maximum gradient.
 # Repeat for the minimum gradient
 
+
+areas = seq(from = 200, to = 3200, by = 200)
+
 sac_min = list()
 path_min = list()
 
@@ -160,9 +163,7 @@ for (i in 1:103){
   sac_min[[i]] = cumsum(f)
 }
 
-
-areas = seq(from = 200, to = 3200, by = 200)
-
+saveRDS(sac_min,"sac_min.RDS")
 # make a long df from the min cumsums, but continue to area 3200
 
 long_sac_max = data.frame()
