@@ -131,11 +131,12 @@ add_list_elements = function(list1,list2){
 ## SOmehting has changed here - check the dataframe creations, orders etc, 
 ##this code is no loner correct
 
-dataset = subset_mean
+dataset = subset_sd
 dataset = dataset[,-1] # remove site col
 
 
 run_boosted_bootstrap = function(dataset){
+  dataset = dataset[,-1]
   #browser()
   # initialise 
   data = list()
@@ -182,7 +183,7 @@ for (i in 1:12){
 #}
 
 relinlf_df = as.data.frame(cbind(variables,relinlf_vec))
-relinlf_df$relinlf_vec = as.numeric(relinlf_df$relinlf_vec)
+relinlf_df$relinlf_vec = as.double(relinlf_df$relinlf_vec)
 
 #rmse_train_set = round(rmse_list[[1]]/100,2)
 #rmse_test_set = round(rmse_list[[2]]/100,2)
@@ -191,7 +192,7 @@ ggplot(data = relinlf_df , aes(x = reorder(variables, -relinlf_vec), y = relinlf
   geom_bar(stat = "identity")+
   ylab("relative influence")+
   xlab("")+
-  labs(title = "MEAN dataset")+
+  #labs(title = "MEAN dataset")+
   theme(axis.text.x=element_text(angle = 45, hjust = 1))+
   #ggtitle("Relative Influence for 100 bootstrapped GBMs")+
   #annotate("text", x = 10, y = 15, label = paste("rmse train set = ", rmse_train_set))+

@@ -15,6 +15,7 @@ library(gridExtra)
 site_data =  read.csv("../../Data/CompleteSiteLevelVars.csv")
 site_data = site_data[,-1]
 
+
 zeta_r = readRDS("../Zeta/zeta_r")
 Site = c(1:103)
 zeta_r = as.data.frame(cbind(Site,zeta_r))
@@ -26,13 +27,12 @@ x = site_data$Pos_Hetero_Index
 x[is.na(x)] = meanPHI
 site_data$Pos_Hetero_Index = x
 
-
-subset_all = site_data%>%select("Site","Richness","Area_ha",
-                                "Northing", "Pos_Hetero_Index","Buffer3",
-                                "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
-                                "sd_meandbh","sd_treedensity","area_ratio",
-                                "meandbh","meanph", "meanSOM","meanLBA",
-                                "meantreedensity","zeta_r")
+subset_all = site_data%>%select(Site,Richness,Area_ha,
+                                Northing, Pos_Hetero_Index,Buffer3,
+                                no_MSG, no_NVC,sd_pH,sd_SOM,sd_LBA,
+                                sd_meandbh,sd_treedensity,area_ratio,
+                                meandbh,meanph, meanSOM,meanLBA,
+                                meantreedensity,zeta_r)
 
 
 
@@ -44,42 +44,42 @@ colnames(subset_all) = c("Site","Richness","Area",
                          "meanTD","zeta_r")
 
 
-subset_mean = subset_all%>%select("Richness",
-                                  "Northing", "PHI","Buffer",
-                                  "no_MSG", "no_NVC","area_ratio",
-                                  "meandbh","meanph", "meanSOM","meanLBA",
-                                  "meanTD","zeta_r")
+subset_mean = subset_all%>%select(Richness,
+                                  Northing, PHI,Buffer,
+                                  no_MSG, no_NVC,area_ratio,
+                                  meandbh,meanph, meanSOM,meanLBA,
+                                  meanTD,zeta_r)
 
 
 
-subset_sd = subset_all%>%select("Richness",
-                                "Northing", "PHI","Buffer",
-                                "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
-                                "sd_meandbh","sd_TD","area_ratio",
-                                "zeta_r")
-
-
-
-
+subset_sd = subset_all%>%select(Richness,
+                                Northing, PHI,Buffer,
+                                no_MSG, no_NVC,sd_pH,sd_SOM,sd_LBA,
+                                sd_meandbh,sd_TD,area_ratio,
+                                zeta_r)
 
 
 
 
 
+
+
+
+#NB with this shit code - you have to change the dataset nbame many times
 
 rmse_test = 0
 rmse_train = 0
 #varimp_o = data.frame(nrow = 8 )
-vars = (colnames(subset_sd[-1]))
+vars = (colnames(subset_mean[-1])) #HERE****
 vis = c(0,0,0,0,0,0,0,0,0,0,0)
 
 for (i in 1:100){
   
-  assignment <- sample(1:2, size = nrow(subset_mean), prob = c(0.75,0.25), replace = TRUE)
+  assignment <- sample(1:2, size = nrow(subset_mean), prob = c(0.75,0.25), replace = TRUE) #HERE***
   
 
-  train <- subset_sd[assignment == 1, ]    # subset the grade data frame to training indices only
-  test <- subset_sd[assignment == 2, ]
+  train <- subset_mean[assignment == 1, ]    # subset the grade data frame to training indices only
+  test <- subset_mean[assignment == 2, ]
   forest = randomForest(formula = Richness~., data = train,importance = TRUE,
                         mtry = 4,
                         nodesize = 8,
@@ -102,7 +102,7 @@ for (i in 1:100){
 rmse_test = round(rmse_test/100,2)
 rmse_train = round(rmse_train/100,2)
 vis_rnd = (round(vis/100,2))
-vis_df = data.frame(IncMSE = length(variables))
+vis_df = data.frame(IncMSE = length(vars))
 vis_df = as.data.frame(cbind(vars,vis_rnd))
 vis_df$vis_rnd = as.numeric(levels(vis_df$vis_rnd))[vis_df$vis_rnd]
 
@@ -112,9 +112,12 @@ ggplot(data = vis_df , aes(x = reorder(vars, -vis_rnd), y = vis_rnd)) +
   ylab("%IncMSE")+
   xlab("")+
   theme(axis.text.x=element_text(angle = 45, hjust = 1))+
-  ggtitle("Inc MSE for 100 bootstrapped random forests")+
-  annotate("text", x = 10, y = 15, label = paste("rmse train set = ", rmse_train))+
-  annotate("text", x = 10, y = 14, label = paste("rmse test set = ", rmse_test))
+  theme(axis.text=element_text(size=14, face="bold"))+
+  theme(axis.title=element_text(size = 14, face="bold"))
+       
+  #ggtitle("Inc MSE for 100 bootstrapped random forests")+
+  #annotate("text", x = 10, y = 15, label = paste("rmse train set = ", rmse_train))+
+  #annotate("text", x = 10, y = 14, label = paste("rmse test set = ", rmse_test))
 
 
 
