@@ -182,9 +182,13 @@ write.csv(CompleteSiteLevelVars, "../Data/CompleteSiteLevelVars.csv")
 #####PHYSICL##########
 #Now first consider "physical" variables, select subset of CompleteSiteLevelVars
 
-physical_vars = c("Site","Alt_m", "Area_ha","Perim_m" ,"area_ratio", "Easting" , "Northing","Buffer1","Buffer2" ,
-                  "Buffer3", "Richness", "meandbh", "meanph" , "meanSOM" ,"meanLBA" )              
-physical = CompleteSiteLevelVars%>%select(physical_vars)
+#physical_vars = c("Site","Alt_m", "Area_ha","Perim_m" ,"area_ratio", "Easting" , "Northing","Buffer1","Buffer2" ,
+                  #"Buffer3", "Richness", "meandbh", "meanph" , "meanSOM" ,"meanLBA" )   
+
+#physical_vars = c(Site,Alt_m, Area_ha,Perim_m ,area_ratio, Easting , Northing,Buffer1,Buffer2 ,
+                  #Buffer3, Richness, meandbh, meanph, meanSOM ,meanLBA )
+physical = CompleteSiteLevelVars%>%select(Site,Alt_m, Area_ha,Perim_m ,area_ratio, Easting , Northing,Buffer1,Buffer2 ,
+                                          Buffer3, Richness, meandbh, meanph, meanSOM ,meanLBA)
 
 
 

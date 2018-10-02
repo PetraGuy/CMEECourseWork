@@ -1,4 +1,6 @@
 
+setwd("C:/dev/code/CMEECourseWork/CMEEMainProject/Code")
+
 library(dplyr)
 library(ggplot2)
 library(gridExtra)
@@ -97,9 +99,10 @@ g1 = ggplot(melted, aes(x = value, fill=variable))+
   geom_density(alpha=0.25,adjust = 1, show.legend = FALSE)+
   scale_x_continuous(limits = c(-10,60))+
   annotate("label", x = 0, y = 0.042, 
-           label = "Density of plot richnesses in W10 plots")+
+           label = "Density of plot richnesses in W10 plots", fontface=2)+
   theme(legend.position = c(0.8, 0.2))+
-  xlab("plot richness")
+  xlab("plot richness")+
+  theme(text = element_text(size = 14, face = "bold"))
 #####
 
 OV27scots = allplotdata_scots%>%filter(ShortNVC == "OV27")%>%select(plot_richness)
@@ -114,9 +117,10 @@ g2 = ggplot(melted, aes(x = value, fill=variable))+
   geom_density(alpha=0.25,adjust = 1, show.legend = FALSE)+
   scale_x_continuous(limits = c(-10,60))+
   annotate("label", x = 0, y = 0.042, 
-           label = "Density of plot richnesses in OV27 plots")+
+           label = "Density of plot richnesses in OV27 plots", fontface = 2)+
   theme(legend.position = c(0.8, 0.2))+
-  xlab("plot richness")
+  xlab("plot richness")+
+  theme(text = element_text(size = 14, face = "bold"))
 ####
 W8scots = allplotdata_scots%>%filter(ShortNVC == "W8")%>%select(plot_richness)
 
@@ -132,6 +136,7 @@ g3 = ggplot(melted, aes(x = value, fill=variable))+
   annotate("label", x = 0, y = 0.042, 
            label = "Density of plot richnesses in W8 plots")+
   theme(legend.position = c(0.9, 0.4))+
-  xlab("plot richness")
+  xlab("plot richness")+
+  theme(text = element_text(size = 14, face = "bold"))
 
-grid.arrange(g1,g2,g3, nrow =3)
+grid.arrange(g1,g2, nrow =2)

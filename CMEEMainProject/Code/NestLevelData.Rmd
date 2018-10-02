@@ -279,7 +279,7 @@ g1 = ggplot(melted, aes(value, fill = variable) )+
 
 g2 = ggplot(melted) + geom_boxplot(aes_string(x = "variable", y = "value"))+
   xlab("")+
-  yl ab("Change in richness")
+  ylab("Change in richness")
   
 
 grid.arrange(g1,g2, ncol = 2, top = "Change in richness due to nest or plot")

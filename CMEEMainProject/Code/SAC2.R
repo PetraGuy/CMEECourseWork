@@ -4,7 +4,7 @@
 
 
 
-
+setwd("C:/dev/code/CMEECourseWork/CMEEMainProject/Code")
 
 
 # Calculating SAC using maxmum and Minimum slope methods

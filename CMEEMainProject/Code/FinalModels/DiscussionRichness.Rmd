@@ -353,3 +353,46 @@ ggplot(data = sitedata , aes(x = mean_R, y = mean_N))+
     geom_smooth(method = lm)
 ```
 
+
+
+```{r}
+data = sitedata%>%
+  select(sd_pH, sd_SOM, sd_LBA, sd_meandbh, sd_treedensity)
+scaledsite= scale(data)
+melted = melt(scaledsite)
+ggplot(melted,aes(x = value, fill = X2))+
+   geom_density(alpha = 0.2, adjust = 3)+
+  xlim(c(-3,3))
+
+
+
+```
+
+```{r}
+
+p.sd_pH = round(shapiro.test(sitedata$sd_pH)$p.value,2)
+p.sd_SOM = round(shapiro.test(sitedata$sd_SOM)$p.value,2)
+p.sd_meandbh = round(shapiro.test(sitedata$sd_meandbh)$p.value,2)
+p.sd_TD = round(shapiro.test(sitedata$sd_treedensity)$p.value,2)
+
+
+
+
+
+g1  = ggplot(sitedata, aes(x = "", y = sd_LBA)) + 
+  geom_boxplot()  
+
+g2  = ggplot(sitedata, aes(x = "", y = sd_pH)) + 
+  geom_boxplot() 
+ 
+g3  = ggplot(sitedata, aes(x = "", y = sd_meandbh)) + 
+  geom_boxplot() 
+
+g4  = ggplot(sitedata, aes(x = "", y = sd_SOM)) + 
+  geom_boxplot() 
+
+grid.arrange(g1,g2,g3,g4)
+
+
+```
+

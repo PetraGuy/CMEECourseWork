@@ -1,4 +1,5 @@
 #new way of getting z's using the formula of Chiarucci
+#Note - this is pointless because vegan has this option in its specacc function(method = exact)
 
 rm(list = ls())
 cat("\014")
@@ -29,6 +30,7 @@ Data_Yr2_veg = Data_Yr2 %>% inner_join(veg_codes)
 
 #################################################################
 
+# a list of unique brc in each plot/site
 get_site_brcs = function(sitenum){
   numplots = max(Data_Yr2_veg%>%filter(SITE == sitenum)%>%select(PLOT))
   BRClist= list()
@@ -37,22 +39,26 @@ get_site_brcs = function(sitenum){
   }
   return(BRClist)
 }
-  
+
+#shows occurances/freq of each brc in a site
 get_occurances = function(brclist){
   t = as.data.frame(table(unlist(brclist)))
   return(t)
 }  
- 
+
+#gives number of plots in a site
 get_numplots = function(data,sitenum){
   numplots = max(Data_Yr2_veg%>%filter(SITE == sitenum)%>%select(PLOT))
   return(numplots)
 }
 
+#number of species in a site
 get_Sn = function(occ){
   Sn = nrow(occ)
   return(Sn)
 }
 
+#used by get_site_df
 get_col = function(occ,colnum,numplots){
   end = nrow(occ)
   col = vector()
@@ -65,8 +71,8 @@ get_col = function(occ,colnum,numplots){
   return(col)
 }
 
+#gets the presence absence data frome using the site occurance data
 get_site_df = function(occ,numplots,Sn){
-  
   sitedf = data.frame(row.names = 1:Sn)
     for (i in 1:numplots){
       col = get_col(occ,i,numplots)
@@ -74,7 +80,8 @@ get_site_df = function(occ,numplots,Sn){
     }
   return(sitedf)
 }
-  
+
+#this is the calculation 
 get_final_row = function(sitedf,numplots,Sn){
   value1 = vector()
   for (i in 1:numplots){

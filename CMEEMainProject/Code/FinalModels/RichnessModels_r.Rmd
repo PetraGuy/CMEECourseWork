@@ -283,7 +283,7 @@ ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
   stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
   geom_abline(intercept = 0, slope = 0)+
   labs(y = "Effect size and 95%CI",x = "Parameter")+ 
-  labs(title = "MEAN dataset")+
+  #labs(title = "MEAN dataset")+
   theme(axis.text.x = element_text(angle=45, hjust=1))+
 theme(text = element_text(size = 14, face = "bold"))
 

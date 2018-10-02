@@ -11,7 +11,8 @@
 #     tree_density, dbh_means,  DBHAnalysis
 #OUTPUT AllPlotVarsRichness.csv combines PlotVars with tree density, mean dbh and richness from
 #       DBH analysis and ExploringNests
-
+library(ggplot2)
+library(dplyr)
 
 
 Data = read.csv("../Data/GroundCover.csv")

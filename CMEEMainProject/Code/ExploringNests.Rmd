@@ -191,8 +191,8 @@ u_woods = wood_rich%>%filter(d>100)
 l_woods = wood_rich%>%filter(d<60)
 good_bad = rbind(u_woods,l_woods) #good_bad used in mappin below
 
-SOM = site_data$meanSOM
-wood_rich$SOM = SOM
+#SOM = site_data$meanSOM
+#wood_rich$SOM = SOM
 ```
 
 ```{r, message=FALSE, warning=FALSE}
@@ -207,7 +207,7 @@ map<- get_map(location = c(lon = -1.5, lat = 54),
                          zoom = 6) 
 #png("../Data/Talk/Map.png") 
 ggmap(map, extent ='device')+
-    geom_point(aes(x = Long, y = Lat, colour = SOM),data = wood_rich, size = 2, alpha=1)+
+    geom_point(aes(x = Long, y = Lat, colour = d),data = wood_rich, size = 2, alpha=1)+
     scale_color_gradient(low = "yellow", high="red")+
   geom_point(aes(x = Long, y = Lat, colour = d),data = min_max, size = 4, alpha=1)+
   scale_color_gradient(low = "yellow", high="red")+

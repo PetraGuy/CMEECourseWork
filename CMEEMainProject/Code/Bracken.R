@@ -1,4 +1,12 @@
 
+#Select brack, knotweed, rhodis, nettles and himalyan balsam
+# what you would do from here is extract the sites/plots where cover is > say 50%
+# then correlate that with plot richnesses
+
+#So this analysis not complete
+#just the sites/bolts extracted where the invasives occur
+
+
 library(dplyr)
 
 Data = read.csv("../Data/GroundCover.csv")
@@ -8,7 +16,7 @@ veg_codes = read.csv("../Data/vegetation_codes.csv")
 colnames(veg_codes) = c("Species", "BRC_number")
 Data_Yr2_veg = Data_Yr2%>% inner_join(veg_codes)
 
-Sitedata =  read.csv("../Data/CompleteSiteLevelVars.csv")
+
 
 
 #############
@@ -31,6 +39,10 @@ totcov_nettles = nettles%>%group_by(SITE)%>%summarise(totcov_urtica = sum(Cover)
 
 Richness = Sitedata%>%select(Site,Richness)
 colnames(Richness) = c("SITE","Richness")
+
+
+# not sure that this is right - coz you will end up with df 
+#where only sites with all species co-occur??
 
 invasives = inner_join(Richness,totcov_bracken)
 invasives = inner_join(invasives,totcov_balsam)

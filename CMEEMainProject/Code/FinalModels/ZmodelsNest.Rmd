@@ -51,7 +51,7 @@ subset_all = site_data_zs%>%select(Site,slope,Area_ha,
                                 no_MSG, no_NVC,sd_pH,sd_SOM,sd_LBA,
                                 sd_meandbh,sd_treedensity,area_ratio,
                                 meandbh,meanph,meanSOM,meanLBA,
-                                meantreedensity)
+                                meantreedensity,zeta_r)
 
 #,"zeta_r"
 
@@ -60,7 +60,7 @@ colnames(subset_all) = c("Site","nestZ","Area",
                          "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
                          "sd_meandbh","sd_TD","area_ratio",
                          "meandbh","meanph", "meanSOM","meanLBA",
-                         "meanTD")
+                         "meanTD","Zeta_r")
 #,"zeta_r"
 ```
 
@@ -94,7 +94,7 @@ subset_mean = site_data_outlier3%>%select(Site,nestZ,
                               Northing, PHI,  meandbh,
                               meanph, Buffer, meanSOM,meanLBA,
                               meanTD,area_ratio, no_NVC, 
-                              no_MSG)
+                              no_MSG,Zeta_r)
 #,"zeta_r"
 ```
 
@@ -213,9 +213,11 @@ ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
   stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7)+
   stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
   geom_abline(intercept = 0, slope = 0)+
-  labs(y = "Effect size and 95%CI",x = "effect")+
-  labs(title = "Model averaged results for delta <2, Nest Zs, Mean dataset",
-       subtitle = "numbers in red are variable importance")
+  labs(y = "Effect size and 95%CI",x = "Parameter")+
+    theme(axis.text.x = element_text(angle=45, hjust=1))+
+theme(text = element_text(size = 14, face = "bold"))
+  #labs(title = "Model averaged results for delta <2, Nest Zs, Mean dataset",
+       #subtitle = "numbers in red are variable importance")
   
 
 

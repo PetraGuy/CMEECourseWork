@@ -28,12 +28,13 @@ library(reshape) # melt
 
 # get the data
 site_data =  read.csv("../../Data/CompleteSiteLevelVars.csv")
-PlotZdata = read.csv("../../Data/z_ave_fits.csv")
+PlotZdata = read.csv("../../Data/z_ave_fits.csv") # these from my min/max method
 Zs = PlotZdata%>%select(Site, slope)
 zeta_r = readRDS("../Zeta/zeta_r")
 Site = c(1:103)
 zeta_r = as.data.frame(cbind(Site,zeta_r))
 site_data = inner_join(site_data,zeta_r)
+
 
 #mean impute the missing PHI
 meanPHI = round(mean(site_data$Pos_Hetero_Index, na.rm = TRUE),2)
@@ -41,33 +42,37 @@ x = site_data$Pos_Hetero_Index
 x[is.na(x)] = meanPHI
 site_data$Pos_Hetero_Index = x
 
-site_data_zs = inner_join(site_data,Zs)
+site_data_zs = inner_join(site_data,Zs)#now has my min/mx slopes
 ```
 
 ```{r}
 #add in the new random path z's AND expectation method Zs
 
-rand_zs = read.csv("../../Data/rand_zs.csv")
+veganrandzs = readRDS("../veganrandomz.RDS") # these using random function in vegan
+veganrandzsdf = as.data.frame(cbind(Site,veganrandzs))
+
+
+rand_zs = read.csv("../../Data/rand_zs.csv") #are these the vegan ones again, i think so, look similar
 colnames(rand_zs) = c("Site","zr")
 
-exp_zs = read.csv("../../Data/zexp.csv")
+exp_zs = read.csv("../../Data/zexp.csv") # these fropm vegan exact
 colnames(exp_zs) = c("Site","expz")
 
 site_data_zs_zr=inner_join(site_data_zs,rand_zs)
 site_data_allzs = inner_join(site_data_zs_zr,exp_zs)
 
-veganz = readRDS("../veganzs.RDS")
+veganz = readRDS("../veganzs.RDS") #so which are these???
 veganz = as.data.frame(cbind(Site,veganz))
 colnames(veganz) = c("Site","veganzs")
 
-site_data_allzs_vegan = inner_join(site_data_allzs,veganz)
+site_data_zs_vegan = inner_join(site_data_zs,veganrandzsdf)#have just joined min/max and vegan_Randomzs
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # select only required variables
 #change to either slope or zr or zexp if you want minmax , 1000 random paths or expectation 
 
-subset_all = site_data_allzs_vegan%>%select(Site,veganzs,Area_ha,
+subset_all = site_data_zs%>%select(Site,slope,Area_ha,
                                 Northing, Pos_Hetero_Index,Buffer3,
                                 no_MSG, no_NVC,sd_pH,sd_SOM,sd_LBA,
                                 sd_meandbh,sd_treedensity,area_ratio,
@@ -76,7 +81,7 @@ subset_all = site_data_allzs_vegan%>%select(Site,veganzs,Area_ha,
 
 #zeta_r"
 
-colnames(subset_all) = c("Site","z","Area",
+colnames(subset_all) = c("Site","z","Area", 
                          "Northing", "PHI","Buffer",
                          "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
                          "sd_meandbh","sd_TD","area_ratio",
@@ -192,9 +197,7 @@ The models which had a delta <2 were selected from the MuMin dredge funtion as t
 library(MuMIn) #dredge and avg
  #get top models
 models = dredge(mod_mean)
-model_set = get.models(models, subset = delta<0.8)
-
-
+model_set = get.models(models, subset = delta<1.5)
 #do model averaging, subset means zero method
 mean_avg_models = model.avg(model_set, subset)
 
@@ -236,9 +239,11 @@ ggplot(melted,aes_string(x = 'variable', y ='value' ) )+
   stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7)+
   stat_summary(geom = "text", label = output$importance[-1],fun.y = max, hjust = 1, colour = "red")+
   geom_abline(intercept = 0, slope = 0)+
-  labs(y = "Effect size and 95%CI",x = "effect")+
-  labs(title = "Model averaged results for delta <1.5, Plot Zs, Mean dataset",
-       subtitle = "numbers in red are variable importance")
+  labs(y = "Effect size and 95%CI",x = "Parameter")+
+   theme(axis.text.x = element_text(angle=45, hjust=1))+
+theme(text = element_text(size = 14, face = "bold"))
+  #labs(title = "Model averaged results for delta <1.5, Plot Zs, Mean dataset",
+       #subtitle = "numbers in red are variable importance")
   
 
 

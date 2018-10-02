@@ -178,6 +178,9 @@ plotdataSOM = plotdata%>%select(SOMYr2,plot_richness)%>%filter(SOMYr2 !=0)
   
   ########################
   
+  # taking the slope from the min/max fits and plotting with variables.
+  #not sure what I was trying to do here
+  
   SiteVarsSlopes = inner_join(AllSiteVars,ave_data_fits)
   SiteVarsSlopesRed = SiteVarsSlopes[-c(1,2,3,4,5,6,7,8,10,11,22,23,24,25,26,27,28,29)]
   outliers = c(78,97)

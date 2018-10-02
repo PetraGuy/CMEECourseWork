@@ -68,7 +68,7 @@ get_p = function(data){
 }
 ###############
 w10vals = get_som_ellens("W10")
-w10pH = w10vals%>%select(SOM,pH) # just want pH for talk
+w10pH = w10vals%>%select(SOM,pH,ave_N,ave_R) # just want pH for talk
 melted = melt(w10pH, id.vars = "SOM")
 ps = get_p(w10vals)
 pvals = paste("p ave N =",round(ps[1],2),
@@ -78,7 +78,7 @@ pvals = paste("p ave N =",round(ps[1],2),
  w10plot = ggplot(melted, aes(x = SOM, y = value))+
     geom_point()+
    geom_smooth(method = "lm")+
-  ylab("Plot pH")+
+   ylab("Plot pH")+
    annotate("text", x = 80, y = 9, label = "W10")
    #annotate("text", x = 40, y = 3, label = pvals)
 ###############
@@ -144,7 +144,7 @@ pvals = paste("p ave N =",round(ps[1],2),
  
  w21plot = ggplot(melted, aes(x = SOM, y = value))+
    geom_point()+
-   geom_smooth(method = "lm",linetype="dashed")+
+   geom_smooth(method = "lm")+
    ylab("Plot pH")+
    annotate("text", x = 80, y = 9, label = "W21")
    #annotate("text", x = 40, y = 3, label = pvals)

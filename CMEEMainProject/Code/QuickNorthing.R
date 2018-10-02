@@ -25,12 +25,12 @@ x[is.na(x)] = meanPHI
 site_data$Pos_Hetero_Index = x
 
 
-subset_all = site_data%>%select("Site","Richness","Area_ha",
-                                "Northing", "Pos_Hetero_Index","Buffer3",
-                                "no_MSG", "no_NVC","sd_pH","sd_SOM","sd_LBA",
-                                "sd_meandbh","sd_treedensity","area_ratio",
-                                "meandbh","meanph", "meanSOM","meanLBA",
-                                "meantreedensity","zeta_r")
+subset_all = site_data%>%select(Site,Richness,Area_ha,
+                                Northing, Pos_Hetero_Index,Buffer3,
+                                no_MSG, no_NVC,sd_pH,sd_SOM,sd_LBA,
+                                sd_meandbh,sd_treedensity,area_ratio,
+                                meandbh,meanph,meanSOM,meanLBA,
+                                meantreedensity,zeta_r)
 
 
 
@@ -49,7 +49,7 @@ site_data_outlier = site_data_outlier[,-3] # remove area column now
 g1 = ggplot(site_data_outlier, aes(x=meanTD, y=Northing))+ geom_point()+geom_smooth(method = "lm")+
   xlab("mean tree density")
 g2 = ggplot(site_data_outlier, aes(x=Buffer, y=Northing))+ geom_point()+geom_smooth(method = "lm")
-g3 =g2 = ggplot(site_data_outlier, aes(x=Buffer, y=Northing))+ geom_point()+geom_smooth(method = "lm")
+g3 = ggplot(site_data_outlier, aes(x=Buffer, y=Northing))+ geom_point()+geom_smooth(method = "lm")
 
 grid.arrange(g1,g2, ncol = 2)
 
